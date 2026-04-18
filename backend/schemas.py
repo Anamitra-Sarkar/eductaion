@@ -4,11 +4,12 @@ from typing import Optional, List
 from models import UserRole, AttendanceStatus, ActivityType, ActivityStatus, StudentStatus
 
 class CollegeBase(BaseModel):
-    name: str
-    address: str
-    naac_grade: Optional[str] = None
-    principal: str
-    academic_year: str
+      name: str
+      address: str
+      naac_grade: Optional[str] = None
+      principal: str
+      academic_year: str
+      domain: str
 
 class CollegeCreate(CollegeBase):
     pass
@@ -39,7 +40,12 @@ class UserBase(BaseModel):
     college_id: int
 
 class UserCreate(UserBase):
-    password: str = Field(min_length=6)
+      password: str = Field(min_length=6)
+
+class FacultyCreate(BaseModel):
+      name: str
+      email: EmailStr
+      password: str = Field(min_length=6)
 
 class UserLogin(BaseModel):
     email: EmailStr

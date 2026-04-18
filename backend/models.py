@@ -34,16 +34,17 @@ class StudentStatus(str, enum.Enum):
     graduated = "graduated"
 
 class College(Base):
-    __tablename__ = "colleges"
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True)
-    address = Column(String)
-    naac_grade = Column(String)
-    principal = Column(String)
-    academic_year = Column(String)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    departments = relationship("Department", back_populates="college", cascade="all, delete-orphan")
-    users = relationship("User", back_populates="college", cascade="all, delete-orphan")
+      __tablename__ = "colleges"
+      id = Column(Integer, primary_key=True, index=True)
+      name = Column(String, unique=True, index=True)
+      address = Column(String)
+      naac_grade = Column(String)
+      principal = Column(String)
+      academic_year = Column(String)
+      domain = Column(String, nullable=False, default="")
+      created_at = Column(DateTime, default=datetime.utcnow)
+      departments = relationship("Department", back_populates="college", cascade="all, delete-orphan")
+      users = relationship("User", back_populates="college", cascade="all, delete-orphan")
 
 class Department(Base):
     __tablename__ = "departments"

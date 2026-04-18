@@ -1,6 +1,10 @@
 {
-  "projectId": "6cbd6322-6dcc-49f2-a60d-432431f809da",
+  "projectId": "9a5146bb-0507-4287-abeb-b436084355a9",
   "createdAt": 1776502140476,
-  "startupCommands": ["open attendx.html"],
-  "templateId": "any"
+  "startupCommands": [
+    "cd /home/user/app/backend && pip install -r requirements.txt -q && python3 -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload",
+    "cd /home/user/app && python3 -m http.server 3000 --bind 127.0.0.1"
+  ],
+  "templateId": "any",
+  "detectedFramework": "python-fastapi"
 }

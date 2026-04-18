@@ -66,7 +66,8 @@ async def seed_database():
             address="123 Campus Road, Bangalore, India",
             naac_grade="A+",
             principal="Dr. A.K. Sharma",
-            academic_year="2024-2025"
+            academic_year="2024-2025",
+            domain="student.edu"
         )
         db.add(college)
         await db.flush()
@@ -80,26 +81,26 @@ async def seed_database():
             await db.flush()
             dept_map[code] = dept.id
         
-        # 3. Create Admin User
-        admin = User(
-            name="Administrator",
-            email="admin@college.edu",
-            hashed_password=hash_password("Admin@123"),
-            role=UserRole.admin,
-            college_id=college_id
-        )
-        db.add(admin)
-        await db.flush()
-        admin_id = admin.id
-        
-        # 4. Create Faculty Users
-        faculty_list = []
-        faculty_names = [
-            ("Dr. Ramesh Kumar", "ramesh@college.edu"),
-            ("Prof. Sneha Verma", "sneha@college.edu"),
-            ("Dr. Ajay Sharma", "ajay@college.edu"),
-            ("Prof. Divya Patel", "divya@college.edu"),
-        ]
+          # 3. Create Admin User
+          admin = User(
+              name="Administrator",
+              email="admin@attendx.edu",
+              hashed_password=hash_password("Admin@123"),
+              role=UserRole.admin,
+              college_id=college_id
+          )
+          db.add(admin)
+          await db.flush()
+          admin_id = admin.id
+          
+          # 4. Create Faculty Users
+          faculty_list = []
+          faculty_names = [
+              ("Dr. Ramesh Kumar", "faculty@attendx.edu"),
+              ("Prof. Sneha Verma", "sneha@attendx.edu"),
+              ("Dr. Ajay Sharma", "ajay@attendx.edu"),
+              ("Prof. Divya Patel", "divya@attendx.edu"),
+          ]
         
         for name, email in faculty_names:
             faculty = User(

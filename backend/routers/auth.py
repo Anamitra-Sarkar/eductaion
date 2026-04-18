@@ -8,8 +8,8 @@ import os
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 from database import get_db
-from schemas import UserCreate, UserLogin, Token, User as UserSchema
-from models import User, College
+from schemas import UserCreate, UserLogin, Token, User as UserSchema, FacultyCreate
+from models import User, College, UserRole
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -62,21 +62,32 @@ async def get_current_user(
 
 @router.post("/register", response_model=UserSchema)
 async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
+    # Hard-reject non-students
+    if user.role != UserRole.student:
+        raise HTTPException(status_code=403, detail="Self-registration is only allowed for students")
+    
+    # Check if email already exists
     result = await db.execute(select(User).where(User.email == user.email))
     existing_user = result.scalars().first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
+    # Fetch college and validate email domain
     result = await db.execute(select(College).where(College.id == user.college_id))
     college = result.scalars().first()
     if not college:
         raise HTTPException(status_code=404, detail="College not found")
     
+    # Validate email domain matches college domain
+    if not user.email.endswith(f"@{college.domain}"):
+        raise HTTPException(status_code=400, detail=f"Email must use your institution's official domain")
+    
+    # Force role to student (don't trust client)
     db_user = User(
         name=user.name,
         email=user.email,
         hashed_password=hash_password(user.password),
-        role=user.role,
+        role=UserRole.student,
         college_id=user.college_id
     )
     db.add(db_user)
@@ -101,4 +112,33 @@ async def login(form_data: UserLogin, db: AsyncSession = Depends(get_db)):
 
 @router.get("/me", response_model=UserSchema)
 async def get_me(current_user: User = Depends(get_current_user)):
-    return current_user
+      return current_user
+
+@router.post("/register/faculty", response_model=UserSchema)
+async def register_faculty(
+    faculty: FacultyCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    # Verify admin
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Only administrators can create faculty accounts")
+    
+    # Check if email already exists
+    result = await db.execute(select(User).where(User.email == faculty.email))
+    existing_user = result.scalars().first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create faculty user in same college as admin
+    db_user = User(
+        name=faculty.name,
+        email=faculty.email,
+        hashed_password=hash_password(faculty.password),
+        role=UserRole.faculty,
+        college_id=current_user.college_id
+    )
+    db.add(db_user)
+    await db.commit()
+    await db.refresh(db_user)
+    return db_user

@@ -165,37 +165,32 @@
             </form>
         </div>
 
-        <div id="signup-panel" class="auth-panel">
-            <form id="signup-form">
-                <div class="form-group">
-                    <label for="signup-name">Full Name</label>
-                    <input type="text" id="signup-name" required />
-                </div>
-                <div class="form-group">
-                    <label for="signup-email">Email</label>
-                    <input type="email" id="signup-email" required />
-                </div>
-                <div class="form-group">
-                    <label for="signup-password">Password</label>
-                    <input type="password" id="signup-password" minlength="6" required />
-                </div>
-                <div class="form-group">
-                    <label for="signup-role">Role</label>
-                    <select id="signup-role" required>
-                        <option value="admin">Admin</option>
-                        <option value="faculty">Faculty</option>
-                        <option value="student">Student</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="signup-college-id">College ID</label>
-                    <input type="number" id="signup-college-id" min="1" value="1" required />
-                </div>
-                <p id="signup-error" class="auth-error" style="display:none;"></p>
-                <p id="signup-success" class="auth-success" style="display:none;"></p>
-                <button type="submit" id="signup-btn" class="btn-primary" style="width:100%;">Sign Up</button>
-            </form>
-        </div>
+          <div id="signup-panel" class="auth-panel">
+              <form id="signup-form">
+                  <div class="form-group">
+                      <label for="signup-name">Full Name</label>
+                      <input type="text" id="signup-name" required />
+                  </div>
+                  <div class="form-group">
+                      <label for="signup-college-id">College</label>
+                      <select id="signup-college-id" required>
+                          <option value="">Loading colleges...</option>
+                      </select>
+                  </div>
+                  <div class="form-group">
+                      <label for="signup-email">Email</label>
+                      <input type="email" id="signup-email" required />
+                      <p id="email-helper" style="font-size:0.85rem;color:var(--color-text-muted);margin-top:0.35rem;"></p>
+                  </div>
+                  <div class="form-group">
+                      <label for="signup-password">Password</label>
+                      <input type="password" id="signup-password" minlength="6" required />
+                  </div>
+                  <p id="signup-error" class="auth-error" style="display:none;"></p>
+                  <p id="signup-success" class="auth-success" style="display:none;"></p>
+                  <button type="submit" id="signup-btn" class="btn-primary" style="width:100%;">Sign Up</button>
+              </form>
+          </div>
     </div>
 </div>
 <aside id="sidebar" style="display:none;">
@@ -277,20 +272,41 @@
             </table>
         </div>
     </div>
-    <div id="page-settings" class="page">
-        <div class="page-header"><h1>Settings</h1></div>
-        <div class="card"><h2 style="margin-bottom:0.75rem;">Institution Profile</h2><p class="muted">Managed from backend configuration.</p></div>
-    </div>
+      <div id="page-settings" class="page">
+          <div class="page-header"><h1>Settings</h1></div>
+          <div class="card"><h2 style="margin-bottom:0.75rem;">Institution Profile</h2><p class="muted">Managed from backend configuration.</p></div>
+          <div id="faculty-form-container" class="card" style="display:none;">
+              <h2 style="margin-bottom:1rem;">Create Faculty Account</h2>
+              <form id="faculty-form">
+                  <div class="form-group">
+                      <label for="faculty-name">Full Name</label>
+                      <input type="text" id="faculty-name" required />
+                  </div>
+                  <div class="form-group">
+                      <label for="faculty-email">Email</label>
+                      <input type="email" id="faculty-email" required />
+                  </div>
+                  <div class="form-group">
+                      <label for="faculty-password">Password</label>
+                      <input type="password" id="faculty-password" minlength="6" required />
+                  </div>
+                  <p id="faculty-error" class="auth-error" style="display:none;"></p>
+                  <p id="faculty-success" class="auth-success" style="display:none;"></p>
+                  <button type="submit" id="faculty-btn" class="btn-primary" style="width:100%;">Create Faculty</button>
+              </form>
+          </div>
+      </div>
 </main>
 <button id="theme-btn" class="theme-toggle" onclick="toggleTheme()" style="display:none;">🌙</button>
 <script>
     const API_BASE = 'https://eductaion.onrender.com';
     const STORAGE_KEY = 'attendx_auth';
 
-    let authToken = null;
-    let currentUser = null;
-    let charts = {};
-    let currentTheme = 'light';
+      let authToken = null;
+      let currentUser = null;
+      let charts = {};
+      let currentTheme = 'light';
+      let colleges = [];
 
     function saveAuth() {
         if (authToken && currentUser) {
@@ -379,9 +395,46 @@
         document.getElementById('signup-success').style.display = 'none';
     }
 
-    document.querySelectorAll('.auth-tab').forEach(btn => {
-        btn.addEventListener('click', () => switchAuthTab(btn.dataset.authTab));
-    });
+      document.querySelectorAll('.auth-tab').forEach(btn => {
+          btn.addEventListener('click', () => switchAuthTab(btn.dataset.authTab));
+      });
+
+      async function loadColleges() {
+          const data = await apiCall('/colleges');
+          colleges = data || [];
+          const select = document.getElementById('signup-college-id');
+          if (!colleges || !colleges.length) {
+              select.innerHTML = '<option value="">Could not load colleges. Please try again.</option>';
+              return;
+          }
+          select.innerHTML = colleges.map(c => `<option value="${c.id}">${c.name} (${c.domain})</option>`).join('');
+          if (colleges.length > 0) {
+              select.value = colleges[0].id;
+              updateEmailHelper();
+          }
+      }
+
+      function updateEmailHelper() {
+          const collegeId = Number(document.getElementById('signup-college-id').value);
+          const college = colleges.find(c => c.id === collegeId);
+          const helper = document.getElementById('email-helper');
+          if (college) {
+              helper.textContent = `Use your @${college.domain} email address`;
+          } else {
+              helper.textContent = '';
+          }
+      }
+
+      document.getElementById('signup-college-id').addEventListener('change', updateEmailHelper);
+
+      document.querySelectorAll('.auth-tab').forEach(btn => {
+          btn.addEventListener('click', () => {
+              if (btn.dataset.authTab === 'signup') {
+                  loadColleges();
+              }
+              switchAuthTab(btn.dataset.authTab);
+          });
+      });
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -412,44 +465,44 @@
         btn.textContent = 'Login';
     });
 
-    document.getElementById('signup-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('signup-btn');
-        const errEl = document.getElementById('signup-error');
-        const successEl = document.getElementById('signup-success');
-        btn.disabled = true;
-        btn.textContent = 'Creating account...';
-        errEl.style.display = 'none';
-        successEl.style.display = 'none';
+      document.getElementById('signup-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById('signup-btn');
+          const errEl = document.getElementById('signup-error');
+          const successEl = document.getElementById('signup-success');
+          btn.disabled = true;
+          btn.textContent = 'Creating account...';
+          errEl.style.display = 'none';
+          successEl.style.display = 'none';
 
-        const payload = {
-            name: document.getElementById('signup-name').value.trim(),
-            email: document.getElementById('signup-email').value.trim(),
-            password: document.getElementById('signup-password').value,
-            role: document.getElementById('signup-role').value,
-            college_id: Number(document.getElementById('signup-college-id').value)
-        };
+          const payload = {
+              name: document.getElementById('signup-name').value.trim(),
+              email: document.getElementById('signup-email').value.trim(),
+              password: document.getElementById('signup-password').value,
+              role: 'student',
+              college_id: Number(document.getElementById('signup-college-id').value)
+          };
 
-        const data = await apiCall('/auth/register', {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        });
+          const data = await apiCall('/auth/register', {
+              method: 'POST',
+              body: JSON.stringify(payload)
+          });
 
-        if (data?.id) {
-            successEl.textContent = 'Account created successfully. Please login now.';
-            successEl.style.display = 'block';
-            document.getElementById('signup-form').reset();
-            document.getElementById('login-email').value = payload.email;
-            switchAuthTab('signin');
-            showToast('Account created successfully', 'success');
-        } else {
-            errEl.textContent = 'Signup failed. Please check your details.';
-            errEl.style.display = 'block';
-        }
+          if (data?.id) {
+              successEl.textContent = 'Account created successfully. Please login now.';
+              successEl.style.display = 'block';
+              document.getElementById('signup-form').reset();
+              document.getElementById('login-email').value = payload.email;
+              switchAuthTab('signin');
+              showToast('Account created successfully', 'success');
+          } else {
+              errEl.textContent = 'Signup failed. Please check your details.';
+              errEl.style.display = 'block';
+          }
 
-        btn.disabled = false;
-        btn.textContent = 'Sign Up';
-    });
+          btn.disabled = false;
+          btn.textContent = 'Sign Up';
+      });
 
     function logout(msg = true) {
         clearAuth();
@@ -459,15 +512,15 @@
         if (msg) showToast('Logged out', 'info');
     }
 
-    function showPage(name) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById('page-' + name).classList.add('active');
-        document.querySelectorAll('.nav-item[data-page]').forEach(i => i.classList.remove('active'));
-        const nav = document.querySelector(`.nav-item[data-page="${name}"]`);
-        if (nav) nav.classList.add('active');
-        const loaders = { dashboard: loadDashboard, attendance: loadAttendance, timetable: loadTimetable, activities: loadActivities, analytics: loadAnalytics, students: loadStudents, alumni: loadAlumni };
-        if (loaders[name]) loaders[name]();
-    }
+      function showPage(name) {
+          document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+          document.getElementById('page-' + name).classList.add('active');
+          document.querySelectorAll('.nav-item[data-page]').forEach(i => i.classList.remove('active'));
+          const nav = document.querySelector(`.nav-item[data-page="${name}"]`);
+          if (nav) nav.classList.add('active');
+          const loaders = { dashboard: loadDashboard, attendance: loadAttendance, timetable: loadTimetable, activities: loadActivities, analytics: loadAnalytics, students: loadStudents, alumni: loadAlumni, settings: loadSettings };
+          if (loaders[name]) loaders[name]();
+      }
 
     document.querySelectorAll('.nav-item[data-page]').forEach(item => {
         item.addEventListener('click', () => showPage(item.dataset.page));
@@ -537,14 +590,57 @@
         tbody.innerHTML = data.map(s => `<tr><td>${s.name}</td><td>${s.roll_no}</td><td>${s.dept_id}</td><td>${s.semester}</td><td>${s.email}</td><td>${statusBadge(s.status)}</td></tr>`).join('');
     }
 
-    async function loadAlumni() {
-        const data = await apiCall('/alumni');
-        const tbody = document.getElementById('alumni-table');
-        if (!data||!Array.isArray(data)) { tbody.innerHTML='<tr><td colspan="6" class="empty-state">No alumni found</td></tr>'; return; }
-        tbody.innerHTML = data.map(a => `<tr><td>${a.name}</td><td>${a.batch_year}</td><td>${a.company}</td><td>${a.role}</td><td>${a.email}</td><td>${a.location}</td></tr>`).join('');
-    }
+      async function loadAlumni() {
+          const data = await apiCall('/alumni');
+          const tbody = document.getElementById('alumni-table');
+          if (!data||!Array.isArray(data)) { tbody.innerHTML='<tr><td colspan="6" class="empty-state">No alumni found</td></tr>'; return; }
+          tbody.innerHTML = data.map(a => `<tr><td>${a.name}</td><td>${a.batch_year}</td><td>${a.company}</td><td>${a.role}</td><td>${a.email}</td><td>${a.location}</td></tr>`).join('');
+      }
 
-    async function loadAnalytics() {
+      async function loadSettings() {
+          if (currentUser && currentUser.role === 'admin') {
+              document.getElementById('faculty-form-container').style.display = 'block';
+          } else {
+              document.getElementById('faculty-form-container').style.display = 'none';
+          }
+      }
+
+      document.getElementById('faculty-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const btn = document.getElementById('faculty-btn');
+          const errEl = document.getElementById('faculty-error');
+          const successEl = document.getElementById('faculty-success');
+          btn.disabled = true;
+          btn.textContent = 'Creating...';
+          errEl.style.display = 'none';
+          successEl.style.display = 'none';
+
+          const payload = {
+              name: document.getElementById('faculty-name').value.trim(),
+              email: document.getElementById('faculty-email').value.trim(),
+              password: document.getElementById('faculty-password').value
+          };
+
+          const data = await apiCall('/auth/register/faculty', {
+              method: 'POST',
+              body: JSON.stringify(payload)
+          });
+
+          if (data?.id) {
+              successEl.textContent = `Faculty ${payload.name} created successfully!`;
+              successEl.style.display = 'block';
+              document.getElementById('faculty-form').reset();
+              showToast('Faculty account created', 'success');
+          } else {
+              errEl.textContent = 'Failed to create faculty account. Please check the details.';
+              errEl.style.display = 'block';
+          }
+
+          btn.disabled = false;
+          btn.textContent = 'Create Faculty';
+      });
+
+      async function loadAnalytics() {
         const [attendanceData, activityData] = await Promise.all([apiCall('/analytics/attendance'), apiCall('/analytics/activities')]);
         const { primary, grid, text } = cc();
         const deptCtx = document.getElementById('deptChart').getContext('2d');
