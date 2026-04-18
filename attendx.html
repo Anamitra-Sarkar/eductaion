@@ -161,6 +161,7 @@
                     <input type="password" id="login-password" required />
                 </div>
                 <p id="login-error" class="auth-error" style="display:none;"></p>
+                <p id="login-success" class="auth-success" style="display:none;"></p>
                 <button type="submit" id="login-btn" class="btn-primary" style="width:100%;">Login</button>
             </form>
         </div>
@@ -172,15 +173,18 @@
                       <input type="text" id="signup-name" required />
                   </div>
                   <div class="form-group">
-                      <label for="signup-college-id">College</label>
-                      <select id="signup-college-id" required>
+                      <label for="signup-college">College</label>
+                      <select id="signup-college" required>
                           <option value="">Loading colleges...</option>
                       </select>
+                      <small id="college-retry" style="display:none;margin-top:0.35rem;color:var(--color-text-muted);">
+                          Could not load colleges. <a href="#" id="retry-colleges-link">Retry</a>
+                      </small>
                   </div>
                   <div class="form-group">
                       <label for="signup-email">Email</label>
                       <input type="email" id="signup-email" required />
-                      <p id="email-helper" style="font-size:0.85rem;color:var(--color-text-muted);margin-top:0.35rem;"></p>
+                      <small id="email-helper" style="display:none;font-size:0.85rem;color:var(--color-text-muted);margin-top:0.35rem;"></small>
                   </div>
                   <div class="form-group">
                       <label for="signup-password">Password</label>
@@ -292,7 +296,7 @@
                   </div>
                   <p id="faculty-error" class="auth-error" style="display:none;"></p>
                   <p id="faculty-success" class="auth-success" style="display:none;"></p>
-                  <button type="submit" id="faculty-btn" class="btn-primary" style="width:100%;">Create Faculty</button>
+                  <button type="submit" id="faculty-btn" class="btn-primary" style="width:100%;">Create Faculty Account</button>
               </form>
           </div>
       </div>
@@ -393,6 +397,7 @@
         document.getElementById('login-error').style.display = 'none';
         document.getElementById('signup-error').style.display = 'none';
         document.getElementById('signup-success').style.display = 'none';
+        document.getElementById('login-success').style.display = 'none';
     }
 
       document.querySelectorAll('.auth-tab').forEach(btn => {
@@ -400,41 +405,51 @@
       });
 
       async function loadColleges() {
-          const data = await apiCall('/colleges');
-          colleges = data || [];
-          const select = document.getElementById('signup-college-id');
-          if (!colleges || !colleges.length) {
-              select.innerHTML = '<option value="">Could not load colleges. Please try again.</option>';
-              return;
-          }
-          select.innerHTML = colleges.map(c => `<option value="${c.id}">${c.name} (${c.domain})</option>`).join('');
-          if (colleges.length > 0) {
-              select.value = colleges[0].id;
+          const select = document.getElementById('signup-college');
+          const retry = document.getElementById('college-retry');
+          select.innerHTML = '<option value="">Loading colleges...</option>';
+          retry.style.display = 'none';
+
+          try {
+              const res = await fetch(API_BASE + '/colleges');
+              if (!res.ok) throw new Error('Failed to fetch colleges');
+              const data = await res.json();
+              colleges = Array.isArray(data) ? data : [];
+
+              if (!colleges.length) {
+                  select.innerHTML = '<option disabled>Could not load colleges — please refresh</option>';
+                  retry.style.display = 'inline-block';
+                  return;
+              }
+
+              select.innerHTML = ['<option value="">Select your college</option>', ...colleges.map(c => `<option value="${c.id}">${c.name}</option>`)].join('');
               updateEmailHelper();
+          } catch (err) {
+              colleges = [];
+              select.innerHTML = '<option disabled>Could not load colleges — please refresh</option>';
+              retry.style.display = 'inline-block';
           }
       }
 
       function updateEmailHelper() {
-          const collegeId = Number(document.getElementById('signup-college-id').value);
+          const collegeId = Number(document.getElementById('signup-college').value);
           const college = colleges.find(c => c.id === collegeId);
           const helper = document.getElementById('email-helper');
-          if (college) {
-              helper.textContent = `Use your @${college.domain} email address`;
+          if (college && college.domain) {
+              helper.textContent = `Use your @${college.domain} email address.`;
+              helper.style.display = 'block';
           } else {
               helper.textContent = '';
+              helper.style.display = 'none';
           }
       }
 
-      document.getElementById('signup-college-id').addEventListener('change', updateEmailHelper);
-
-      document.querySelectorAll('.auth-tab').forEach(btn => {
-          btn.addEventListener('click', () => {
-              if (btn.dataset.authTab === 'signup') {
-                  loadColleges();
-              }
-              switchAuthTab(btn.dataset.authTab);
-          });
+      document.getElementById('signup-college').addEventListener('change', updateEmailHelper);
+      document.getElementById('retry-colleges-link').addEventListener('click', (e) => {
+          e.preventDefault();
+          loadColleges();
       });
+
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -480,7 +495,7 @@
               email: document.getElementById('signup-email').value.trim(),
               password: document.getElementById('signup-password').value,
               role: 'student',
-              college_id: Number(document.getElementById('signup-college-id').value)
+              college_id: Number(document.getElementById('signup-college').value)
           };
 
           const data = await apiCall('/auth/register', {
@@ -489,11 +504,14 @@
           });
 
           if (data?.id) {
-              successEl.textContent = 'Account created successfully. Please login now.';
+              successEl.textContent = 'Account created successfully.';
               successEl.style.display = 'block';
               document.getElementById('signup-form').reset();
               document.getElementById('login-email').value = payload.email;
               switchAuthTab('signin');
+              const loginSuccessEl = document.getElementById('login-success');
+              loginSuccessEl.textContent = 'Account created successfully. Please sign in.';
+              loginSuccessEl.style.display = 'block';
               showToast('Account created successfully', 'success');
           } else {
               errEl.textContent = 'Signup failed. Please check your details.';
@@ -621,23 +639,33 @@
               password: document.getElementById('faculty-password').value
           };
 
-          const data = await apiCall('/auth/register/faculty', {
-              method: 'POST',
-              body: JSON.stringify(payload)
-          });
+          try {
+              const res = await fetch(API_BASE + '/auth/register/faculty', {
+                  method: 'POST',
+                  headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${authToken}`
+                  },
+                  body: JSON.stringify(payload)
+              });
+              const data = await res.json().catch(() => null);
 
-          if (data?.id) {
-              successEl.textContent = `Faculty ${payload.name} created successfully!`;
-              successEl.style.display = 'block';
-              document.getElementById('faculty-form').reset();
-              showToast('Faculty account created', 'success');
-          } else {
-              errEl.textContent = 'Failed to create faculty account. Please check the details.';
+              if (res.ok && data?.id) {
+                  successEl.textContent = 'Faculty account created successfully';
+                  successEl.style.display = 'block';
+                  document.getElementById('faculty-form').reset();
+                  showToast('Faculty account created successfully', 'success');
+              } else {
+                  errEl.textContent = data?.detail || 'Failed to create faculty account.';
+                  errEl.style.display = 'block';
+              }
+          } catch (err) {
+              errEl.textContent = err.message || 'Failed to create faculty account.';
               errEl.style.display = 'block';
           }
 
           btn.disabled = false;
-          btn.textContent = 'Create Faculty';
+          btn.textContent = 'Create Faculty Account';
       });
 
       async function loadAnalytics() {
@@ -686,6 +714,7 @@
         currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.dataset.theme = currentTheme;
         document.getElementById('theme-btn').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+        loadColleges();
         restoreSession();
     });
 </script>
