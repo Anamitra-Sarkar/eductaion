@@ -42,7 +42,6 @@ class College(Base):
     principal = Column(String)
     academic_year = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
     departments = relationship("Department", back_populates="college", cascade="all, delete-orphan")
     users = relationship("User", back_populates="college", cascade="all, delete-orphan")
 
@@ -52,7 +51,6 @@ class Department(Base):
     name = Column(String, index=True)
     code = Column(String)
     college_id = Column(Integer, ForeignKey("colleges.id"), nullable=False)
-    
     college = relationship("College", back_populates="departments")
     students = relationship("Student", back_populates="department", cascade="all, delete-orphan")
     subjects = relationship("Subject", back_populates="department", cascade="all, delete-orphan")
@@ -69,7 +67,6 @@ class User(Base):
     role = Column(Enum(UserRole), default=UserRole.student)
     college_id = Column(Integer, ForeignKey("colleges.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
     college = relationship("College", back_populates="users")
     student = relationship("Student", back_populates="user", uselist=False, cascade="all, delete-orphan")
     subjects_as_faculty = relationship("Subject", back_populates="faculty", foreign_keys="Subject.faculty_id")
@@ -88,7 +85,6 @@ class Student(Base):
     status = Column(Enum(StudentStatus), default=StudentStatus.active)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
     department = relationship("Department", back_populates="students")
     user = relationship("User", back_populates="student")
     attendance_records = relationship("AttendanceRecord", back_populates="student", cascade="all, delete-orphan")
@@ -103,7 +99,6 @@ class Subject(Base):
     semester = Column(Integer)
     faculty_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     credit_hours = Column(Float)
-    
     department = relationship("Department", back_populates="subjects")
     faculty = relationship("User", back_populates="subjects_as_faculty", foreign_keys=[faculty_id])
     timetable_slots = relationship("TimetableSlot", back_populates="subject", cascade="all, delete-orphan")
@@ -112,14 +107,13 @@ class Subject(Base):
 class TimetableSlot(Base):
     __tablename__ = "timetable_slots"
     id = Column(Integer, primary_key=True, index=True)
-    day = Column(String)  # Monday, Tuesday, ...
+    day = Column(String)
     time_start = Column(Time)
     time_end = Column(Time)
     subject_id = Column(Integer, ForeignKey("subjects.id"), nullable=False)
     room = Column(String)
     semester = Column(Integer)
     dept_id = Column(Integer, ForeignKey("departments.id"), nullable=False)
-    
     subject = relationship("Subject", back_populates="timetable_slots")
     department = relationship("Department", back_populates="timetable_slots")
 
@@ -131,7 +125,6 @@ class AttendanceSession(Base):
     faculty_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     total_students = Column(Integer)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
     subject = relationship("Subject", back_populates="attendance_sessions")
     faculty = relationship("User", back_populates="attendance_sessions")
     records = relationship("AttendanceRecord", back_populates="session", cascade="all, delete-orphan")
@@ -143,7 +136,6 @@ class AttendanceRecord(Base):
     student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
     status = Column(Enum(AttendanceStatus), default=AttendanceStatus.absent)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
     session = relationship("AttendanceSession", back_populates="records")
     student = relationship("Student", back_populates="attendance_records")
 
@@ -151,7 +143,7 @@ class Activity(Base):
     __tablename__ = "activities"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
-    type = Column(Enum(ActivityType))
+    activity_type = Column(Enum(ActivityType))
     date = Column(DateTime)
     description = Column(Text)
     dept_id = Column(Integer, ForeignKey("departments.id"), nullable=False)
@@ -159,7 +151,6 @@ class Activity(Base):
     max_capacity = Column(Integer)
     status = Column(Enum(ActivityStatus), default=ActivityStatus.upcoming)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
     department = relationship("Department", back_populates="activities")
     coordinator = relationship("User", back_populates="activities_coordinated")
     enrollments = relationship("ActivityEnrollment", back_populates="activity", cascade="all, delete-orphan")
@@ -171,7 +162,6 @@ class ActivityEnrollment(Base):
     student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
     attended = Column(Boolean, default=False)
     enrolled_at = Column(DateTime, default=datetime.utcnow)
-    
     activity = relationship("Activity", back_populates="enrollments")
     student = relationship("Student", back_populates="activity_enrollments")
 
@@ -187,5 +177,4 @@ class Alumni(Base):
     linkedin = Column(String)
     location = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
-    
     department = relationship("Department", back_populates="alumni")

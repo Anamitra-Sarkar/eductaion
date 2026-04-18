@@ -155,7 +155,7 @@ class AttendanceSessionWithRecords(AttendanceSession):
 
 class ActivityBase(BaseModel):
     title: str
-    type: ActivityType
+    activity_type: ActivityType
     date: datetime
     description: str
     dept_id: int
@@ -167,7 +167,7 @@ class ActivityCreate(ActivityBase):
 
 class ActivityUpdate(BaseModel):
     title: Optional[str] = None
-    type: Optional[ActivityType] = None
+    activity_type: Optional[ActivityType] = None
     date: Optional[datetime] = None
     description: Optional[str] = None
     max_capacity: Optional[int] = None

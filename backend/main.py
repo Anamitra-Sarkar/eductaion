@@ -5,14 +5,10 @@ from contextlib import asynccontextmanager
 from database import init_db, get_db
 from routers import auth, students, attendance, timetable, activities, alumni, analytics
 
-# App startup/shutdown
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     await init_db()
     yield
-    # Shutdown
-    pass
 
 app = FastAPI(
     title="AttendX API",
@@ -21,19 +17,17 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS
-frontend_url = os.getenv("FRONTEND_URL", "*")
-origins = frontend_url.split(",") if frontend_url != "*" else ["*"]
+frontend_url = os.getenv("FRONTEND_URL", "https://eductaion-phi.vercel.app")
+origins = [o.strip() for o in frontend_url.split(",")] if frontend_url != "*" else ["*"]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=False if "*" in origins else True,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Routers
 app.include_router(auth.router)
 app.include_router(students.router)
 app.include_router(attendance.router)
