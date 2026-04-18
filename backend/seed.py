@@ -60,6 +60,7 @@ ACTIVITY_TYPES = [
 ]
 
 COMPANIES = ["TCS", "Infosys", "Google", "Microsoft", "Amazon", "Adobe", "Flipkart", "Jio", "DRDO", "ISRO"]
+SEED_USER_PASSWORD = os.getenv("SEED_USER_PASSWORD", "change-me")
 
 async def seed_all():
     await init_db()
@@ -86,38 +87,53 @@ async def seed_all():
             await db.flush()
             dept_map[code] = dept.id
         
-        # 3. Create Admin User
-        admin = User(
-            name="Administrator",
-            email="admin@attendx.edu",
-            hashed_password=hash_password("Admin@123"),
-            role=UserRole.admin,
-            college_id=college_id
-        )
-        db.add(admin)
-        await db.flush()
-        admin_id = admin.id
+        # 3. Create Admin User from env vars
+        admin_email = os.getenv("ADMIN_EMAIL", "")
+        admin_password = os.getenv("ADMIN_PASSWORD", "")
+        admin_name = os.getenv("ADMIN_NAME", "Admin")
+        admin_id = None
+        if not admin_email or not admin_password:
+            print("WARNING: ADMIN_EMAIL or ADMIN_PASSWORD not set — skipping admin creation")
+        else:
+            existing = await db.execute(select(User).where(User.email == admin_email))
+            admin = existing.scalars().first()
+            if not admin:
+                admin = User(
+                    name=admin_name,
+                    email=admin_email,
+                    hashed_password=hash_password(admin_password),
+                    role=UserRole.admin,
+                    college_id=college_id,
+                )
+                db.add(admin)
+                await db.flush()
+                await db.commit()
+                print(f"Admin created: {admin_email}")
+            else:
+                print(f"Admin already exists: {admin_email}")
+            admin_id = admin.id
 
         # 4. Create Faculty Users
         faculty_list = []
         faculty_names = [
-            ("Dr. Ramesh Kumar", "faculty@attendx.edu"),
-            ("Prof. Sneha Verma", "sneha@attendx.edu"),
-            ("Dr. Ajay Sharma", "ajay@attendx.edu"),
-            ("Prof. Divya Patel", "divya@attendx.edu"),
+            ("Faculty 1", "faculty1@college.edu"),
+            ("Faculty 2", "faculty2@college.edu"),
+            ("Faculty 3", "faculty3@college.edu"),
+            ("Faculty 4", "faculty4@college.edu"),
         ]
 
         for name, email in faculty_names:
             faculty = User(
                 name=name,
                 email=email,
-                hashed_password=hash_password("Faculty@123"),
+                hashed_password=hash_password(SEED_USER_PASSWORD),
                 role=UserRole.faculty,
                 college_id=college_id
             )
             db.add(faculty)
             await db.flush()
             faculty_list.append(faculty.id)
+        creator_id = admin_id or faculty_list[0]
         
         # 5. Create Subjects
         subject_map = {}
@@ -153,8 +169,8 @@ async def seed_all():
             
             student_user = User(
                 name=full_name,
-                email=f"{full_name.lower().replace(' ', '.')}@student.edu",
-                hashed_password=hash_password("Student@123"),
+                email=f"student{len(student_list) + 1:02d}@college.edu",
+                hashed_password=hash_password(SEED_USER_PASSWORD),
                 role=UserRole.student,
                 college_id=college_id
             )
@@ -167,7 +183,7 @@ async def seed_all():
                 dept_id=dept_map[dept_code],
                 semester=random.randint(1, 8),
                 phone=f"9{random.randint(100000000, 999999999)}",
-                email=f"{roll_no.lower()}@student.edu",
+                email=f"student{len(student_list) + 1:02d}@college.edu",
                 status=StudentStatus.active,
                 user_id=student_user.id
             )
@@ -283,7 +299,7 @@ async def seed_all():
             dept_id=dept_map["CSE"],
             semester=3,
             thumbnail_url="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1200&q=80",
-            created_by=admin_id,
+            created_by=creator_id,
             is_published=True,
             xp_reward=150,
         )
@@ -340,7 +356,7 @@ async def seed_all():
             dept_id=None,
             semester=1,
             thumbnail_url="https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=1200&q=80",
-            created_by=admin_id,
+            created_by=creator_id,
             is_published=True,
             xp_reward=120,
         )
@@ -471,7 +487,7 @@ async def seed_all():
             dept_id=dept_map["CSE"],
             semester=3,
             thumbnail_url=None,
-            created_by=admin_id,
+            created_by=creator_id,
             is_published=True,
             xp_reward=150,
         )
@@ -528,7 +544,7 @@ async def seed_all():
             dept_id=None,
             semester=1,
             thumbnail_url=None,
-            created_by=admin_id,
+            created_by=creator_id,
             is_published=True,
             xp_reward=120,
         )
@@ -589,7 +605,7 @@ async def seed_all():
                 duration_months=duration,
                 location=location,
                 application_deadline=datetime.utcnow() + timedelta(days=30),
-                posted_by=admin_id,
+                posted_by=creator_id,
             ))
 
         # 15. Class sessions
