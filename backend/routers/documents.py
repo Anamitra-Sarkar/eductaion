@@ -70,6 +70,13 @@ async def upload_document(
     return _document_payload(document, student.name)
 
 
+@router.get("/verify-hash")
+async def verify_hash_public(hash: str = Query(...), db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(DocumentVerification).where(DocumentVerification.hash == hash))
+    document = result.scalars().first()
+    return await _verification_result(db, document)
+
+
 @router.get("/my", response_model=List[DocumentOut])
 async def my_documents(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     if current_user.role != UserRole.student:
@@ -100,13 +107,6 @@ async def all_documents(current_user: User = Depends(get_current_user), db: Asyn
         verifier_result = await db.execute(select(User).where(User.id.in_(verifier_ids)))
         verifiers = {u.id: u.name for u in verifier_result.scalars().all()}
     return [_document_payload(doc, students.get(doc.student_id), verifiers.get(doc.verified_by)) for doc in docs]
-
-
-@router.get("/verify-hash")
-async def verify_hash_public(hash: str = Query(...), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(DocumentVerification).where(DocumentVerification.hash == hash))
-    document = result.scalars().first()
-    return await _verification_result(db, document)
 
 
 @router.get("/{id}/check/{hash}")

@@ -8,6 +8,9 @@ from routers import auth, colleges, students, attendance, timetable, activities,
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db()
+    if os.getenv("RUN_SEED", "false").lower() == "true":
+        from seed import seed_all
+        await seed_all()
     yield
 
 app = FastAPI(

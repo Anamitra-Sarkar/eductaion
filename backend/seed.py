@@ -61,7 +61,7 @@ ACTIVITY_TYPES = [
 
 COMPANIES = ["TCS", "Infosys", "Google", "Microsoft", "Amazon", "Adobe", "Flipkart", "Jio", "DRDO", "ISRO"]
 
-async def seed_database():
+async def seed_all():
     await init_db()
     
     async with AsyncSessionLocal() as db:
@@ -620,4 +620,4 @@ async def seed_database():
         print("✓ Database seeded successfully!")
 
 if __name__ == "__main__":
-    asyncio.run(seed_database())
+    asyncio.run(seed_all())

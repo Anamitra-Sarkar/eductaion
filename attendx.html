@@ -1104,11 +1104,6 @@
         for (let i = 1; i <= 12; i++) select.insertAdjacentHTML('beforeend', `<option value="${i}">Grade ${i}</option>`);
     }
 
-    function youtubeEmbed(url) {
-        const match = String(url || '').match(/(?:youtu\.be\/|v=)([A-Za-z0-9_-]+)/);
-        return match ? `https://www.youtube.com/embed/${match[1]}` : (url || '');
-    }
-
     async function loadInternships() {
         const actions = document.getElementById('internship-actions');
         if (currentUser?.role === 'admin' || currentUser?.role === 'faculty') { actions.innerHTML = `<button class="btn-primary" id="post-internship-btn">Post Internship</button>`; document.getElementById('post-internship-btn').onclick = openInternshipModal; document.getElementById('tab-manage').style.display = 'inline-flex'; } else { actions.innerHTML = ''; document.getElementById('tab-manage').style.display = 'none'; }
