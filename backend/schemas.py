@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime, time
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from models import (
     UserRole, AttendanceStatus, ActivityType, ActivityStatus, StudentStatus,
     LearningContentType, QuizCorrectOption, InternshipApplicationStatus,
@@ -250,6 +250,104 @@ class LearningContentOut(LearningContentBase):
     class Config:
         from_attributes = True
 
+class CourseBase(BaseModel):
+    title: str
+    description: str
+    subject: str
+    dept_id: Optional[int] = None
+    semester: Optional[int] = None
+    thumbnail_url: Optional[str] = None
+    xp_reward: int = 100
+    is_published: bool = False
+
+class CourseCreate(CourseBase):
+    pass
+
+class CourseUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    subject: Optional[str] = None
+    dept_id: Optional[int] = None
+    semester: Optional[int] = None
+    thumbnail_url: Optional[str] = None
+    xp_reward: Optional[int] = None
+    is_published: Optional[bool] = None
+
+class CourseOut(CourseBase):
+    id: int
+    created_by: int
+    created_at: datetime
+    module_count: Optional[int] = None
+    estimated_minutes_total: Optional[int] = None
+    enrolled_count: Optional[int] = None
+    avg_completion_pct: Optional[float] = None
+    class Config:
+        from_attributes = True
+
+class CourseModuleBase(BaseModel):
+    title: str
+    order_index: Optional[int] = None
+    video_url: Optional[str] = None
+    pdf_url: Optional[str] = None
+    body: Optional[str] = None
+    estimated_minutes: int = 10
+    xp_reward: int = 20
+
+class CourseModuleCreate(CourseModuleBase):
+    pass
+
+class CourseModuleUpdate(BaseModel):
+    title: Optional[str] = None
+    order_index: Optional[int] = None
+    video_url: Optional[str] = None
+    pdf_url: Optional[str] = None
+    body: Optional[str] = None
+    estimated_minutes: Optional[int] = None
+    xp_reward: Optional[int] = None
+
+class CourseModuleOut(CourseModuleBase):
+    id: int
+    course_id: int
+    completed: bool = False
+    class Config:
+        from_attributes = True
+
+class StudentCourseProgressOut(BaseModel):
+    student_id: int
+    course_id: int
+    modules_completed: int
+    total_modules: int
+    quiz_passed: bool
+    completed: bool
+    xp_earned: int
+    started_at: datetime
+    last_activity: datetime
+    streak_days: int
+    class Config:
+        from_attributes = True
+
+class StudentModuleProgressOut(BaseModel):
+    student_id: int
+    module_id: int
+    completed: bool
+    completed_at: Optional[datetime] = None
+    class Config:
+        from_attributes = True
+
+class BadgeOut(BaseModel):
+    key: str
+    name: str
+    icon: str
+    description: str
+    earned: bool = False
+
+class QuizAnswerSubmit(BaseModel):
+    question_id: int
+    answer: str
+
+class QuizAttemptCreate(BaseModel):
+    answers: List[QuizAnswerSubmit]
+
 class QuizQuestionCreate(BaseModel):
     question: str
     option_a: str
@@ -271,7 +369,8 @@ class QuizCreate(BaseModel):
 class QuizOut(BaseModel):
     id: int
     title: str
-    content_id: int
+    content_id: Optional[int] = None
+    course_id: Optional[int] = None
     created_at: datetime
     questions: List[QuizQuestionOut] = []
     class Config:

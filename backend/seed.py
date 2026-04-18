@@ -1,11 +1,12 @@
 import os
 import asyncio
 from datetime import datetime, timedelta
+from sqlalchemy import select
 from database import AsyncSessionLocal, init_db
 from models import College, Department, User, Student, Subject, TimetableSlot, AttendanceSession, AttendanceRecord, Activity, ActivityEnrollment, Alumni
 from models import (
     UserRole, AttendanceStatus, ActivityType, ActivityStatus, StudentStatus,
-    LearningContent, LearningContentType, Quiz, QuizQuestion, QuizCorrectOption,
+    Course, CourseModule, StudentCourseProgress, StudentModuleProgress, StudentXP, Quiz, QuizQuestion, QuizCorrectOption,
     Internship, InternshipApplicationStatus, ClassSession, SessionStatus
 )
 from routers.auth import hash_password
@@ -271,50 +272,302 @@ async def seed_database():
             )
             db.add(alumni)
         
-        # 12. Learning content and quizzes
-        learning_items = []
-        for item in [
-            {"title": "Introduction to Algebra", "subject": "Mathematics", "grade_level": 8, "content_type": LearningContentType.text, "body": "Algebra helps us represent unknown values using symbols.", "url": None, "dept_id": None},
-            {"title": "HTML Basics", "subject": "Computer Science", "grade_level": 9, "content_type": LearningContentType.video, "body": None, "url": "https://www.youtube.com/watch?v=UB1O30fR-EE", "dept_id": dept_map["CSE"]},
-            {"title": "Physics Notes: Motion", "subject": "Physics", "grade_level": 10, "content_type": LearningContentType.pdf, "body": "Download the notes and review formulas for speed, velocity, and acceleration.", "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", "dept_id": None},
-            {"title": "Chemistry Practice Quiz", "subject": "Chemistry", "grade_level": 11, "content_type": LearningContentType.quiz, "body": "Test your understanding of basic chemistry concepts.", "url": None, "dept_id": None},
-            {"title": "English Grammar Essentials", "subject": "English", "grade_level": 7, "content_type": LearningContentType.text, "body": "Grammar improves clarity in communication and writing.", "url": None, "dept_id": None},
-        ]:
-            content = LearningContent(
-                title=item["title"],
-                subject=item["subject"],
-                grade_level=item["grade_level"],
-                content_type=item["content_type"],
-                url=item["url"],
-                body=item["body"],
-                created_by=admin_id,
-                dept_id=item["dept_id"],
-            )
-            db.add(content)
-            await db.flush()
-            learning_items.append(content)
-
-        quiz_one = Quiz(title="HTML Basics Quiz", content_id=learning_items[1].id)
-        db.add(quiz_one)
+        # 12. Learning courses and quizzes
+        course_one = Course(
+            title="Python for Beginners",
+            description=(
+                "A structured introduction to Python programming for students starting from scratch.\n\n"
+                "You will learn the syntax, data types, functions, loops, and how to build a small calculator project."
+            ),
+            subject="Computer Science",
+            dept_id=dept_map["CSE"],
+            semester=3,
+            thumbnail_url="https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=1200&q=80",
+            created_by=admin_id,
+            is_published=True,
+            xp_reward=150,
+        )
+        db.add(course_one)
+        await db.flush()
+        python_modules = [
+            ("Introduction to Python", 1, None, None, (
+                "Python is a beginner-friendly, high-level language used for web development, automation, data science, and AI.\n\n"
+                "Install Python from python.org, verify the installation with `python --version`, and use a code editor like VS Code to start writing your first scripts."
+            ), 10, 20),
+            ("Variables and Data Types", 2, "https://www.youtube.com/watch?v=kqtD5dpn9C8", None, (
+                "Variables store values so your program can reuse them later.\n\n"
+                "Common data types include integers, strings, lists, and dictionaries. Use `int` for numbers, `str` for text, `list` for ordered collections, and `dict` for key-value data."
+            ), 15, 20),
+            ("Functions and Loops", 3, "https://www.youtube.com/watch?v=9Os0o3wzS_I", None, (
+                "Functions help you package logic into reusable blocks, while loops let you repeat work until a condition changes.\n\n"
+                "Together they let you write cleaner programs that are easier to test, debug, and reuse."
+            ), 20, 25),
+            ("Mini Project: Calculator", 4, None, None, (
+                "Build a calculator that accepts two numbers and an operation, then prints the result.\n\n"
+                "Use input handling, conditional statements, and functions to keep the code readable and reusable."
+            ), 20, 30),
+        ]
+        for title, order_index, video_url, pdf_url, body, estimated_minutes, xp_reward in python_modules:
+            db.add(CourseModule(
+                course_id=course_one.id,
+                title=title,
+                order_index=order_index,
+                video_url=video_url,
+                pdf_url=pdf_url,
+                body=body,
+                estimated_minutes=estimated_minutes,
+                xp_reward=xp_reward,
+            ))
+        await db.flush()
+        python_quiz = Quiz(title="Python Basics Quiz", course_id=course_one.id)
+        db.add(python_quiz)
         await db.flush()
         for question, a, b, c, d, correct in [
-            ("Which tag creates a hyperlink?", "<p>", "<a>", "<img>", "<div>", QuizCorrectOption.b),
-            ("What does HTML stand for?", "Hyper Trainer Marking Language", "HyperText Markup Language", "High Text Machine Language", "None", QuizCorrectOption.b),
-            ("Which element is used for the largest heading?", "<heading>", "<h6>", "<h1>", "<head>", QuizCorrectOption.c),
+            ("Which keyword defines a function in Python?", "func", "define", "def", "lambda", QuizCorrectOption.c),
+            ("What type is `[1, 2, 3]`?", "tuple", "list", "dict", "set", QuizCorrectOption.b),
+            ("Which method adds an item to a list?", "append()", "add()", "push()", "insert()", QuizCorrectOption.a),
+            ("What is the output of `2 ** 3`?", "5", "6", "8", "9", QuizCorrectOption.c),
         ]:
-            db.add(QuizQuestion(quiz_id=quiz_one.id, question=question, option_a=a, option_b=b, option_c=c, option_d=d, correct_option=correct))
+            db.add(QuizQuestion(quiz_id=python_quiz.id, question=question, option_a=a, option_b=b, option_c=c, option_d=d, correct_option=correct))
 
-        quiz_two = Quiz(title="Chemistry Quiz", content_id=learning_items[3].id)
-        db.add(quiz_two)
+        course_two = Course(
+            title="Engineering Mathematics Essentials",
+            description=(
+                "A compact course covering the mathematics students use repeatedly in engineering and problem solving.\n\n"
+                "The lessons move from matrix operations to differentiation and integration with worked examples."
+            ),
+            subject="Mathematics",
+            dept_id=None,
+            semester=1,
+            thumbnail_url="https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=1200&q=80",
+            created_by=admin_id,
+            is_published=True,
+            xp_reward=120,
+        )
+        db.add(course_two)
+        await db.flush()
+        math_modules = [
+            ("Matrix Operations", 1, "https://www.youtube.com/watch?v=xyAuNHPsq-g", None, "Matrices help represent and solve systems of linear equations and transformation problems.", 12, 20),
+            ("Differentiation Basics", 2, "https://www.youtube.com/watch?v=WsQQvHm4lSw", None, "Differentiation measures how a function changes and forms the basis of optimization and motion problems.", 12, 20),
+            ("Integration Introduction", 3, None, None, "Integration is the reverse of differentiation and helps calculate area, accumulation, and total change.", 12, 20),
+        ]
+        for title, order_index, video_url, pdf_url, body, estimated_minutes, xp_reward in math_modules:
+            db.add(CourseModule(
+                course_id=course_two.id,
+                title=title,
+                order_index=order_index,
+                video_url=video_url,
+                pdf_url=pdf_url,
+                body=body,
+                estimated_minutes=estimated_minutes,
+                xp_reward=xp_reward,
+            ))
+        await db.flush()
+        math_quiz = Quiz(title="Engineering Mathematics Quiz", course_id=course_two.id)
+        db.add(math_quiz)
         await db.flush()
         for question, a, b, c, d, correct in [
-            ("What is the chemical symbol for water?", "H2O", "O2", "CO2", "NaCl", QuizCorrectOption.a),
-            ("pH less than 7 indicates what?", "Neutral", "Acidic", "Basic", "Salty", QuizCorrectOption.b),
-            ("Which particle has a positive charge?", "Electron", "Neutron", "Proton", "Photon", QuizCorrectOption.c),
+            ("A square matrix has the same number of rows and columns.", "True", "False", "Only for 2x2 matrices", "Only for diagonal matrices", QuizCorrectOption.a),
+            ("The derivative of a constant is", "1", "0", "The constant itself", "Undefined", QuizCorrectOption.b),
+            ("Integration is commonly used to find", "Slope", "Area", "Temperature", "Probability", QuizCorrectOption.b),
         ]:
-            db.add(QuizQuestion(quiz_id=quiz_two.id, question=question, option_a=a, option_b=b, option_c=c, option_d=d, correct_option=correct))
+            db.add(QuizQuestion(quiz_id=math_quiz.id, question=question, option_a=a, option_b=b, option_c=c, option_d=d, correct_option=correct))
 
-        # 13. Internships
+        # Seed a few real learning progress records for the new courses
+        sample_students = student_list[:4]
+        for idx, (student_id, _) in enumerate(sample_students):
+            profile = StudentXP(student_id=student_id, total_xp=0, level=1, streak_days=0, badges="")
+            db.add(profile)
+            if idx == 0:
+                course_progress = StudentCourseProgress(
+                    student_id=student_id,
+                    course_id=course_one.id,
+                    modules_completed=4,
+                    total_modules=4,
+                    quiz_passed=True,
+                    completed=True,
+                    xp_earned=225,
+                    started_at=datetime.utcnow() - timedelta(days=10),
+                    last_activity=datetime.utcnow() - timedelta(days=1),
+                    streak_days=7,
+                )
+                db.add(course_progress)
+                await db.flush()
+                for module in (await db.execute(select(CourseModule).where(CourseModule.course_id == course_one.id))).scalars().all():
+                    db.add(StudentModuleProgress(student_id=student_id, module_id=module.id, completed=True, completed_at=datetime.utcnow() - timedelta(days=2)))
+                profile.total_xp = 225
+                profile.level = 2
+                profile.streak_days = 7
+                profile.badges = "first_lesson,course_complete,streak_7"
+            elif idx == 1:
+                course_progress = StudentCourseProgress(
+                    student_id=student_id,
+                    course_id=course_one.id,
+                    modules_completed=2,
+                    total_modules=4,
+                    quiz_passed=False,
+                    completed=False,
+                    xp_earned=40,
+                    started_at=datetime.utcnow() - timedelta(days=4),
+                    last_activity=datetime.utcnow() - timedelta(days=1),
+                    streak_days=2,
+                )
+                db.add(course_progress)
+                await db.flush()
+                modules = (await db.execute(select(CourseModule).where(CourseModule.course_id == course_one.id).order_by(CourseModule.order_index))).scalars().all()
+                for module in modules[:2]:
+                    db.add(StudentModuleProgress(student_id=student_id, module_id=module.id, completed=True, completed_at=datetime.utcnow() - timedelta(days=1)))
+                profile.total_xp = 40
+                profile.level = 1
+                profile.streak_days = 2
+            elif idx == 2:
+                course_progress = StudentCourseProgress(
+                    student_id=student_id,
+                    course_id=course_two.id,
+                    modules_completed=1,
+                    total_modules=3,
+                    quiz_passed=False,
+                    completed=False,
+                    xp_earned=20,
+                    started_at=datetime.utcnow() - timedelta(days=3),
+                    last_activity=datetime.utcnow(),
+                    streak_days=1,
+                )
+                db.add(course_progress)
+                await db.flush()
+                first_module = (await db.execute(select(CourseModule).where(CourseModule.course_id == course_two.id).order_by(CourseModule.order_index))).scalars().first()
+                if first_module:
+                    db.add(StudentModuleProgress(student_id=student_id, module_id=first_module.id, completed=True, completed_at=datetime.utcnow()))
+                profile.total_xp = 20
+                profile.level = 1
+                profile.streak_days = 1
+            else:
+                course_progress = StudentCourseProgress(
+                    student_id=student_id,
+                    course_id=course_two.id,
+                    modules_completed=0,
+                    total_modules=3,
+                    quiz_passed=False,
+                    completed=False,
+                    xp_earned=0,
+                    started_at=datetime.utcnow() - timedelta(days=1),
+                    last_activity=datetime.utcnow() - timedelta(days=1),
+                    streak_days=1,
+                )
+                db.add(course_progress)
+                profile.total_xp = 0
+                profile.level = 1
+                profile.streak_days = 1
+
+        # 13. Course-based learning hub content
+        python_course = Course(
+            title="Python for Beginners",
+            description="A practical introduction to Python programming with hands-on lessons and a final mini project.",
+            subject="Computer Science",
+            dept_id=dept_map["CSE"],
+            semester=3,
+            thumbnail_url=None,
+            created_by=admin_id,
+            is_published=True,
+            xp_reward=150,
+        )
+        db.add(python_course)
+        await db.flush()
+
+        python_modules = [
+            {
+                "title": "Introduction to Python",
+                "body": "Python is a beginner-friendly programming language used for web development, data science, automation, and AI. It is readable, flexible, and supported by a huge ecosystem of libraries. To install Python, download it from python.org or use your system package manager, then verify the installation from your terminal with python --version or python3 --version.",
+                "estimated_minutes": 10,
+                "xp_reward": 20,
+            },
+            {
+                "title": "Variables and Data Types",
+                "body": "Variables store data that can change during a program. In Python, common data types include int for whole numbers, str for text, list for ordered collections, and dict for key-value pairs. Example: name = 'Asha', marks = 91, subjects = ['Math', 'CS'], profile = {'dept': 'CSE', 'semester': 3}.",
+                "video_url": "https://www.youtube.com/watch?v=kqtD5dpn9C8",
+                "estimated_minutes": 12,
+                "xp_reward": 20,
+            },
+            {
+                "title": "Functions and Loops",
+                "body": "Functions let you package reusable logic into named blocks. Loops help you repeat tasks with for and while. Example:\n\ndef greet(name):\n    return f'Hello {name}'\n\nfor i in range(3):\n    print(greet(i))\n\nTogether, functions and loops are the backbone of clean Python programs.",
+                "video_url": "https://www.youtube.com/watch?v=9Os0o3wzS_I",
+                "estimated_minutes": 13,
+                "xp_reward": 25,
+            },
+            {
+                "title": "Mini Project: Calculator",
+                "body": "Build a simple calculator that can add, subtract, multiply, and divide two numbers.\n\nStep 1: Ask the user for two inputs.\nStep 2: Ask which operation they want.\nStep 3: Use if/elif branches to perform the calculation.\nStep 4: Print the result and handle divide-by-zero safely.\n\nThis small project ties together variables, functions, conditionals, and input handling.",
+                "estimated_minutes": 15,
+                "xp_reward": 30,
+            },
+        ]
+
+        for index, module_data in enumerate(python_modules, start=1):
+            db.add(CourseModule(course_id=python_course.id, order_index=index, **module_data))
+
+        python_quiz = Quiz(title="Python Basics Quiz", course_id=python_course.id)
+        db.add(python_quiz)
+        await db.flush()
+        for question, a, b, c, d, correct in [
+            ("Which function shows the version of Python?", "print()", "python --version", "pip install", "dir", QuizCorrectOption.b),
+            ("Which type is best for storing multiple ordered items?", "dict", "set", "list", "int", QuizCorrectOption.c),
+            ("What keyword defines a function?", "fun", "define", "def", "lambda", QuizCorrectOption.c),
+            ("What does range(3) generate?", "0, 1, 2", "1, 2, 3", "0, 1, 2, 3", "3, 2, 1", QuizCorrectOption.a),
+        ]:
+            db.add(QuizQuestion(quiz_id=python_quiz.id, question=question, option_a=a, option_b=b, option_c=c, option_d=d, correct_option=correct))
+
+        math_course = Course(
+            title="Engineering Mathematics Essentials",
+            description="Core mathematics topics for engineering students with quick lessons and practice questions.",
+            subject="Mathematics",
+            dept_id=None,
+            semester=1,
+            thumbnail_url=None,
+            created_by=admin_id,
+            is_published=True,
+            xp_reward=120,
+        )
+        db.add(math_course)
+        await db.flush()
+
+        math_modules = [
+            {
+                "title": "Matrix Operations",
+                "body": "Matrices help represent systems of equations, transformations, and data structures. Learn matrix addition, subtraction, multiplication, and transpose operations with simple worked examples.",
+                "video_url": "https://www.youtube.com/watch?v=xyAuNHPsq-g",
+                "estimated_minutes": 10,
+                "xp_reward": 20,
+            },
+            {
+                "title": "Differentiation Basics",
+                "body": "Differentiation measures how a quantity changes. Understand derivatives of common functions, the power rule, and interpretation of slope in engineering contexts.",
+                "video_url": "https://www.youtube.com/watch?v=WsQQvHm4lSw",
+                "estimated_minutes": 10,
+                "xp_reward": 20,
+            },
+            {
+                "title": "Integration Introduction",
+                "body": "Integration is the reverse of differentiation and is used to find area, accumulated change, and many physical quantities in engineering and science.",
+                "estimated_minutes": 10,
+                "xp_reward": 20,
+            },
+        ]
+
+        for index, module_data in enumerate(math_modules, start=1):
+            db.add(CourseModule(course_id=math_course.id, order_index=index, **module_data))
+
+        math_quiz = Quiz(title="Engineering Mathematics Quiz", course_id=math_course.id)
+        db.add(math_quiz)
+        await db.flush()
+        for question, a, b, c, d, correct in [
+            ("What is the transpose of a matrix?", "Swap rows and columns", "Reverse numbers", "Multiply by 2", "Subtract diagonals", QuizCorrectOption.a),
+            ("The derivative of x^2 is:", "x", "2x", "x^2", "1", QuizCorrectOption.b),
+            ("Integration is commonly used to find:", "Slope", "Area", "Percentage", "Average height", QuizCorrectOption.b),
+        ]:
+            db.add(QuizQuestion(quiz_id=math_quiz.id, question=question, option_a=a, option_b=b, option_c=c, option_d=d, correct_option=correct))
+
+        # 14. Internships
         internship_data = [
             ("Software Engineering Intern", "BuildMate Tech", "Work on product features, APIs, and testing.", "Python, SQL, Git, APIs", 25000, 6, "Bangalore"),
             ("Civil Design Intern", "InfraWorks", "Support structural drawings and site planning.", "AutoCAD, Surveying, Structural Analysis", 18000, 4, "Hyderabad"),
@@ -335,7 +588,7 @@ async def seed_database():
                 posted_by=admin_id,
             ))
 
-        # 14. Class sessions
+        # 15. Class sessions
         db.add(ClassSession(
             title="Data Structures Live Class",
             subject="Computer Science",

@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Enum, Time, Float, Text
+from sqlalchemy import Column, Integer, String, DateTime, Date, ForeignKey, Boolean, Enum, Time, Float, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from database import Base
 import enum
@@ -44,6 +44,20 @@ class QuizCorrectOption(str, enum.Enum):
     b = "b"
     c = "c"
     d = "d"
+
+BADGES = {
+    "first_lesson": {"name": "First Step", "icon": "🎯", "description": "Completed your first lesson", "xp_threshold": 20},
+    "quiz_master": {"name": "Quiz Master", "icon": "🧠", "description": "Passed 5 quizzes", "xp_threshold": None},
+    "streak_7": {"name": "On Fire", "icon": "🔥", "description": "7-day learning streak", "xp_threshold": None},
+    "course_complete": {"name": "Graduate", "icon": "🎓", "description": "Completed a full course", "xp_threshold": None},
+    "top_scorer": {"name": "Top Scorer", "icon": "⭐", "description": "Scored 100% on a quiz", "xp_threshold": None},
+    "explorer": {"name": "Explorer", "icon": "🌍", "description": "Enrolled in 3 courses", "xp_threshold": 60},
+}
+
+XP_PER_LEVEL = 200
+
+def level_for_xp(total_xp: int) -> int:
+    return (max(total_xp, 0) // XP_PER_LEVEL) + 1
 
 class InternshipApplicationStatus(str, enum.Enum):
     applied = "applied"
@@ -104,6 +118,7 @@ class User(Base):
     attendance_sessions = relationship("AttendanceSession", back_populates="faculty", cascade="all, delete-orphan")
     activities_coordinated = relationship("Activity", back_populates="coordinator", cascade="all, delete-orphan")
     learning_contents = relationship("LearningContent", back_populates="creator", cascade="all, delete-orphan")
+    courses_created = relationship("Course", back_populates="creator", cascade="all, delete-orphan")
     internships_posted = relationship("Internship", back_populates="poster", cascade="all, delete-orphan")
     documents_verified = relationship("DocumentVerification", back_populates="verifier", foreign_keys="DocumentVerification.verified_by")
     class_sessions = relationship("ClassSession", back_populates="faculty", cascade="all, delete-orphan")
@@ -128,6 +143,9 @@ class Student(Base):
     internship_applications = relationship("InternshipApplication", back_populates="student", cascade="all, delete-orphan")
     document_verifications = relationship("DocumentVerification", back_populates="student", cascade="all, delete-orphan")
     career_profile = relationship("CareerProfile", back_populates="student", uselist=False, cascade="all, delete-orphan")
+    course_progress = relationship("StudentCourseProgress", back_populates="student", cascade="all, delete-orphan")
+    module_progress = relationship("StudentModuleProgress", back_populates="student", cascade="all, delete-orphan")
+    xp_profile = relationship("StudentXP", back_populates="student", uselist=False, cascade="all, delete-orphan")
 
 class Subject(Base):
     __tablename__ = "subjects"
@@ -234,13 +252,87 @@ class LearningContent(Base):
     department = relationship("Department")
     quiz = relationship("Quiz", back_populates="content", uselist=False, cascade="all, delete-orphan")
 
+class Course(Base):
+    __tablename__ = "courses"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False, index=True)
+    description = Column(Text, nullable=False)
+    subject = Column(String, nullable=False, index=True)
+    dept_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
+    semester = Column(Integer, nullable=True, index=True)
+    thumbnail_url = Column(String, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    is_published = Column(Boolean, default=False, nullable=False)
+    xp_reward = Column(Integer, default=100, nullable=False)
+    creator = relationship("User", back_populates="courses_created")
+    department = relationship("Department")
+    modules = relationship("CourseModule", back_populates="course", cascade="all, delete-orphan", order_by="CourseModule.order_index")
+    progress = relationship("StudentCourseProgress", back_populates="course", cascade="all, delete-orphan")
+    quiz = relationship("Quiz", back_populates="course", uselist=False, cascade="all, delete-orphan")
+
+class CourseModule(Base):
+    __tablename__ = "course_modules"
+    id = Column(Integer, primary_key=True, index=True)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False, index=True)
+    title = Column(String, nullable=False, index=True)
+    order_index = Column(Integer, nullable=False, default=1)
+    video_url = Column(String, nullable=True)
+    pdf_url = Column(String, nullable=True)
+    body = Column(Text, nullable=True)
+    estimated_minutes = Column(Integer, default=10, nullable=False)
+    xp_reward = Column(Integer, default=20, nullable=False)
+    course = relationship("Course", back_populates="modules")
+    progress = relationship("StudentModuleProgress", back_populates="module", cascade="all, delete-orphan")
+
+class StudentCourseProgress(Base):
+    __tablename__ = "student_course_progress"
+    __table_args__ = (UniqueConstraint("student_id", "course_id", name="uq_student_course_progress"),)
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=False, index=True)
+    modules_completed = Column(Integer, default=0, nullable=False)
+    total_modules = Column(Integer, default=0, nullable=False)
+    quiz_passed = Column(Boolean, default=False, nullable=False)
+    completed = Column(Boolean, default=False, nullable=False)
+    xp_earned = Column(Integer, default=0, nullable=False)
+    started_at = Column(DateTime, default=datetime.utcnow)
+    last_activity = Column(DateTime, default=datetime.utcnow)
+    streak_days = Column(Integer, default=0, nullable=False)
+    student = relationship("Student", back_populates="course_progress")
+    course = relationship("Course", back_populates="progress")
+
+class StudentModuleProgress(Base):
+    __tablename__ = "student_module_progress"
+    __table_args__ = (UniqueConstraint("student_id", "module_id", name="uq_student_module_progress"),)
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
+    module_id = Column(Integer, ForeignKey("course_modules.id"), nullable=False, index=True)
+    completed = Column(Boolean, default=False, nullable=False)
+    completed_at = Column(DateTime, nullable=True)
+    student = relationship("Student", back_populates="module_progress")
+    module = relationship("CourseModule", back_populates="progress")
+
+class StudentXP(Base):
+    __tablename__ = "student_xp"
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False, unique=True, index=True)
+    total_xp = Column(Integer, default=0, nullable=False)
+    level = Column(Integer, default=1, nullable=False)
+    streak_days = Column(Integer, default=0, nullable=False)
+    last_activity_date = Column(Date, nullable=True)
+    badges = Column(Text, default="", nullable=False)
+    student = relationship("Student", back_populates="xp_profile")
+
 class Quiz(Base):
     __tablename__ = "quizzes"
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
-    content_id = Column(Integer, ForeignKey("learning_contents.id"), nullable=False, unique=True)
+    content_id = Column(Integer, ForeignKey("learning_contents.id"), nullable=True, unique=True)
+    course_id = Column(Integer, ForeignKey("courses.id"), nullable=True, unique=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     content = relationship("LearningContent", back_populates="quiz")
+    course = relationship("Course", back_populates="quiz")
     questions = relationship("QuizQuestion", back_populates="quiz", cascade="all, delete-orphan")
     attempts = relationship("QuizAttempt", back_populates="quiz", cascade="all, delete-orphan")
 
