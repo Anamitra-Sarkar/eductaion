@@ -17,18 +17,29 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-frontend_url = os.getenv("FRONTEND_URL", "*")
-if frontend_url == "*":
-    origins = ["*"]
+DEFAULT_ORIGINS = [
+    "https://eductaion-phi.vercel.app",
+    "https://eductaion.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+]
+
+frontend_url = os.getenv("FRONTEND_URL", "")
+if frontend_url:
+    extra = [o.strip().rstrip("/") for o in frontend_url.split(",") if o.strip()]
+    origins = list(set(DEFAULT_ORIGINS + extra))
 else:
-    origins = [o.strip() for o in frontend_url.split(",")]
+    origins = DEFAULT_ORIGINS
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=origins != ["*"],
-    allow_methods=["*"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 app.include_router(auth.router)
