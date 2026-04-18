@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "attendx.html", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/attendx.html" }
+  ]
+}

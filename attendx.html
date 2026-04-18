@@ -5,14 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AttendX - Smart Attendance & Activity Monitoring</title>
     
-    <!-- Fontshare Fonts -->
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
-    
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-    
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="config.js"></script>
     
     <style>
         :root {
@@ -50,9 +46,7 @@
             box-sizing: border-box;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
+        html { scroll-behavior: smooth; }
 
         body {
             font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -68,10 +62,7 @@
             color: var(--color-text);
         }
 
-        a {
-            color: var(--color-primary);
-            text-decoration: none;
-        }
+        a { color: var(--color-primary); text-decoration: none; }
 
         button {
             font-family: inherit;
@@ -81,6 +72,9 @@
             border-radius: 0.75rem;
             font-weight: 500;
             transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         input, select, textarea {
@@ -92,384 +86,268 @@
             color: var(--color-text);
         }
 
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 0 1.5rem;
-        }
+        .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
 
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 240px;
-            height: 100vh;
+        /* Main Layout */
+        body.authenticated { display: flex; }
+        body.authenticated > aside { width: 250px; }
+        body.authenticated > main { flex: 1; }
+
+        aside {
             background-color: var(--color-surface);
             border-right: 1px solid var(--color-border);
-            padding: 1.5rem 1rem;
-            overflow-y: auto;
-            transition: all 0.2s ease;
-            z-index: 1000;
-        }
-
-        .sidebar.collapsed {
-            width: 64px;
-        }
-
-        .sidebar-logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            padding: 1rem;
-            color: var(--color-primary);
-            font-weight: 700;
-            font-size: 1.25rem;
-        }
-
-        .sidebar.collapsed .sidebar-logo-text {
-            display: none;
-        }
-
-        .sidebar-logo svg {
-            width: 40px;
-            height: 40px;
-        }
-
-        .sidebar-nav {
-            list-style: none;
-            margin-bottom: 2rem;
-        }
-
-        .sidebar-nav-item {
-            padding: 0.5rem 0;
-        }
-
-        .sidebar-nav-link {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            color: var(--color-text-muted);
-            transition: all 0.2s ease;
-        }
-
-        .sidebar-nav-link:hover {
-            background-color: var(--color-surface-2);
-            color: var(--color-primary);
-        }
-
-        .sidebar-nav-link.active {
-            background-color: var(--color-primary);
-            color: #fff;
-        }
-
-        .sidebar-nav-link svg {
-            width: 24px;
-            height: 24px;
-            flex-shrink: 0;
-        }
-
-        .sidebar-nav-label {
-            flex: 1;
-            font-weight: 500;
-            font-size: 0.875rem;
-        }
-
-        .sidebar.collapsed .sidebar-nav-label {
-            display: none;
-        }
-
-        .sidebar-footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 1rem;
-            border-top: 1px solid var(--color-border);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .sidebar-footer-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--color-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-        }
-
-        .sidebar-footer-text {
-            flex: 1;
-        }
-
-        .sidebar.collapsed .sidebar-footer-text {
-            display: none;
-        }
-
-        .sidebar-footer-name {
-            font-weight: 600;
-            font-size: 0.875rem;
-        }
-
-        .sidebar-footer-role {
-            font-size: 0.75rem;
-            color: var(--color-text-muted);
-        }
-
-        /* Top Bar Styles */
-        .topbar {
+            padding: 2rem 0;
             position: fixed;
+            left: 0;
             top: 0;
-            left: 240px;
-            right: 0;
-            height: 80px;
-            background-color: var(--color-surface);
-            border-bottom: 1px solid var(--color-border);
+            height: 100vh;
+            overflow-y: auto;
+            width: 250px;
+        }
+
+        main {
+            margin-left: 250px;
+            padding: 2rem;
+        }
+
+        header {
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            padding: 0 1.5rem;
-            z-index: 999;
-            transition: left 0.2s ease;
-        }
-
-        .sidebar.collapsed ~ .topbar {
-            left: 64px;
-        }
-
-        .topbar-left {
-            display: flex;
             align-items: center;
-            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border);
         }
 
-        .topbar-breadcrumb {
-            font-size: 0.875rem;
+        header h1 { margin: 0; }
+
+        .logo {
+            padding: 0 1.5rem 2rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 2rem;
+        }
+
+        nav ul { list-style: none; }
+        nav li { margin: 0.5rem 0; }
+        nav a {
+            display: block;
+            padding: 0.75rem 1.5rem;
             color: var(--color-text-muted);
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
         }
+        nav a:hover { color: var(--color-primary); }
+        nav a.active { color: var(--color-primary); border-left-color: var(--color-primary); background-color: var(--color-surface-offset); }
 
-        .topbar-center {
-            flex: 1;
-            margin: 0 2rem;
-            display: flex;
-            align-items: center;
-        }
-
-        .topbar-search {
-            width: 100%;
-            max-width: 400px;
-            padding: 0.5rem 1rem;
-            border: 1px solid var(--color-border);
-            border-radius: 0.5rem;
-            background-color: var(--color-bg);
-            font-size: 0.875rem;
-        }
-
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .topbar-icon-btn {
-            background: none;
-            border: none;
-            padding: 0.5rem;
-            cursor: pointer;
-            color: var(--color-text-muted);
-            transition: color 0.2s ease;
-        }
-
-        .topbar-icon-btn:hover {
-            color: var(--color-primary);
-        }
-
-        .topbar-icon-btn svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .notification-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            width: 20px;
-            height: 20px;
-            background-color: var(--color-error);
-            color: white;
-            border-radius: 50%;
+        /* Pages */
+        #page-login {
+            display: none;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 700;
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
         }
 
-        /* Main Content Styles */
-        .main-content {
-            margin-left: 240px;
-            margin-top: 80px;
-            padding: 2rem;
-            min-height: calc(100vh - 80px);
-            transition: margin-left 0.2s ease;
+        #page-login.active {
+            display: flex;
         }
 
-        .sidebar.collapsed ~ .main-content {
-            margin-left: 64px;
+        .login-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
         }
 
+        [data-theme="dark"] .login-card {
+            background: var(--color-surface);
+        }
+
+        .login-card h1 {
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .login-card p {
+            text-align: center;
+            color: var(--color-text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+            width: 100%;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .btn-primary:hover { background-color: var(--color-primary-hover); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .error-message {
+            color: var(--color-error);
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        /* Pages */
         .page {
             display: none;
-            animation: fadeIn 0.15s ease;
         }
 
         .page.active {
             display: block;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        body:not(.authenticated) aside,
+        body:not(.authenticated) main {
+            display: none;
         }
 
-        /* Card Styles */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .topbar-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        .user-info p { margin: 0; font-size: 0.9rem; }
+
+        .btn-logout {
+            background-color: var(--color-error);
+            color: white;
+        }
+
+        .btn-logout:hover { background-color: #8a1f64; }
+
+        .btn-theme-toggle {
+            background-color: var(--color-surface-2);
+            color: var(--color-text);
+            padding: 0.5rem;
+        }
+
+        .btn-theme-toggle:hover { background-color: var(--color-surface-offset); }
+
+        /* Cards & Content */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
         .card {
             background-color: var(--color-surface);
             border: 1px solid var(--color-border);
             border-radius: 0.75rem;
             padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
-        .card:hover {
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-divider);
         }
 
-        /* KPI Card */
-        .kpi-card {
-            text-align: center;
-        }
+        .card-header h3 { margin: 0; }
 
         .kpi-value {
             font-size: 2rem;
             font-weight: 700;
             color: var(--color-primary);
-            margin-bottom: 0.5rem;
+            margin: 1rem 0;
         }
 
         .kpi-label {
-            font-size: 0.875rem;
             color: var(--color-text-muted);
-            font-weight: 500;
+            font-size: 0.9rem;
         }
 
-        /* Button Styles */
-        .btn-primary {
-            background-color: var(--color-primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--color-primary-hover);
-        }
-
-        .btn-secondary {
-            background-color: var(--color-surface-2);
-            color: var(--color-text);
-            border: 1px solid var(--color-border);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--color-surface-offset);
-        }
-
-        .btn-ghost {
-            background-color: transparent;
-            color: var(--color-primary);
-            border: 1px solid var(--color-border);
-        }
-
-        .btn-ghost:hover {
-            background-color: var(--color-surface);
-        }
-
-        /* Badge Styles */
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .badge-success {
-            background-color: rgba(67, 122, 34, 0.1);
-            color: var(--color-success);
-        }
-
-        .badge-warning {
-            background-color: rgba(150, 66, 25, 0.1);
-            color: var(--color-warning);
-        }
-
-        .badge-error {
-            background-color: rgba(161, 44, 123, 0.1);
-            color: var(--color-error);
-        }
-
-        /* Table Styles */
-        .table-wrapper {
+        .table-container {
             overflow-x: auto;
+            margin-bottom: 2rem;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.875rem;
         }
 
-        th {
-            background-color: var(--color-surface-2);
+        table th {
+            background-color: var(--color-surface-offset);
             padding: 1rem;
             text-align: left;
             font-weight: 600;
             border-bottom: 1px solid var(--color-border);
-            position: sticky;
-            top: 0;
         }
 
-        td {
+        table td {
             padding: 1rem;
             border-bottom: 1px solid var(--color-divider);
         }
 
-        tbody tr:hover {
-            background-color: var(--color-surface-2);
+        table tbody tr:hover {
+            background-color: var(--color-surface-offset);
         }
 
-        tbody tr:nth-child(even) {
-            background-color: var(--color-surface);
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            font-weight: 500;
         }
 
-        /* Modal Styles */
+        .badge-present { background-color: rgba(67, 122, 34, 0.1); color: var(--color-success); }
+        .badge-absent { background-color: rgba(161, 44, 123, 0.1); color: var(--color-error); }
+        .badge-late { background-color: rgba(150, 66, 25, 0.1); color: var(--color-warning); }
+        .badge-active { background-color: rgba(1, 105, 111, 0.1); color: var(--color-primary); }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            z-index: 2000;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
             align-items: center;
             justify-content: center;
         }
@@ -479,258 +357,122 @@
         }
 
         .modal-content {
-            background-color: var(--color-surface);
-            border-radius: 1rem;
+            background: var(--color-surface);
+            border-radius: 0.75rem;
             padding: 2rem;
             max-width: 500px;
             width: 90%;
-            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
-            animation: slideUp 0.2s ease;
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .modal-header {
-            margin-bottom: 1.5rem;
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--color-border);
         }
 
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
+        .modal-header h2 { margin: 0; }
 
-        .modal-close {
+        .btn-close {
             background: none;
-            border: none;
-            cursor: pointer;
             color: var(--color-text-muted);
             padding: 0;
-            width: 24px;
-            height: 24px;
+            font-size: 1.5rem;
+            width: auto;
+            margin: 0;
         }
 
-        .modal-body {
-            margin-bottom: 1.5rem;
-        }
+        .btn-close:hover { color: var(--color-text); }
 
         .modal-footer {
             display: flex;
             gap: 1rem;
             justify-content: flex-end;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--color-border);
         }
 
-        /* Form Styles */
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            font-size: 0.875rem;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: var(--color-primary);
-            box-shadow: 0 0 0 3px rgba(1, 105, 111, 0.1);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .sidebar {
-                position: fixed;
-                left: -240px;
-                transition: left 0.3s ease;
-                z-index: 1001;
-            }
-
-            .sidebar.active {
-                left: 0;
-            }
-
-            .topbar {
-                left: 0;
-            }
-
-            .main-content {
-                margin-left: 0;
-                margin-top: 0;
-                padding: 1rem;
-            }
-
-            .topbar-search {
-                display: none;
-            }
-
-            .container {
-                padding: 0 1rem;
-            }
-
-            /* Bottom Tab Bar for Mobile */
-            .mobile-tab-bar {
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                height: 60px;
-                background-color: var(--color-surface);
-                border-top: 1px solid var(--color-border);
-                display: flex;
-                justify-content: space-around;
-                align-items: center;
-                z-index: 999;
-            }
-
-            .mobile-tab-item {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 0.25rem;
-                font-size: 0.75rem;
-                color: var(--color-text-muted);
-                cursor: pointer;
-                transition: color 0.2s ease;
-            }
-
-            .mobile-tab-item.active {
-                color: var(--color-primary);
-            }
-
-            .mobile-tab-item svg {
-                width: 20px;
-                height: 20px;
-            }
-
-            .main-content {
-                margin-bottom: 60px;
-            }
-        }
-
-        /* Heatmap Table */
-        .heatmap-cell {
-            padding: 1rem;
-            text-align: center;
-            border-radius: 0.25rem;
-            color: white;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-
-        .heatmap-high { background-color: var(--color-success); }
-        .heatmap-medium { background-color: var(--color-warning); }
-        .heatmap-low { background-color: var(--color-error); }
-
-        /* Activity Feed */
-        .activity-feed {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .activity-item {
-            display: flex;
-            gap: 1rem;
-            padding: 1rem;
-            background-color: var(--color-surface-2);
-            border-radius: 0.5rem;
-        }
-
-        .activity-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background-color: var(--color-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            flex-shrink: 0;
-        }
-
-        .activity-content {
-            flex: 1;
-        }
-
-        .activity-name {
-            font-weight: 600;
-            font-size: 0.875rem;
+        .btn-secondary {
+            background-color: var(--color-surface-offset);
             color: var(--color-text);
         }
 
-        .activity-text {
-            font-size: 0.875rem;
-            color: var(--color-text-muted);
-            margin-bottom: 0.25rem;
+        .btn-secondary:hover { background-color: var(--color-divider); }
+
+        /* Notifications */
+        .toast {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            background-color: var(--color-primary);
+            color: white;
+            animation: slideIn 0.3s ease;
+            z-index: 2000;
         }
 
-        .activity-time {
-            font-size: 0.75rem;
-            color: var(--color-text-faint);
+        .toast.error {
+            background-color: var(--color-error);
         }
 
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: var(--color-text-muted);
+        .toast.success {
+            background-color: var(--color-success);
         }
 
-        .empty-state svg {
-            width: 64px;
-            height: 64px;
-            margin-bottom: 1rem;
-            opacity: 0.5;
+        @keyframes slideIn {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
 
-        /* Skeleton Loading */
+        /* Loading skeleton */
         .skeleton {
-            background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-surface-offset) 50%, var(--color-surface-2) 75%);
+            background: linear-gradient(90deg, var(--color-surface-offset) 25%, var(--color-surface-2) 50%, var(--color-surface-offset) 75%);
             background-size: 200% 100%;
-            animation: skeleton-loading 1.5s infinite;
+            animation: loading 1.5s infinite;
         }
 
-        @keyframes skeleton-loading {
+        @keyframes loading {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
 
-        /* Counter Animation */
-        @keyframes countUp {
-            from { transform: translateY(10px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
         }
 
-        .count-animated {
-            animation: countUp 0.5s ease;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
-        /* Pulse Animation */
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        /* Responsive */
+        @media (max-width: 768px) {
+            aside { display: none; }
+            main { margin-left: 0; }
+            header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .kpi-grid { grid-template-columns: 1fr; }
+            .modal-content { width: 95%; }
         }
 
-        .pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-
-        /* Shake Animation */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
         }
 
-        .shake { animation: shake 0.5s; }
-
-        /* Kanban Columns */
+        /* Kanban */
         .kanban-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -739,23 +481,14 @@
         }
 
         .kanban-column {
-            background-color: var(--color-surface-2);
+            background-color: var(--color-surface-offset);
             border-radius: 0.75rem;
-            padding: 1rem;
-            min-height: 400px;
+            padding: 1.5rem;
         }
 
-        .kanban-header {
-            font-weight: 700;
+        .kanban-column h3 {
             margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid var(--color-border);
-        }
-
-        .kanban-cards {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
+            color: var(--color-text-muted);
         }
 
         .kanban-card {
@@ -763,1484 +496,1241 @@
             border: 1px solid var(--color-border);
             border-radius: 0.5rem;
             padding: 1rem;
+            margin-bottom: 1rem;
             cursor: move;
-            transition: all 0.2s ease;
         }
 
         .kanban-card:hover {
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        /* Grid Layouts */
-        .grid {
+        /* Grid for students/alumni */
+        .data-grid {
             display: grid;
-            gap: 1.5rem;
+            gap: 1rem;
+            margin-bottom: 2rem;
         }
 
-        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
-        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
-        .grid-4 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-
-        @media (max-width: 768px) {
-            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
         }
 
-        /* Export Button */
-        .export-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1rem;
+        .filters input, .filters select {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .btn-add {
             background-color: var(--color-primary);
             color: white;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
         }
 
-        .export-btn:hover {
-            background-color: var(--color-primary-hover);
+        .btn-add:hover { background-color: var(--color-primary-hover); }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
         }
 
-        /* Dropdown */
-        .dropdown {
-            position: relative;
-            display: inline-block;
+        .btn-delete {
+            background-color: var(--color-error);
+            color: white;
         }
 
-        .dropdown-menu {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background-color: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 0.5rem;
-            min-width: 160px;
-            z-index: 1;
+        .btn-delete:hover { background-color: #8a1f64; }
+
+        .btn-edit {
+            background-color: var(--color-warning);
+            color: white;
         }
 
-        .dropdown-menu.active {
-            display: block;
-        }
-
-        .dropdown-item {
-            display: block;
-            width: 100%;
-            padding: 0.75rem 1rem;
-            text-align: left;
-            border: none;
-            background: none;
-            color: var(--color-text);
-            cursor: pointer;
-        }
-
-        .dropdown-item:hover {
-            background-color: var(--color-surface-2);
-        }
-
-        /* Toggle Switch */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: var(--color-border);
-            border-radius: 24px;
-            transition: all 0.3s ease;
-        }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: '';
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        input:checked + .toggle-slider {
-            background-color: var(--color-primary);
-        }
-
-        input:checked + .toggle-slider:before {
-            transform: translateX(20px);
-        }
-
-        /* Print Styles */
-        @media print {
-            .sidebar, .topbar, .mobile-tab-bar {
-                display: none;
-            }
-            .main-content {
-                margin: 0;
-                padding: 0;
-            }
-            .btn-primary, .btn-secondary, .export-btn, button {
-                display: none;
-            }
-        }
+        .btn-edit:hover { background-color: #7a3915; }
     </style>
 </head>
 <body>
-    <!-- Sidebar Navigation -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-logo">
-            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M8 20a6 6 0 1 0 12 0 6 6 0 0 0-12 0"></path>
-                <path d="M20 14v12m4-8h-8"></path>
-                <path d="M32 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4"></path>
-                <path d="M4 32c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4"></path>
-            </svg>
-            <span class="sidebar-logo-text">AttendX</span>
-        </div>
+    <!-- Login Page -->
+    <div id="page-login" class="page active">
+        <div class="login-card">
+            <h1>AttendX</h1>
+            <p>Smart Attendance & Activity Monitoring</p>
+            
+            <form id="login-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required placeholder="admin@college.edu">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required placeholder="Admin@123">
+                </div>
+                
+                <button type="submit" class="btn-primary" id="login-btn">
+                    <span id="login-spinner" style="display: none;" class="spinner"></span>
+                    Sign In
+                </button>
+                
+                <div id="login-error" class="error-message"></div>
+            </form>
 
-        <ul class="sidebar-nav" id="sidebar-nav">
-            <li class="sidebar-nav-item">
-                <a href="#dashboard" class="sidebar-nav-link active" data-page="dashboard">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 12 3"></polyline>
-                        <line x1="3.27" y1="6.96" x2="12.73" y2="12.5"></line>
-                        <line x1="12" y1="12.5" x2="12" y2="21"></line>
-                        <polyline points="20 7.5 12 12.5 4 7.5"></polyline>
-                    </svg>
-                    <span class="sidebar-nav-label">Dashboard</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="#attendance" class="sidebar-nav-link" data-page="attendance">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 11l3 3L22 4"></path>
-                        <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <span class="sidebar-nav-label">Attendance</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="#timetable" class="sidebar-nav-link" data-page="timetable">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                        <line x1="16" y1="2" x2="16" y2="6"></line>
-                        <line x1="8" y1="2" x2="8" y2="6"></line>
-                        <line x1="3" y1="10" x2="21" y2="10"></line>
-                    </svg>
-                    <span class="sidebar-nav-label">Timetable</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="#activities" class="sidebar-nav-link" data-page="activities">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                    <span class="sidebar-nav-label">Activities</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="#analytics" class="sidebar-nav-link" data-page="analytics">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="12" y1="2" x2="12" y2="22"></line>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h.5M6 19h12M7 11h10"></path>
-                    </svg>
-                    <span class="sidebar-nav-label">Analytics</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="#alumni" class="sidebar-nav-link" data-page="alumni">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    <span class="sidebar-nav-label">Alumni</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="#students" class="sidebar-nav-link" data-page="students">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M17 21v-2a4 4 0 0 0-5-3.87"></path>
-                        <path d="M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"></path>
-                        <path d="M23 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    </svg>
-                    <span class="sidebar-nav-label">Students</span>
-                </a>
-            </li>
-            <li class="sidebar-nav-item">
-                <a href="#settings" class="sidebar-nav-link" data-page="settings">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M12 1v6m0 6v6"></path>
-                        <path d="M4.22 4.22l4.24 4.24m2.12 2.12l4.24 4.24"></path>
-                        <path d="M1 12h6m6 0h6"></path>
-                        <path d="M4.22 19.78l4.24-4.24m2.12-2.12l4.24-4.24"></path>
-                    </svg>
-                    <span class="sidebar-nav-label">Settings</span>
-                </a>
-            </li>
-        </ul>
-
-        <div class="sidebar-footer">
-            <div class="sidebar-footer-avatar">AS</div>
-            <div class="sidebar-footer-text">
-                <div class="sidebar-footer-name">Dr. Sharma</div>
-                <div class="sidebar-footer-role">Admin</div>
-            </div>
+            <p style="text-align: center; color: var(--color-text-muted); margin-top: 2rem; font-size: 0.9rem;">
+                Demo: admin@college.edu / Admin@123
+            </p>
         </div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside>
+        <div class="logo">AttendX</div>
+        <nav>
+            <ul>
+                <li><a href="#dashboard" onclick="navigate('dashboard')">Dashboard</a></li>
+                <li><a href="#attendance" onclick="navigate('attendance')">Attendance</a></li>
+                <li><a href="#timetable" onclick="navigate('timetable')">Timetable</a></li>
+                <li><a href="#activities" onclick="navigate('activities')">Activities</a></li>
+                <li><a href="#analytics" onclick="navigate('analytics')">Analytics</a></li>
+                <li><a href="#students" onclick="navigate('students')">Students</a></li>
+                <li><a href="#alumni" onclick="navigate('alumni')">Alumni</a></li>
+                <li><a href="#settings" onclick="navigate('settings')">Settings</a></li>
+            </ul>
+        </nav>
     </aside>
 
-    <!-- Top Bar -->
-    <header class="topbar" id="topbar">
-        <div class="topbar-left">
-            <button class="topbar-icon-btn" id="sidebar-toggle">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </button>
-            <div class="topbar-breadcrumb" id="breadcrumb">Dashboard</div>
-        </div>
-
-        <div class="topbar-center">
-            <input type="text" class="topbar-search" placeholder="Search students, classes..." id="global-search">
-        </div>
-
-        <div class="topbar-right">
-            <button class="topbar-icon-btn" id="notification-btn" style="position: relative;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                </svg>
-                <div class="notification-badge">3</div>
-            </button>
-            <button class="topbar-icon-btn" id="theme-toggle">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sun-icon">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="moon-icon" style="display: none;">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-            </button>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Dashboard Page -->
-        <div class="page active" id="page-dashboard">
-            <div class="container">
-                <h1>Good morning, Dr. Sharma</h1>
-                <p style="color: var(--color-text-muted); margin-bottom: 2rem;">RCCIIT Campus</p>
-
-                <!-- KPI Cards -->
-                <div class="grid grid-4" style="margin-bottom: 2rem;">
-                    <div class="card kpi-card">
-                        <div class="kpi-value" id="kpi-attendance">82<span style="font-size: 1.25rem;">%</span></div>
-                        <div class="kpi-label">Today's Attendance</div>
+    <main>
+        <!-- Dashboard -->
+        <div id="page-dashboard" class="page">
+            <header>
+                <h1>Dashboard</h1>
+                <div class="topbar-right">
+                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
+                    <div class="user-info">
+                        <p id="user-name">User</p>
+                        <p style="font-size: 0.8rem; color: var(--color-text-muted);" id="user-role">Role</p>
                     </div>
-                    <div class="card kpi-card">
-                        <div class="kpi-value" id="kpi-students">1,245</div>
-                        <div class="kpi-label">Active Students</div>
-                    </div>
-                    <div class="card kpi-card">
-                        <div class="kpi-value" id="kpi-activities">23</div>
-                        <div class="kpi-label">Pending Activities</div>
-                    </div>
-                    <div class="card kpi-card">
-                        <div class="kpi-value" id="kpi-conflicts">4</div>
-                        <div class="kpi-label">Timetable Conflicts</div>
-                    </div>
+                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
                 </div>
+            </header>
 
-                <!-- Charts Row -->
-                <div class="grid grid-2" style="margin-bottom: 2rem;">
-                    <div class="card">
-                        <h3 style="margin-bottom: 1rem;">Attendance Trend (Last 30 Days)</h3>
-                        <canvas id="attendance-chart" height="300"></canvas>
-                    </div>
-                    <div class="card">
-                        <h3 style="margin-bottom: 1rem;">Department-wise Attendance (Last 7 Days)</h3>
-                        <div class="table-wrapper">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Department</th>
-                                        <th>Mon</th>
-                                        <th>Tue</th>
-                                        <th>Wed</th>
-                                        <th>Thu</th>
-                                        <th>Fri</th>
-                                        <th>Sat</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><strong>CSE</strong></td>
-                                        <td class="heatmap-cell heatmap-high">92%</td>
-                                        <td class="heatmap-cell heatmap-high">89%</td>
-                                        <td class="heatmap-cell heatmap-high">94%</td>
-                                        <td class="heatmap-cell heatmap-medium">78%</td>
-                                        <td class="heatmap-cell heatmap-high">85%</td>
-                                        <td class="heatmap-cell heatmap-high">88%</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>ECE</strong></td>
-                                        <td class="heatmap-cell heatmap-high">88%</td>
-                                        <td class="heatmap-cell heatmap-medium">75%</td>
-                                        <td class="heatmap-cell heatmap-high">86%</td>
-                                        <td class="heatmap-cell heatmap-high">82%</td>
-                                        <td class="heatmap-cell heatmap-medium">71%</td>
-                                        <td class="heatmap-cell heatmap-high">81%</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>MECH</strong></td>
-                                        <td class="heatmap-cell heatmap-medium">79%</td>
-                                        <td class="heatmap-cell heatmap-high">84%</td>
-                                        <td class="heatmap-cell heatmap-high">87%</td>
-                                        <td class="heatmap-cell heatmap-medium">73%</td>
-                                        <td class="heatmap-cell heatmap-medium">72%</td>
-                                        <td class="heatmap-cell heatmap-medium">76%</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>CIVIL</strong></td>
-                                        <td class="heatmap-cell heatmap-medium">75%</td>
-                                        <td class="heatmap-cell heatmap-medium">68%</td>
-                                        <td class="heatmap-cell heatmap-medium">72%</td>
-                                        <td class="heatmap-cell heatmap-low">58%</td>
-                                        <td class="heatmap-cell heatmap-low">61%</td>
-                                        <td class="heatmap-cell heatmap-medium">69%</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+            <div class="kpi-grid" id="kpi-container">
+                <div class="card skeleton" style="height: 150px;"></div>
+                <div class="card skeleton" style="height: 150px;"></div>
+                <div class="card skeleton" style="height: 150px;"></div>
+                <div class="card skeleton" style="height: 150px;"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Attendance Trend</h3>
                 </div>
+                <div class="chart-container">
+                    <canvas id="chart-trend"></canvas>
+                </div>
+            </div>
 
-                <!-- Recent Activity -->
-                <div class="grid grid-2">
-                    <div class="card">
-                        <h3 style="margin-bottom: 1rem;">Quick Actions</h3>
-                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                            <button class="btn-primary" onclick="app.openModal('mark-attendance-modal')">Mark Attendance</button>
-                            <button class="btn-secondary" onclick="app.openModal('add-activity-modal')">Add Activity</button>
-                            <button class="btn-secondary" onclick="app.navigateTo('timetable')">View Timetable</button>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3 style="margin-bottom: 1rem;">Recent Activity Feed</h3>
-                        <div class="activity-feed">
-                            <div class="activity-item">
-                                <div class="activity-avatar">RS</div>
-                                <div class="activity-content">
-                                    <div class="activity-name">Raj Singh marked present</div>
-                                    <div class="activity-text">CS301 - Database Systems</div>
-                                    <div class="activity-time">5 minutes ago</div>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-avatar">AP</div>
-                                <div class="activity-content">
-                                    <div class="activity-name">Anjali Patel marked absent</div>
-                                    <div class="activity-text">EC202 - Signals & Systems</div>
-                                    <div class="activity-time">12 minutes ago</div>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-avatar">VK</div>
-                                <div class="activity-content">
-                                    <div class="activity-name">Vikram Kumar attended activity</div>
-                                    <div class="activity-text">Python Workshop - Ongoing</div>
-                                    <div class="activity-time">32 minutes ago</div>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-avatar">NK</div>
-                                <div class="activity-content">
-                                    <div class="activity-name">Neha Kapoor completed activity</div>
-                                    <div class="activity-text">Research Paper Submission</div>
-                                    <div class="activity-time">1 hour ago</div>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-avatar">SA</div>
-                                <div class="activity-content">
-                                    <div class="activity-name">Shreya Azad marked present</div>
-                                    <div class="activity-text">ME401 - Thermodynamics</div>
-                                    <div class="activity-time">2 hours ago</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Department Comparison</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chart-comparison"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Attendance Page -->
-        <div class="page" id="page-attendance">
-            <div class="container">
-                <h1>Attendance Overview</h1>
-                
-                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
-                    <input type="date" id="attendance-date" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
-                    <select id="department-filter" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
-                        <option value="">All Departments</option>
-                        <option value="CSE">CSE</option>
-                        <option value="ECE">ECE</option>
-                        <option value="MECH">MECH</option>
-                        <option value="CIVIL">CIVIL</option>
-                    </select>
-                    <select id="semester-filter" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
-                        <option value="">All Semesters</option>
-                        <option value="1">Semester 1</option>
-                        <option value="2">Semester 2</option>
-                        <option value="3">Semester 3</option>
-                        <option value="4">Semester 4</option>
-                    </select>
-                    <button class="export-btn" onclick="app.exportCSV('attendance')">Export CSV</button>
+        <!-- Attendance -->
+        <div id="page-attendance" class="page">
+            <header>
+                <h1>Attendance Management</h1>
+                <div class="topbar-right">
+                    <button class="btn-add" onclick="openModal('modal-attendance')">+ New Session</button>
+                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
+                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
                 </div>
+            </header>
 
-                <div class="card" style="margin-bottom: 2rem;">
-                    <div class="table-wrapper">
-                        <table id="attendance-table">
-                            <thead>
-                                <tr>
-                                    <th>Roll No</th>
-                                    <th>Name</th>
-                                    <th>Department</th>
-                                    <th>Semester</th>
-                                    <th>Total Classes</th>
-                                    <th>Attended</th>
-                                    <th>% Attendance</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Data populated by JS -->
-                            </tbody>
-                        </table>
-                    </div>
+            <div class="filters">
+                <input type="date" id="filter-attendance-date" placeholder="Filter by date">
+                <button onclick="loadAttendanceSessions()">Filter</button>
+                <button onclick="exportAttendanceCSV()">Export CSV</button>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Subject</th>
+                            <th>Faculty</th>
+                            <th>Students</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendance-table">
+                        <tr><td colspan="5" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Timetable -->
+        <div id="page-timetable" class="page">
+            <header>
+                <h1>Timetable Management</h1>
+                <div class="topbar-right">
+                    <button class="btn-add" onclick="openModal('modal-timetable')">+ Add Slot</button>
+                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
+                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
                 </div>
+            </header>
 
-                <div class="grid grid-3">
-                    <div class="card kpi-card">
-                        <div class="kpi-value" id="class-avg">81.5</div>
-                        <div class="kpi-label">Class Average %</div>
-                    </div>
-                    <div class="card kpi-card">
-                        <div class="kpi-value" id="defaulter-count">8</div>
-                        <div class="kpi-label">Defaulters (<60%)</div>
-                    </div>
-                    <div class="card kpi-card">
-                        <div class="kpi-value" id="at-risk-count">15</div>
-                        <div class="kpi-label">At-Risk (60-75%)</div>
-                    </div>
+            <div class="filters">
+                <select id="filter-timetable-dept" onchange="loadTimetable()">
+                    <option value="">All Departments</option>
+                </select>
+                <select id="filter-timetable-day" onchange="loadTimetable()">
+                    <option value="">All Days</option>
+                    <option>Monday</option>
+                    <option>Tuesday</option>
+                    <option>Wednesday</option>
+                    <option>Thursday</option>
+                    <option>Friday</option>
+                </select>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Day</th>
+                            <th>Time</th>
+                            <th>Subject</th>
+                            <th>Room</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="timetable-table">
+                        <tr><td colspan="5" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Activities -->
+        <div id="page-activities" class="page">
+            <header>
+                <h1>Activities Management</h1>
+                <div class="topbar-right">
+                    <button class="btn-add" onclick="openModal('modal-activity')">+ New Activity</button>
+                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
+                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
+                </div>
+            </header>
+
+            <div class="filters">
+                <select id="filter-activity-status" onchange="loadActivities()">
+                    <option value="">All Status</option>
+                    <option value="upcoming">Upcoming</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+
+            <div class="kanban-container" id="kanban-container">
+                <div class="skeleton" style="height: 400px;"></div>
+            </div>
+        </div>
+
+        <!-- Analytics -->
+        <div id="page-analytics" class="page">
+            <header>
+                <h1>Analytics & Reports</h1>
+                <div class="topbar-right">
+                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
+                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
+                </div>
+            </header>
+
+            <div class="kpi-grid" id="analytics-kpi">
+                <div class="skeleton" style="height: 150px;"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Activity Completion Rate</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="chart-activities"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Timetable Page -->
-        <div class="page" id="page-timetable">
-            <div class="container">
-                <h1>Smart Timetable Scheduler</h1>
-                
-                <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
-                    <button class="btn-primary" onclick="app.openModal('add-slot-modal')">Add New Slot</button>
+        <!-- Students -->
+        <div id="page-students" class="page">
+            <header>
+                <h1>Students Management</h1>
+                <div class="topbar-right">
+                    <button class="btn-add" onclick="openModal('modal-student')">+ Add Student</button>
+                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
+                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
                 </div>
+            </header>
 
-                <div class="grid grid-2">
-                    <div class="card">
-                        <h3 style="margin-bottom: 1rem;">Weekly Timetable</h3>
-                        <div class="table-wrapper">
-                            <table id="timetable">
-                                <thead>
-                                    <tr>
-                                        <th>Time</th>
-                                        <th style="background-color: #01696f20;">Monday</th>
-                                        <th style="background-color: #4f98a320;">Tuesday</th>
-                                        <th style="background-color: #01696f20;">Wednesday</th>
-                                        <th style="background-color: #4f98a320;">Thursday</th>
-                                        <th style="background-color: #01696f20;">Friday</th>
-                                        <th style="background-color: #4f98a320;">Saturday</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><strong>8:00 AM</strong></td>
-                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #01696f20; border-radius: 0.25rem;"><strong>CS301</strong><br>Dr. Banerjee<br>Room 101</td>
-                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #4f98a320; border-radius: 0.25rem;"><strong>EC202</strong><br>Prof. Chatterjee<br>Room 205</td>
-                                        <td>-</td>
-                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #4f98a320; border-radius: 0.25rem;"><strong>CS301</strong><br>Dr. Banerjee<br>Room 101</td>
-                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #01696f20; border-radius: 0.25rem;"><strong>ME401</strong><br>Dr. Kumar<br>Room 310</td>
-                                        <td>-</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>9:00 AM</strong></td>
-                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #01696f20; border-radius: 0.25rem;"><strong>EC202</strong><br>Prof. Chatterjee<br>Room 205</td>
-                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #4f98a320; border-radius: 0.25rem;"><strong>CS301</strong><br>Dr. Banerjee<br>Room 101</td>
-                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #01696f20; border-radius: 0.25rem;"><strong>EC202</strong><br>Prof. Chatterjee<br>Room 205</td>
-                                        <td>-</td>
-                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #4f98a320; border-radius: 0.25rem;"><strong>EC202</strong><br>Prof. Chatterjee<br>Room 205</td>
-                                        <td>-</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>10:00 AM</strong></td>
-                                        <td>-</td>
-                                        <td>-</td>
-                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #01696f20; border-radius: 0.25rem;"><strong>ME401</strong><br>Dr. Kumar<br>Room 310</td>
-                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #4f98a320; border-radius: 0.25rem;"><strong>CE501</strong><br>Prof. Sharma<br>Room 405</td>
-                                        <td>-</td>
-                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #4f98a320; border-radius: 0.25rem;"><strong>CS301</strong><br>Dr. Banerjee<br>Room 101</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <h3 style="margin-bottom: 1rem;">Room Utilization</h3>
-                        <canvas id="room-utilization-chart" height="200"></canvas>
-                    </div>
-                </div>
+            <div class="filters">
+                <input type="text" id="filter-student-search" placeholder="Search by name or roll no..." onchange="loadStudents()">
+                <select id="filter-student-dept" onchange="loadStudents()">
+                    <option value="">All Departments</option>
+                </select>
+                <select id="filter-student-status" onchange="loadStudents()">
+                    <option value="">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                    <option value="graduated">Graduated</option>
+                </select>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Roll No</th>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Semester</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="students-table">
+                        <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Activities Page -->
-        <div class="page" id="page-activities">
-            <div class="container">
-                <h1>Curriculum Activity Tracker</h1>
-                
-                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
-                    <select id="activity-department" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
-                        <option value="">All Departments</option>
-                        <option value="CSE">CSE</option>
-                        <option value="ECE">ECE</option>
-                        <option value="MECH">MECH</option>
-                        <option value="CIVIL">CIVIL</option>
-                    </select>
-                    <select id="activity-type" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
-                        <option value="">All Types</option>
-                        <option value="Workshop">Workshop</option>
-                        <option value="Seminar">Seminar</option>
-                        <option value="Lab">Lab</option>
-                        <option value="Field Visit">Field Visit</option>
-                        <option value="Project">Project</option>
-                    </select>
-                    <button class="btn-primary" onclick="app.openModal('add-activity-modal')">Add Activity</button>
+        <!-- Alumni -->
+        <div id="page-alumni" class="page">
+            <header>
+                <h1>Alumni Directory</h1>
+                <div class="topbar-right">
+                    <button class="btn-add" onclick="openModal('modal-alumni')">+ Add Alumni</button>
+                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
+                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
                 </div>
+            </header>
 
-                <div class="kanban-container" id="activities-kanban">
-                    <!-- Kanban board populated by JS -->
-                </div>
+            <div class="filters">
+                <input type="text" id="filter-alumni-search" placeholder="Search by name or company..." onchange="loadAlumni()">
+                <select id="filter-alumni-dept" onchange="loadAlumni()">
+                    <option value="">All Departments</option>
+                </select>
+                <select id="filter-alumni-batch" onchange="loadAlumni()">
+                    <option value="">All Batches</option>
+                </select>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Batch</th>
+                            <th>Department</th>
+                            <th>Company</th>
+                            <th>Role</th>
+                            <th>Location</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alumni-table">
+                        <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Analytics Page -->
-        <div class="page" id="page-analytics">
-            <div class="container">
-                <h1>Institutional Analytics</h1>
-                
-                <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
-                    <input type="date" id="analytics-start-date">
-                    <input type="date" id="analytics-end-date">
-                    <button class="btn-secondary" onclick="app.updateAnalytics()">Update</button>
-                </div>
-
-                <div class="grid grid-2" style="margin-bottom: 2rem;">
-                    <div class="card">
-                        <h3 style="margin-bottom: 1rem;">Month-wise Attendance by Semester</h3>
-                        <canvas id="attendance-by-semester-chart" height="300"></canvas>
-                    </div>
-                    <div class="card">
-                        <h3 style="margin-bottom: 1rem;">Department Comparison</h3>
-                        <canvas id="department-comparison-chart" height="300"></canvas>
-                    </div>
-                </div>
-
-                <div class="card" style="margin-bottom: 2rem;">
-                    <h3 style="margin-bottom: 1rem;">Activity Completion Status</h3>
-                    <canvas id="activity-completion-chart" height="150"></canvas>
-                </div>
-
-                <div class="card" style="margin-bottom: 2rem;">
-                    <h3 style="margin-bottom: 1rem;">Student Performance Matrix (Sample)</h3>
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Student</th>
-                                    <th>CS301</th>
-                                    <th>EC202</th>
-                                    <th>ME401</th>
-                                    <th>CE501</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Raj Singh</strong></td>
-                                    <td>92</td>
-                                    <td>88</td>
-                                    <td>85</td>
-                                    <td>90</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Anjali Patel</strong></td>
-                                    <td>85</td>
-                                    <td>92</td>
-                                    <td>88</td>
-                                    <td>86</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Vikram Kumar</strong></td>
-                                    <td>78</td>
-                                    <td>81</td>
-                                    <td>79</td>
-                                    <td>80</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div class="grid grid-2">
-                    <button class="btn-primary" onclick="app.exportReport('attendance')">Download Attendance Report (PDF)</button>
-                    <button class="btn-primary" onclick="app.exportReport('defaulters')">Download Defaulters List</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Alumni Page -->
-        <div class="page" id="page-alumni">
-            <div class="container">
-                <h1>Alumni Data Management</h1>
-                
-                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
-                    <input type="text" placeholder="Search by name or company..." id="alumni-search" style="flex: 1; max-width: 300px;">
-                    <select id="alumni-batch" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
-                        <option value="">All Batches</option>
-                        <option value="2022">2022</option>
-                        <option value="2021">2021</option>
-                        <option value="2020">2020</option>
-                        <option value="2019">2019</option>
-                        <option value="2018">2018</option>
-                    </select>
-                    <select id="alumni-dept" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
-                        <option value="">All Departments</option>
-                        <option value="CSE">CSE</option>
-                        <option value="ECE">ECE</option>
-                        <option value="MECH">MECH</option>
-                        <option value="CIVIL">CIVIL</option>
-                    </select>
-                    <button class="btn-primary" onclick="app.openModal('add-alumni-modal')">Add Alumni</button>
-                </div>
-
-                <div class="card">
-                    <div class="table-wrapper">
-                        <table id="alumni-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Batch</th>
-                                    <th>Department</th>
-                                    <th>Company</th>
-                                    <th>Role</th>
-                                    <th>Email</th>
-                                    <th>Location</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Data populated by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Students Page -->
-        <div class="page" id="page-students">
-            <div class="container">
-                <h1>Student Management</h1>
-                
-                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
-                    <input type="text" placeholder="Search students..." id="student-search" style="flex: 1; max-width: 300px;">
-                    <select id="student-status" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
-                        <option value="">All</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Exchange">Exchange</option>
-                    </select>
-                    <button class="btn-primary" onclick="app.openModal('bulk-import-modal')">Bulk Import</button>
-                </div>
-
-                <div class="card">
-                    <div class="table-wrapper">
-                        <table id="students-table">
-                            <thead>
-                                <tr>
-                                    <th>Avatar</th>
-                                    <th>Roll No</th>
-                                    <th>Name</th>
-                                    <th>Department</th>
-                                    <th>Semester</th>
-                                    <th>CGPA</th>
-                                    <th>Phone</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Data populated by JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Settings Page -->
-        <div class="page" id="page-settings">
-            <div class="container">
+        <!-- Settings -->
+        <div id="page-settings" class="page">
+            <header>
                 <h1>Settings</h1>
-                
-                <div class="grid grid-2">
-                    <div class="card">
-                        <h3 style="margin-bottom: 1.5rem;">Institution Profile</h3>
-                        <div class="form-group">
-                            <label>College Name</label>
-                            <input type="text" value="RCCIIT (Rajendra Chandra College of Information & Information Technology)" />
-                        </div>
-                        <div class="form-group">
-                            <label>Address</label>
-                            <textarea rows="3">Eastern Metropolitan Bypass, Khardaha, Kolkata, West Bengal 700107</textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>NAAC Grade</label>
-                            <input type="text" value="A" />
-                        </div>
-                        <div class="form-group">
-                            <label>Principal Name</label>
-                            <input type="text" value="Dr. Arvind Kumar Singh" />
-                        </div>
-                        <div class="form-group">
-                            <label>Academic Year</label>
-                            <input type="text" value="2024-2025" />
-                        </div>
-                        <button class="btn-primary">Save Changes</button>
-                    </div>
+                <div class="topbar-right">
+                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
+                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
+                </div>
+            </header>
 
-                    <div>
-                        <div class="card" style="margin-bottom: 1.5rem;">
-                            <h3 style="margin-bottom: 1.5rem;">Notification Preferences</h3>
-                            <div class="form-group">
-                                <label>SMS Alert Threshold (%)</label>
-                                <input type="number" min="0" max="100" value="60" />
-                            </div>
-                            <div class="form-group">
-                                <label>Email Alerts</label>
-                                <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" checked>
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                    <span>Enabled</span>
-                                </label>
-                            </div>
-                            <button class="btn-primary">Save Preferences</button>
-                        </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Institution Settings</h3>
+                </div>
+                <div class="form-group">
+                    <label>College Name</label>
+                    <p style="padding: 0.75rem; color: var(--color-text-muted);">Institute of Technology Excellence</p>
+                </div>
+                <div class="form-group">
+                    <label>NAAC Grade</label>
+                    <p style="padding: 0.75rem; color: var(--color-text-muted);">A+</p>
+                </div>
+                <div class="form-group">
+                    <label>Principal</label>
+                    <p style="padding: 0.75rem; color: var(--color-text-muted);">Dr. A.K. Sharma</p>
+                </div>
+                <div class="form-group">
+                    <label>Academic Year</label>
+                    <p style="padding: 0.75rem; color: var(--color-text-muted);">2024-2025</p>
+                </div>
+            </div>
 
-                        <div class="card">
-                            <h3 style="margin-bottom: 1.5rem;">Appearance</h3>
-                            <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span>Dark Mode</span>
-                                <label class="toggle-switch" id="dark-mode-toggle">
-                                    <input type="checkbox">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </label>
-                        </div>
-                    </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>Preferences</h3>
+                </div>
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="theme-pref" onchange="toggleTheme()">
+                        Dark Mode
+                    </label>
                 </div>
             </div>
         </div>
     </main>
 
     <!-- Modals -->
-    <!-- Mark Attendance Modal -->
-    <div class="modal" id="mark-attendance-modal">
+
+    <!-- Attendance Modal -->
+    <div id="modal-attendance" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Mark Attendance</h2>
-                <button class="modal-close" onclick="app.closeModal('mark-attendance-modal')">✕</button>
+                <h2>Mark Attendance</h2>
+                <button class="btn-close" onclick="closeModal('modal-attendance')">&times;</button>
             </div>
-            <div class="modal-body">
+            <form onsubmit="handleAttendanceSubmit(event)">
                 <div class="form-group">
-                    <label>Course</label>
-                    <select>
-                        <option>Select Course</option>
-                        <option>CS301 - Database Systems</option>
-                        <option>EC202 - Signals & Systems</option>
-                    </select>
+                    <label for="attendance-subject">Subject</label>
+                    <select id="attendance-subject" required></select>
                 </div>
                 <div class="form-group">
-                    <label>Subject</label>
-                    <select>
-                        <option>Select Subject</option>
-                    </select>
+                    <label for="attendance-date">Date</label>
+                    <input type="datetime-local" id="attendance-date" required>
                 </div>
-                <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" />
+                <div id="attendance-students"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal('modal-attendance')">Cancel</button>
+                    <button type="submit" class="btn-primary">Mark Attendance</button>
                 </div>
-                <div style="max-height: 300px; overflow-y: auto;">
-                    <div style="padding: 1rem; border: 1px solid var(--color-border); border-radius: 0.5rem; margin-bottom: 0.5rem;">
-                        <label style="display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" checked /> Raj Singh (2021CSE001)
-                        </label>
-                    </div>
-                    <div style="padding: 1rem; border: 1px solid var(--color-border); border-radius: 0.5rem; margin-bottom: 0.5rem;">
-                        <label style="display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" /> Anjali Patel (2021CSE002)
-                        </label>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="app.closeModal('mark-attendance-modal')">Cancel</button>
-                <button class="btn-primary" onclick="app.closeModal('mark-attendance-modal')">Submit</button>
-            </div>
+            </form>
         </div>
     </div>
 
-    <!-- Add Activity Modal -->
-    <div class="modal" id="add-activity-modal">
+    <!-- Student Modal -->
+    <div id="modal-student" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Add Activity</h2>
-                <button class="modal-close" onclick="app.closeModal('add-activity-modal')">✕</button>
+                <h2>Add Student</h2>
+                <button class="btn-close" onclick="closeModal('modal-student')">&times;</button>
             </div>
-            <div class="modal-body">
+            <form onsubmit="handleStudentSubmit(event)">
                 <div class="form-group">
-                    <label>Activity Title</label>
-                    <input type="text" placeholder="e.g., National Level Hackathon" />
+                    <label for="student-rollno">Roll No</label>
+                    <input type="text" id="student-rollno" required>
                 </div>
                 <div class="form-group">
-                    <label>Type</label>
-                    <select>
-                        <option>Workshop</option>
-                        <option>Seminar</option>
-                        <option>Lab</option>
-                        <option>Field Visit</option>
-                        <option>Project</option>
-                    </select>
+                    <label for="student-name">Name</label>
+                    <input type="text" id="student-name" required>
                 </div>
                 <div class="form-group">
-                    <label>Date</label>
-                    <input type="date" />
+                    <label for="student-email">Email</label>
+                    <input type="email" id="student-email" required>
                 </div>
                 <div class="form-group">
-                    <label>Department</label>
-                    <select>
-                        <option>CSE</option>
-                        <option>ECE</option>
-                        <option>MECH</option>
-                        <option>CIVIL</option>
-                    </select>
+                    <label for="student-phone">Phone</label>
+                    <input type="tel" id="student-phone" required>
                 </div>
                 <div class="form-group">
-                    <label>Max Capacity</label>
-                    <input type="number" value="50" />
+                    <label for="student-dept">Department</label>
+                    <select id="student-dept" required></select>
                 </div>
                 <div class="form-group">
-                    <label>Credit Hours</label>
-                    <input type="number" value="2" />
+                    <label for="student-semester">Semester</label>
+                    <input type="number" id="student-semester" min="1" max="8" required>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="app.closeModal('add-activity-modal')">Cancel</button>
-                <button class="btn-primary" onclick="app.closeModal('add-activity-modal')">Add Activity</button>
-            </div>
+                <div class="form-group">
+                    <label for="student-password">Password</label>
+                    <input type="password" id="student-password" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal('modal-student')">Cancel</button>
+                    <button type="submit" class="btn-primary" id="btn-student-submit">Add Student</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Add Slot Modal -->
-    <div class="modal" id="add-slot-modal">
+    <!-- Activity Modal -->
+    <div id="modal-activity" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Add Timetable Slot</h2>
-                <button class="modal-close" onclick="app.closeModal('add-slot-modal')">✕</button>
+                <h2>Create Activity</h2>
+                <button class="btn-close" onclick="closeModal('modal-activity')">&times;</button>
             </div>
-            <div class="modal-body">
+            <form onsubmit="handleActivitySubmit(event)">
                 <div class="form-group">
-                    <label>Subject</label>
-                    <input type="text" placeholder="e.g., CS301" />
+                    <label for="activity-title">Title</label>
+                    <input type="text" id="activity-title" required>
                 </div>
                 <div class="form-group">
-                    <label>Faculty</label>
-                    <select>
-                        <option>Dr. A. Banerjee</option>
-                        <option>Prof. S. Chatterjee</option>
-                        <option>Dr. R. Kumar</option>
+                    <label for="activity-type">Type</label>
+                    <select id="activity-type" required>
+                        <option value="workshop">Workshop</option>
+                        <option value="seminar">Seminar</option>
+                        <option value="hackathon">Hackathon</option>
+                        <option value="competition">Competition</option>
+                        <option value="industrial_visit">Industrial Visit</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Room No</label>
-                    <input type="text" placeholder="e.g., 101" />
+                    <label for="activity-date">Date</label>
+                    <input type="datetime-local" id="activity-date" required>
                 </div>
                 <div class="form-group">
-                    <label>Time Slot</label>
-                    <select>
-                        <option>8:00 AM</option>
-                        <option>9:00 AM</option>
-                        <option>10:00 AM</option>
-                    </select>
+                    <label for="activity-description">Description</label>
+                    <textarea id="activity-description" rows="4" required></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Day</label>
-                    <select>
+                    <label for="activity-capacity">Max Capacity</label>
+                    <input type="number" id="activity-capacity" min="1" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal('modal-activity')">Cancel</button>
+                    <button type="submit" class="btn-primary" id="btn-activity-submit">Create Activity</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Timetable Modal -->
+    <div id="modal-timetable" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Timetable Slot</h2>
+                <button class="btn-close" onclick="closeModal('modal-timetable')">&times;</button>
+            </div>
+            <form onsubmit="handleTimetableSubmit(event)">
+                <div class="form-group">
+                    <label for="timetable-subject">Subject</label>
+                    <select id="timetable-subject" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="timetable-day">Day</label>
+                    <select id="timetable-day" required>
                         <option>Monday</option>
                         <option>Tuesday</option>
                         <option>Wednesday</option>
                         <option>Thursday</option>
                         <option>Friday</option>
-                        <option>Saturday</option>
                     </select>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="app.closeModal('add-slot-modal')">Cancel</button>
-                <button class="btn-primary" onclick="app.closeModal('add-slot-modal')">Add Slot</button>
-            </div>
+                <div class="form-group">
+                    <label for="timetable-time-start">Start Time</label>
+                    <input type="time" id="timetable-time-start" required>
+                </div>
+                <div class="form-group">
+                    <label for="timetable-time-end">End Time</label>
+                    <input type="time" id="timetable-time-end" required>
+                </div>
+                <div class="form-group">
+                    <label for="timetable-room">Room</label>
+                    <input type="text" id="timetable-room" placeholder="e.g., Room 301" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal('modal-timetable')">Cancel</button>
+                    <button type="submit" class="btn-primary" id="btn-timetable-submit">Add Slot</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Add Alumni Modal -->
-    <div class="modal" id="add-alumni-modal">
+    <!-- Alumni Modal -->
+    <div id="modal-alumni" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Add Alumni</h2>
-                <button class="modal-close" onclick="app.closeModal('add-alumni-modal')">✕</button>
+                <h2>Add Alumni Record</h2>
+                <button class="btn-close" onclick="closeModal('modal-alumni')">&times;</button>
             </div>
-            <div class="modal-body">
+            <form onsubmit="handleAlumniSubmit(event)">
                 <div class="form-group">
-                    <label>Name</label>
-                    <input type="text" />
+                    <label for="alumni-name">Name</label>
+                    <input type="text" id="alumni-name" required>
                 </div>
                 <div class="form-group">
-                    <label>Batch</label>
-                    <select>
-                        <option>2022</option>
-                        <option>2021</option>
-                        <option>2020</option>
-                    </select>
+                    <label for="alumni-batch">Batch Year</label>
+                    <input type="number" id="alumni-batch" min="2000" max="2100" required>
                 </div>
                 <div class="form-group">
-                    <label>Department</label>
-                    <select>
-                        <option>CSE</option>
-                        <option>ECE</option>
-                        <option>MECH</option>
-                        <option>CIVIL</option>
-                    </select>
+                    <label for="alumni-dept">Department</label>
+                    <select id="alumni-dept" required></select>
                 </div>
                 <div class="form-group">
-                    <label>Company</label>
-                    <input type="text" />
+                    <label for="alumni-company">Company</label>
+                    <input type="text" id="alumni-company" required>
                 </div>
                 <div class="form-group">
-                    <label>Role</label>
-                    <input type="text" />
+                    <label for="alumni-role">Role</label>
+                    <input type="text" id="alumni-role" required>
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" />
+                    <label for="alumni-email">Email</label>
+                    <input type="email" id="alumni-email" required>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="app.closeModal('add-alumni-modal')">Cancel</button>
-                <button class="btn-primary" onclick="app.closeModal('add-alumni-modal')">Add Alumni</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Bulk Import Modal -->
-    <div class="modal" id="bulk-import-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Bulk Import Students</h2>
-                <button class="modal-close" onclick="app.closeModal('bulk-import-modal')">✕</button>
-            </div>
-            <div class="modal-body">
                 <div class="form-group">
-                    <label>Upload CSV File</label>
-                    <input type="file" accept=".csv" />
+                    <label for="alumni-linkedin">LinkedIn Profile</label>
+                    <input type="text" id="alumni-linkedin">
                 </div>
-                <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-top: 1rem;">
-                    CSV should contain: Roll No, Name, Department, Semester, CGPA, Phone
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="app.closeModal('bulk-import-modal')">Cancel</button>
-                <button class="btn-primary" onclick="app.closeModal('bulk-import-modal')">Import</button>
-            </div>
+                <div class="form-group">
+                    <label for="alumni-location">Location</label>
+                    <input type="text" id="alumni-location" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeModal('modal-alumni')">Cancel</button>
+                    <button type="submit" class="btn-primary" id="btn-alumni-submit">Add Alumni</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script>
-        // Mock Data
-        const mockStudents = [
-            { rollNo: '2021CSE001', name: 'Raj Singh', dept: 'CSE', semester: 3, attended: 92, total: 100 },
-            { rollNo: '2021CSE002', name: 'Anjali Patel', dept: 'CSE', semester: 3, attended: 85, total: 100 },
-            { rollNo: '2021CSE003', name: 'Vikram Kumar', dept: 'CSE', semester: 3, attended: 78, total: 100 },
-            { rollNo: '2021ECE001', name: 'Shreya Azad', dept: 'ECE', semester: 3, attended: 88, total: 100 },
-            { rollNo: '2021ECE002', name: 'Neha Kapoor', dept: 'ECE', semester: 3, attended: 72, total: 100 },
-            { rollNo: '2021MECH001', name: 'Arjun Singh', dept: 'MECH', semester: 3, attended: 65, total: 100 },
-            { rollNo: '2021CIVIL001', name: 'Priya Sharma', dept: 'CIVIL', semester: 3, attended: 58, total: 100 },
-        ];
+        // Global state
+        let authToken = null;
+        let currentUser = null;
+        let charts = {};
 
-        const mockAlumni = [
-            { name: 'Rohit Sharma', batch: 2022, dept: 'CSE', company: 'Google', role: 'Software Engineer', email: 'rohit@google.com', location: 'Bangalore' },
-            { name: 'Priya Gupta', batch: 2021, dept: 'ECE', company: 'TCS', role: 'Senior Developer', email: 'priya@tcs.com', location: 'Mumbai' },
-            { name: 'Arun Kumar', batch: 2020, dept: 'CSE', company: 'Infosys', role: 'Consultant', email: 'arun@infosys.com', location: 'Pune' },
-            { name: 'Divya Mehta', batch: 2019, dept: 'MECH', company: 'DRDO', role: 'Scientist', email: 'divya@drdo.com', location: 'Delhi' },
-            { name: 'Vikram Singh', batch: 2018, dept: 'CIVIL', company: 'L&T', role: 'Project Manager', email: 'vikram@lt.com', location: 'Hyderabad' },
-        ];
+        // API helper
+        async function api(path, options = {}) {
+            const res = await fetch(CONFIG.API_BASE + path, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+                    ...options.headers
+                }
+            });
 
-        const mockActivities = [
-            { name: 'National Level Hackathon', type: 'Workshop', dept: 'CSE', date: '2024-04-15', enrolled: 45, status: 'Upcoming' },
-            { name: 'Industrial Visit to ISRO', type: 'Field Visit', dept: 'ECE', date: '2024-04-10', enrolled: 30, status: 'Ongoing' },
-            { name: 'Python Workshop', type: 'Workshop', dept: 'CSE', date: '2024-03-20', enrolled: 50, status: 'Completed' },
-            { name: 'Research Paper Submission', type: 'Project', dept: 'MECH', date: '2024-04-20', enrolled: 25, status: 'Upcoming' },
-        ];
+            if (res.status === 401) {
+                showLogin();
+                return null;
+            }
 
-        // Main App Object
-        const app = {
-            currentPage: 'dashboard',
-            charts: {},
-            
-            init() {
-                this.setupEventListeners();
-                this.renderPage('dashboard');
-                this.loadData();
-            },
+            if (!res.ok) {
+                const error = await res.json().catch(() => ({}));
+                throw new Error(error.detail || `HTTP ${res.status}`);
+            }
 
-            setupEventListeners() {
-                document.querySelectorAll('.sidebar-nav-link').forEach(link => {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const page = e.currentTarget.dataset.page;
-                        this.navigateTo(page);
-                    });
+            return res.json();
+        }
+
+        // Auth
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('login-btn');
+            const spinner = document.getElementById('login-spinner');
+            const errorDiv = document.getElementById('login-error');
+
+            btn.disabled = true;
+            spinner.style.display = 'inline-block';
+            errorDiv.textContent = '';
+
+            try {
+                const response = await api('/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({ email, password })
                 });
 
-                document.getElementById('sidebar-toggle').addEventListener('click', () => {
-                    document.getElementById('sidebar').classList.toggle('collapsed');
-                });
+                if (!response) return;
 
-                document.getElementById('theme-toggle').addEventListener('click', () => {
-                    const html = document.documentElement;
-                    const isDark = html.dataset.theme === 'dark';
-                    html.dataset.theme = isDark ? 'light' : 'dark';
-                    this.updateChartThemes();
-                });
+                authToken = response.access_token;
+                currentUser = response.user;
 
-                // Close modals on outside click
-                document.querySelectorAll('.modal').forEach(modal => {
-                    modal.addEventListener('click', (e) => {
-                        if (e.target === modal) {
-                            this.closeModal(modal.id);
-                        }
-                    });
-                });
-            },
+                document.body.classList.add('authenticated');
+                document.getElementById('page-login').classList.remove('active');
+                document.getElementById('page-dashboard').classList.add('active');
+                document.getElementById('user-name').textContent = currentUser.name;
+                document.getElementById('user-role').textContent = currentUser.role;
 
-            navigateTo(page) {
-                this.currentPage = page;
-                this.renderPage(page);
-            },
+                updateNavigation();
+                loadDashboard();
+            } catch (error) {
+                errorDiv.textContent = error.message;
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+            }
+        }
 
-            renderPage(page) {
-                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                document.getElementById('page-' + page).classList.add('active');
-                
-                document.querySelectorAll('.sidebar-nav-link').forEach(link => link.classList.remove('active'));
-                document.querySelector(`[data-page="${page}"]`).classList.add('active');
+        function handleLogout() {
+            authToken = null;
+            currentUser = null;
+            document.body.classList.remove('authenticated');
+            document.getElementById('page-login').classList.add('active');
+            showAllPages('none');
+            document.getElementById('page-login').style.display = 'flex';
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+        }
 
-                const breadcrumbs = {
-                    'dashboard': 'Dashboard',
-                    'attendance': 'Attendance Overview',
-                    'timetable': 'Timetable Scheduler',
-                    'activities': 'Activity Tracker',
-                    'analytics': 'Analytics',
-                    'alumni': 'Alumni Management',
-                    'students': 'Student Management',
-                    'settings': 'Settings'
-                };
-                document.getElementById('breadcrumb').textContent = breadcrumbs[page];
+        function showLogin() {
+            handleLogout();
+        }
 
-                setTimeout(() => {
-                    if (page === 'dashboard') this.initDashboardCharts();
-                    else if (page === 'timetable') this.initTimetableCharts();
-                    else if (page === 'analytics') this.initAnalyticsCharts();
-                    else if (page === 'attendance') this.populateAttendanceTable();
-                    else if (page === 'alumni') this.populateAlumniTable();
-                    else if (page === 'students') this.populateStudentsTable();
-                    else if (page === 'activities') this.populateActivitiesKanban();
-                }, 100);
-            },
+        // Navigation
+        function navigate(page) {
+            showAllPages('none');
+            const pageEl = document.getElementById(`page-${page}`);
+            if (pageEl) {
+                pageEl.classList.add('active');
+                pageEl.style.display = 'block';
 
-            loadData() {
-                this.animateCounters();
-                this.populateAttendanceTable();
-                this.populateAlumniTable();
-                this.populateStudentsTable();
-                this.populateActivitiesKanban();
-            },
+                // Load page data
+                if (page === 'dashboard') loadDashboard();
+                if (page === 'attendance') loadAttendanceSessions();
+                if (page === 'timetable') loadTimetable();
+                if (page === 'activities') loadActivities();
+                if (page === 'analytics') loadAnalytics();
+                if (page === 'students') loadStudents();
+                if (page === 'alumni') loadAlumni();
+            }
 
-            animateCounters() {
-                const animate = (element, target) => {
-                    let current = 0;
-                    const increment = target / 30;
-                    const timer = setInterval(() => {
-                        current += increment;
-                        if (current >= target) {
-                            element.textContent = target;
-                            clearInterval(timer);
-                        } else {
-                            element.textContent = Math.floor(current);
-                        }
-                    }, 30);
-                };
+            // Update nav links
+            document.querySelectorAll('nav a').forEach(a => {
+                a.classList.remove('active');
+                if (a.getAttribute('href') === `#${page}`) {
+                    a.classList.add('active');
+                }
+            });
+        }
 
-                animate(document.getElementById('kpi-attendance'), 82);
-                animate(document.getElementById('kpi-students'), 1245);
-                animate(document.getElementById('kpi-activities'), 23);
-                animate(document.getElementById('kpi-conflicts'), 4);
-            },
+        function showAllPages(display) {
+            document.querySelectorAll('.page').forEach(p => {
+                p.style.display = display;
+                p.classList.remove('active');
+            });
+        }
 
-            initDashboardCharts() {
-                const ctx = document.getElementById('attendance-chart');
-                if (!ctx) return;
+        function updateNavigation() {
+            // Disable pages based on user role
+            if (currentUser.role === 'student') {
+                document.querySelectorAll('nav a[href*="attendance"], nav a[href*="timetable"], nav a[href*="analytics"], nav a[href*="students"], nav a[href*="alumni"], nav a[href*="settings"]')
+                    .forEach(a => a.style.display = 'none');
+            }
+        }
 
-                if (this.charts.attendance) this.charts.attendance.destroy();
+        // Modal
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
 
-                const isDark = document.documentElement.dataset.theme === 'dark';
-                const textColor = isDark ? '#cdccca' : '#28251d';
-                const gridColor = isDark ? '#393836' : '#dcd9d5';
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
 
-                this.charts.attendance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7', 'Day 8', 'Day 9', 'Day 10'],
-                        datasets: [
-                            {
-                                label: 'CSE',
-                                data: [92, 89, 94, 78, 85, 88, 91, 87, 90, 92],
-                                borderColor: '#01696f',
-                                backgroundColor: 'rgba(1, 105, 111, 0.1)',
-                                tension: 0.4,
-                                borderWidth: 2
-                            },
-                            {
-                                label: 'ECE',
-                                data: [88, 75, 86, 82, 71, 81, 79, 83, 85, 88],
-                                borderColor: '#4f98a3',
-                                backgroundColor: 'rgba(79, 152, 163, 0.1)',
-                                tension: 0.4,
-                                borderWidth: 2
-                            },
-                            {
-                                label: 'MECH',
-                                data: [79, 84, 87, 73, 72, 76, 78, 80, 82, 79],
-                                borderColor: '#437a22',
-                                backgroundColor: 'rgba(67, 122, 34, 0.1)',
-                                tension: 0.4,
-                                borderWidth: 2
-                            },
-                            {
-                                label: 'CIVIL',
-                                data: [75, 68, 72, 58, 61, 69, 71, 73, 75, 78],
-                                borderColor: '#a12c7b',
-                                backgroundColor: 'rgba(161, 44, 123, 0.1)',
-                                tension: 0.4,
-                                borderWidth: 2
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            legend: {
-                                labels: { color: textColor }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                ticks: { color: textColor },
-                                grid: { color: gridColor }
-                            },
-                            x: {
-                                ticks: { color: textColor },
-                                grid: { color: gridColor }
-                            }
-                        }
-                    }
-                });
-            },
+        // Toast notifications
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
 
-            initTimetableCharts() {
-                const ctx = document.getElementById('room-utilization-chart');
-                if (!ctx) return;
+        // Theme
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme') || 'light';
+            const next = current === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            document.getElementById('theme-pref').checked = next === 'dark';
+        }
 
-                if (this.charts.roomUtilization) this.charts.roomUtilization.destroy();
+        // Load initial theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
 
-                const isDark = document.documentElement.dataset.theme === 'dark';
-                const textColor = isDark ? '#cdccca' : '#28251d';
-                const gridColor = isDark ? '#393836' : '#dcd9d5';
+        // Dashboard
+        async function loadDashboard() {
+            try {
+                const kpis = await api('/analytics/dashboard-kpis');
+                const trends = await api('/analytics/attendance-trend?months=3');
+                const depts = await api('/analytics/department-comparison');
 
-                this.charts.roomUtilization = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: ['Room 101', 'Room 205', 'Room 310', 'Room 405'],
-                        datasets: [{
-                            label: 'Utilization %',
-                            data: [92, 78, 85, 65],
-                            backgroundColor: ['#01696f', '#4f98a3', '#437a22', '#a12c7b']
-                        }]
-                    },
-                    options: {
-                        indexAxis: 'y',
-                        responsive: true,
-                        plugins: {
-                            legend: { labels: { color: textColor } }
-                        },
-                        scales: {
-                            x: {
-                                ticks: { color: textColor },
-                                grid: { color: gridColor },
-                                max: 100
-                            },
-                            y: {
-                                ticks: { color: textColor }
-                            }
-                        }
-                    }
-                });
-            },
+                if (!kpis) return;
 
-            initAnalyticsCharts() {
-                const isDark = document.documentElement.dataset.theme === 'dark';
-                const textColor = isDark ? '#cdccca' : '#28251d';
-                const gridColor = isDark ? '#393836' : '#dcd9d5';
+                // KPIs
+                document.getElementById('kpi-container').innerHTML = `
+                    <div class="card">
+                        <div class="kpi-label">Today's Attendance</div>
+                        <div class="kpi-value">${kpis.attendance_percentage}%</div>
+                    </div>
+                    <div class="card">
+                        <div class="kpi-label">Active Students</div>
+                        <div class="kpi-value">${kpis.active_students}</div>
+                    </div>
+                    <div class="card">
+                        <div class="kpi-label">Pending Activities</div>
+                        <div class="kpi-value">${kpis.pending_activities}</div>
+                    </div>
+                    <div class="card">
+                        <div class="kpi-label">Schedule Conflicts</div>
+                        <div class="kpi-value">${kpis.conflicts}</div>
+                    </div>
+                `;
 
-                // Attendance by Semester
-                const ctx1 = document.getElementById('attendance-by-semester-chart');
-                if (ctx1 && !this.charts.attendanceBySemester) {
-                    this.charts.attendanceBySemester = new Chart(ctx1, {
+                // Trend chart
+                if (trends && trends.trends.length > 0) {
+                    const ctx = document.getElementById('chart-trend').getContext('2d');
+                    if (charts.trend) charts.trend.destroy();
+                    charts.trend = new Chart(ctx, {
                         type: 'line',
                         data: {
-                            labels: ['Jan', 'Feb', 'Mar', 'Apr'],
-                            datasets: [
-                                { label: 'Sem 1', data: [85, 88, 90, 87], borderColor: '#01696f', tension: 0.4, borderWidth: 2 },
-                                { label: 'Sem 2', data: [82, 85, 88, 86], borderColor: '#4f98a3', tension: 0.4, borderWidth: 2 },
-                                { label: 'Sem 3', data: [80, 83, 85, 82], borderColor: '#437a22', tension: 0.4, borderWidth: 2 }
-                            ]
+                            labels: trends.trends.map(t => t.date),
+                            datasets: [{
+                                label: 'Attendance %',
+                                data: trends.trends.map(t => t.percentage),
+                                borderColor: 'rgb(1, 105, 111)',
+                                backgroundColor: 'rgba(1, 105, 111, 0.1)',
+                                tension: 0.4
+                            }]
                         },
-                        options: {
-                            responsive: true,
-                            plugins: { legend: { labels: { color: textColor } } },
-                            scales: {
-                                y: { ticks: { color: textColor }, grid: { color: gridColor } },
-                                x: { ticks: { color: textColor }, grid: { color: gridColor } }
-                            }
-                        }
+                        options: { responsive: true, maintainAspectRatio: false }
                     });
                 }
 
-                // Department Comparison
-                const ctx2 = document.getElementById('department-comparison-chart');
-                if (ctx2 && !this.charts.deptComparison) {
-                    this.charts.deptComparison = new Chart(ctx2, {
+                // Department comparison
+                if (depts && depts.length > 0) {
+                    const ctx = document.getElementById('chart-comparison').getContext('2d');
+                    if (charts.comparison) charts.comparison.destroy();
+                    charts.comparison = new Chart(ctx, {
                         type: 'bar',
                         data: {
-                            labels: ['CSE', 'ECE', 'MECH', 'CIVIL'],
+                            labels: depts.map(d => d.department),
                             datasets: [{
-                                label: 'Average Attendance %',
-                                data: [88, 80, 77, 68],
-                                backgroundColor: ['#01696f', '#4f98a3', '#437a22', '#a12c7b']
+                                label: 'Attendance %',
+                                data: depts.map(d => d.attendance_percentage),
+                                backgroundColor: 'rgba(1, 105, 111, 0.5)'
                             }]
                         },
-                        options: {
-                            responsive: true,
-                            plugins: { legend: { labels: { color: textColor } } },
-                            scales: {
-                                y: { ticks: { color: textColor }, grid: { color: gridColor } },
-                                x: { ticks: { color: textColor } }
-                            }
-                        }
+                        options: { responsive: true, maintainAspectRatio: false }
                     });
                 }
-
-                // Activity Completion
-                const ctx3 = document.getElementById('activity-completion-chart');
-                if (ctx3 && !this.charts.activityCompletion) {
-                    this.charts.activityCompletion = new Chart(ctx3, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Completed', 'Ongoing', 'Upcoming'],
-                            datasets: [{
-                                data: [40, 30, 30],
-                                backgroundColor: ['#437a22', '#01696f', '#a12c7b']
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: { legend: { labels: { color: textColor } } }
-                        }
-                    });
-                }
-            },
-
-            populateAttendanceTable() {
-                const tbody = document.querySelector('#attendance-table tbody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = mockStudents.map(student => `
-                    <tr>
-                        <td>${student.rollNo}</td>
-                        <td><strong>${student.name}</strong></td>
-                        <td>${student.dept}</td>
-                        <td>${student.semester}</td>
-                        <td>${student.total}</td>
-                        <td>${student.attended}</td>
-                        <td><strong>${Math.round((student.attended/student.total)*100)}%</strong></td>
-                        <td>
-                            <span class="badge ${(student.attended/student.total)>=0.75 ? 'badge-success' : (student.attended/student.total)>=0.6 ? 'badge-warning' : 'badge-error'}">
-                                ${(student.attended/student.total)>=0.75 ? 'Regular' : (student.attended/student.total)>=0.6 ? 'At Risk' : 'Defaulter'}
-                            </span>
-                        </td>
-                    </tr>
-                `).join('');
-            },
-
-            populateAlumniTable() {
-                const tbody = document.querySelector('#alumni-table tbody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = mockAlumni.map(alumni => `
-                    <tr>
-                        <td><strong>${alumni.name}</strong></td>
-                        <td>${alumni.batch}</td>
-                        <td>${alumni.dept}</td>
-                        <td>${alumni.company}</td>
-                        <td>${alumni.role}</td>
-                        <td>${alumni.email}</td>
-                        <td>${alumni.location}</td>
-                    </tr>
-                `).join('');
-            },
-
-            populateStudentsTable() {
-                const tbody = document.querySelector('#students-table tbody');
-                if (!tbody) return;
-                
-                tbody.innerHTML = mockStudents.map(student => `
-                    <tr>
-                        <td><div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #01696f, #4f98a3); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.875rem;">${student.name.split(' ').map(n => n[0]).join('')}</div></td>
-                        <td><strong>${student.rollNo}</strong></td>
-                        <td>${student.name}</td>
-                        <td>${student.dept}</td>
-                        <td>${student.semester}</td>
-                        <td>${(Math.random() * 0.5 + 7.5).toFixed(2)}</td>
-                        <td>+91-XXXX${Math.floor(Math.random()*10000)}</td>
-                        <td><button class="btn-ghost" style="padding: 0.5rem;">View</button></td>
-                    </tr>
-                `).join('');
-            },
-
-            populateActivitiesKanban() {
-                const container = document.getElementById('activities-kanban');
-                if (!container) return;
-
-                const statuses = ['Upcoming', 'Ongoing', 'Completed'];
-                container.innerHTML = statuses.map(status => `
-                    <div class="kanban-column">
-                        <div class="kanban-header">${status}</div>
-                        <div class="kanban-cards">
-                            ${mockActivities.filter(a => a.status === status).map(activity => `
-                                <div class="kanban-card">
-                                    <h4 style="margin-bottom: 0.5rem;">${activity.name}</h4>
-                                    <span class="badge badge-success">${activity.type}</span>
-                                    <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.5rem;">
-                                        ${activity.dept} • ${activity.enrolled} enrolled<br/>
-                                        ${activity.date}
-                                    </p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `).join('');
-            },
-
-            updateChartThemes() {
-                Object.values(this.charts).forEach(chart => {
-                    if (chart) chart.update();
-                });
-            },
-
-            openModal(modalId) {
-                document.getElementById(modalId).classList.add('active');
-            },
-
-            closeModal(modalId) {
-                document.getElementById(modalId).classList.remove('active');
-            },
-
-            exportCSV(type) {
-                alert(`Exporting ${type} data as CSV...`);
-            },
-
-            exportReport(type) {
-                alert(`Downloading ${type} report as PDF...`);
-            },
-
-            updateAnalytics() {
-                alert('Analytics updated!');
+            } catch (error) {
+                showToast(error.message, 'error');
             }
-        };
+        }
 
-        // Initialize App
-        document.addEventListener('DOMContentLoaded', () => {
-            app.init();
+        // Attendance
+        async function loadAttendanceSessions() {
+            try {
+                const sessions = await api('/attendance/sessions');
+                if (!sessions) return;
+
+                document.getElementById('attendance-table').innerHTML = sessions.length === 0
+                    ? '<tr><td colspan="5" style="text-align: center; padding: 2rem;">No attendance sessions yet</td></tr>'
+                    : sessions.map(s => `
+                        <tr>
+                            <td>${new Date(s.date).toLocaleDateString()}</td>
+                            <td>${s.subject?.name || 'N/A'}</td>
+                            <td>${s.faculty?.name || 'N/A'}</td>
+                            <td>${s.total_students}</td>
+                            <td>
+                                <button class="btn-small btn-edit" onclick="loadAttendanceRecords(${s.id})">Mark</button>
+                            </td>
+                        </tr>
+                    `).join('');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function handleAttendanceSubmit(e) {
+            e.preventDefault();
+            const subjectId = parseInt(document.getElementById('attendance-subject').value);
+            const date = document.getElementById('attendance-date').value;
+            
+            try {
+                await api('/attendance/sessions', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        subject_id: subjectId,
+                        date: new Date(date).toISOString(),
+                        total_students: 0
+                    })
+                });
+                closeModal('modal-attendance');
+                loadAttendanceSessions();
+                showToast('Attendance session created');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function loadAttendanceRecords(sessionId) {
+            // TODO: Load and mark attendance for session
+        }
+
+        async function exportAttendanceCSV() {
+            try {
+                const report = await api('/attendance/report');
+                if (!report) return;
+
+                const csv = 'Student,Roll No,Date,Status,Subject\n' +
+                    report.map(r => `${r.student_name},${r.student_id},${r.date},${r.status},${r.subject}`).join('\n');
+
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `attendance-report-${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Timetable
+        async function loadTimetable() {
+            try {
+                const slots = await api('/timetable');
+                if (!slots) return;
+
+                document.getElementById('timetable-table').innerHTML = slots.length === 0
+                    ? '<tr><td colspan="5" style="text-align: center; padding: 2rem;">No timetable slots</td></tr>'
+                    : slots.map(s => `
+                        <tr>
+                            <td>${s.day}</td>
+                            <td>${s.time_start} - ${s.time_end}</td>
+                            <td>${s.subject?.name || 'N/A'}</td>
+                            <td>${s.room}</td>
+                            <td>
+                                <button class="btn-small btn-delete" onclick="deleteTimetable(${s.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function handleTimetableSubmit(e) {
+            e.preventDefault();
+            try {
+                // TODO: Implement timetable creation
+                closeModal('modal-timetable');
+                loadTimetable();
+                showToast('Timetable slot added');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function deleteTimetable(id) {
+            if (!confirm('Delete this slot?')) return;
+            try {
+                await api(`/timetable/${id}`, { method: 'DELETE' });
+                loadTimetable();
+                showToast('Timetable slot deleted');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Activities
+        async function loadActivities() {
+            try {
+                const activities = await api('/activities');
+                if (!activities) return;
+
+                const grouped = {
+                    upcoming: activities.filter(a => a.status === 'upcoming'),
+                    ongoing: activities.filter(a => a.status === 'ongoing'),
+                    completed: activities.filter(a => a.status === 'completed')
+                };
+
+                document.getElementById('kanban-container').innerHTML = `
+                    <div class="kanban-column">
+                        <h3>Upcoming</h3>
+                        ${grouped.upcoming.map(a => `
+                            <div class="kanban-card">
+                                <h4>${a.title}</h4>
+                                <p style="font-size: 0.9rem; color: var(--color-text-muted);">${new Date(a.date).toLocaleDateString()}</p>
+                                <p style="font-size: 0.85rem;">${a.description.substring(0, 100)}...</p>
+                                <button class="btn-small btn-delete" onclick="deleteActivity(${a.id})">Delete</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="kanban-column">
+                        <h3>Ongoing</h3>
+                        ${grouped.ongoing.map(a => `
+                            <div class="kanban-card">
+                                <h4>${a.title}</h4>
+                                <p style="font-size: 0.9rem; color: var(--color-text-muted);">${new Date(a.date).toLocaleDateString()}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="kanban-column">
+                        <h3>Completed</h3>
+                        ${grouped.completed.map(a => `
+                            <div class="kanban-card">
+                                <h4>${a.title}</h4>
+                                <p style="font-size: 0.9rem; color: var(--color-text-muted);">${new Date(a.date).toLocaleDateString()}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function handleActivitySubmit(e) {
+            e.preventDefault();
+            const title = document.getElementById('activity-title').value;
+            const type = document.getElementById('activity-type').value;
+            const date = document.getElementById('activity-date').value;
+            const description = document.getElementById('activity-description').value;
+            const capacity = parseInt(document.getElementById('activity-capacity').value);
+
+            try {
+                await api('/activities', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        title,
+                        type,
+                        date: new Date(date).toISOString(),
+                        description,
+                        dept_id: 1,
+                        max_capacity: capacity,
+                        status: 'upcoming'
+                    })
+                });
+                closeModal('modal-activity');
+                loadActivities();
+                showToast('Activity created successfully');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function deleteActivity(id) {
+            if (!confirm('Delete this activity?')) return;
+            try {
+                await api(`/activities/${id}`, { method: 'DELETE' });
+                loadActivities();
+                showToast('Activity deleted');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Students
+        async function loadStudents() {
+            try {
+                const students = await api('/students');
+                if (!students) return;
+
+                document.getElementById('students-table').innerHTML = students.length === 0
+                    ? '<tr><td colspan="7" style="text-align: center; padding: 2rem;">No students found</td></tr>'
+                    : students.map(s => `
+                        <tr>
+                            <td>${s.roll_no}</td>
+                            <td>${s.name}</td>
+                            <td>${s.department?.name || 'N/A'}</td>
+                            <td>${s.semester}</td>
+                            <td>${s.email}</td>
+                            <td><span class="status-badge badge-active">${s.status}</span></td>
+                            <td>
+                                <button class="btn-small btn-delete" onclick="deleteStudent(${s.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function handleStudentSubmit(e) {
+            e.preventDefault();
+            const rollNo = document.getElementById('student-rollno').value;
+            const name = document.getElementById('student-name').value;
+            const email = document.getElementById('student-email').value;
+            const phone = document.getElementById('student-phone').value;
+            const deptId = parseInt(document.getElementById('student-dept').value);
+            const semester = parseInt(document.getElementById('student-semester').value);
+            const password = document.getElementById('student-password').value;
+
+            try {
+                await api('/students', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        roll_no: rollNo,
+                        name,
+                        email,
+                        phone,
+                        dept_id: deptId,
+                        semester,
+                        password,
+                        status: 'active'
+                    })
+                });
+                closeModal('modal-student');
+                loadStudents();
+                showToast('Student added successfully');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function deleteStudent(id) {
+            if (!confirm('Delete this student?')) return;
+            try {
+                await api(`/students/${id}`, { method: 'DELETE' });
+                loadStudents();
+                showToast('Student deleted');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Analytics
+        async function loadAnalytics() {
+            try {
+                const completion = await api('/analytics/activity-completion');
+                if (!completion) return;
+
+                const ctx = document.getElementById('chart-activities').getContext('2d');
+                if (charts.activities) charts.activities.destroy();
+                charts.activities = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Completed', 'Pending'],
+                        datasets: [{
+                            data: [completion.completed, completion.total - completion.completed],
+                            backgroundColor: ['rgba(67, 122, 34, 0.8)', 'rgba(220, 217, 213, 0.8)']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+
+                document.getElementById('analytics-kpi').innerHTML = `
+                    <div class="card">
+                        <div class="kpi-label">Activity Completion Rate</div>
+                        <div class="kpi-value">${completion.percentage}%</div>
+                    </div>
+                `;
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Alumni
+        async function loadAlumni() {
+            try {
+                const alumni = await api('/alumni');
+                if (!alumni) return;
+
+                document.getElementById('alumni-table').innerHTML = alumni.length === 0
+                    ? '<tr><td colspan="7" style="text-align: center; padding: 2rem;">No alumni records</td></tr>'
+                    : alumni.map(a => `
+                        <tr>
+                            <td>${a.name}</td>
+                            <td>${a.batch_year}</td>
+                            <td>${a.department?.name || 'N/A'}</td>
+                            <td>${a.company}</td>
+                            <td>${a.role}</td>
+                            <td>${a.location}</td>
+                            <td>
+                                <button class="btn-small btn-delete" onclick="deleteAlumni(${a.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `).join('');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function handleAlumniSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('alumni-name').value;
+            const batch = parseInt(document.getElementById('alumni-batch').value);
+            const deptId = parseInt(document.getElementById('alumni-dept').value);
+            const company = document.getElementById('alumni-company').value;
+            const role = document.getElementById('alumni-role').value;
+            const email = document.getElementById('alumni-email').value;
+            const linkedin = document.getElementById('alumni-linkedin').value;
+            const location = document.getElementById('alumni-location').value;
+
+            try {
+                await api('/alumni', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        name,
+                        batch_year: batch,
+                        dept_id: deptId,
+                        company,
+                        role,
+                        email,
+                        linkedin,
+                        location
+                    })
+                });
+                closeModal('modal-alumni');
+                loadAlumni();
+                showToast('Alumni record added');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        async function deleteAlumni(id) {
+            if (!confirm('Delete this record?')) return;
+            try {
+                await api(`/alumni/${id}`, { method: 'DELETE' });
+                loadAlumni();
+                showToast('Alumni record deleted');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Initialize
+        window.addEventListener('load', async () => {
+            // Load departments for selects
+            try {
+                const depts = await api('/students').catch(() => []);
+                if (depts && depts.length > 0) {
+                    const unique = [...new Set(depts.map(s => s.department?.id))];
+                    document.getElementById('student-dept').innerHTML = unique
+                        .map(id => {
+                            const s = depts.find(d => d.department?.id === id);
+                            return `<option value="${id}">${s.department?.name}</option>`;
+                        }).join('');
+                }
+            } catch (e) {}
+
+            // Render icons
+            lucide.createIcons();
+        });
+
+        // Fallback for missing implementations
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A' && e.target.getAttribute('href')?.startsWith('#')) {
+                e.preventDefault();
+                const page = e.target.getAttribute('href').substring(1);
+                navigate(page);
+            }
         });
     </script>
 </body>
