@@ -19,17 +19,15 @@ async def verify_admin(token: str, db: AsyncSession) -> User:
 
 @router.get("", response_model=List[StudentWithDept])
 async def get_students(
-    token: str = Depends(lambda: None),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     dept_id: Optional[int] = Query(None),
     semester: Optional[int] = Query(None),
     status: Optional[StudentStatus] = Query(None),
     search: Optional[str] = Query(None)
 ):
-    if not token:
+    if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await get_current_user(token, db)
     
     query = select(Student)
     
@@ -51,12 +49,7 @@ async def get_students(
     return students
 
 @router.get("/{id}", response_model=StudentWithDept)
-async def get_student(id: int, token: str = Depends(lambda: None), db: AsyncSession = Depends(get_db)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await get_current_user(token, db)
-    
+async def get_student(id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Student).where(Student.id == id))
     student = result.scalars().first()
     if not student:
@@ -64,11 +57,9 @@ async def get_student(id: int, token: str = Depends(lambda: None), db: AsyncSess
     return student
 
 @router.post("", response_model=StudentSchema)
-async def create_student(student: StudentCreate, token: str = Depends(lambda: None), db: AsyncSession = Depends(get_db)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await verify_admin(token, db)
+async def create_student(student: StudentCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     
     result = await db.execute(select(Student).where(Student.roll_no == student.roll_no))
     if result.scalars().first():
@@ -110,11 +101,9 @@ async def create_student(student: StudentCreate, token: str = Depends(lambda: No
     return db_student
 
 @router.put("/{id}", response_model=StudentSchema)
-async def update_student(id: int, student_update: StudentUpdate, token: str = Depends(lambda: None), db: AsyncSession = Depends(get_db)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await verify_admin(token, db)
+async def update_student(id: int, student_update: StudentUpdate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     
     result = await db.execute(select(Student).where(Student.id == id))
     db_student = result.scalars().first()
@@ -129,11 +118,9 @@ async def update_student(id: int, student_update: StudentUpdate, token: str = De
     return db_student
 
 @router.delete("/{id}")
-async def delete_student(id: int, token: str = Depends(lambda: None), db: AsyncSession = Depends(get_db)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await verify_admin(token, db)
+async def delete_student(id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
     
     result = await db.execute(select(Student).where(Student.id == id))
     db_student = result.scalars().first()
@@ -145,12 +132,7 @@ async def delete_student(id: int, token: str = Depends(lambda: None), db: AsyncS
     return {"message": "Student deleted"}
 
 @router.get("/{id}/attendance-summary", response_model=StudentAttendanceSummary)
-async def get_attendance_summary(id: int, token: str = Depends(lambda: None), db: AsyncSession = Depends(get_db)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await get_current_user(token, db)
-    
+async def get_attendance_summary(id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from models import AttendanceRecord, AttendanceStatus
     
     result = await db.execute(select(AttendanceRecord).where(AttendanceRecord.student_id == id))
@@ -167,12 +149,7 @@ async def get_attendance_summary(id: int, token: str = Depends(lambda: None), db
     )
 
 @router.get("/{id}/activity-summary", response_model=StudentActivitySummary)
-async def get_activity_summary(id: int, token: str = Depends(lambda: None), db: AsyncSession = Depends(get_db)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await get_current_user(token, db)
-    
+async def get_activity_summary(id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     from models import ActivityEnrollment
     
     result = await db.execute(select(ActivityEnrollment).where(ActivityEnrollment.student_id == id))

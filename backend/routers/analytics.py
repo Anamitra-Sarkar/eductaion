@@ -1,173 +1,156 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import func
-from typing import List, Optional
-from datetime import datetime, timedelta
+from typing import List
 from database import get_db
-from models import AttendanceRecord, AttendanceSession, Activity, ActivityEnrollment, Student, Department, AttendanceStatus, ActivityStatus
-from schemas import DashboardKPI, AttendanceTrendResponse, AttendanceTrend, DepartmentComparison, ActivityCompletionStats
+from models import (
+    AttendanceRecord, AttendanceStatus, Student, User, UserRole,
+    Department, Activity, ActivityEnrollment
+)
+from schemas import DashboardKPI as DashboardStats
 from routers.auth import get_current_user
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
-@router.get("/dashboard-kpis", response_model=DashboardKPI)
-async def get_dashboard_kpis(
-    token: str = Depends(lambda: None),
-    db: AsyncSession = Depends(get_db),
-    dept_id: Optional[int] = Query(None)
+@router.get("/dashboard", response_model=DashboardStats)
+async def get_dashboard(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
+    result = await db.execute(select(func.count(AttendanceRecord.id)))
+    total_attendance_records = result.scalar() or 0
     
-    await get_current_user(token, db)
+    result = await db.execute(select(func.count(Student.id)))
+    total_students = result.scalar() or 0
     
-    today = datetime.utcnow().date()
+    result = await db.execute(select(func.count(Activity.id)))
+    total_activities = result.scalar() or 0
     
-    # Today's attendance percentage
-    query = select(AttendanceRecord).join(AttendanceSession).where(
-        AttendanceSession.date >= datetime(today.year, today.month, today.day)
-    )
-    result = await db.execute(query)
-    today_records = result.scalars().all()
+    result = await db.execute(select(AttendanceRecord).where(AttendanceRecord.status == AttendanceStatus.present))
+    present_count = len(result.scalars().all())
     
-    attendance_percentage = 0
-    if today_records:
-        present = sum(1 for r in today_records if r.status == AttendanceStatus.present)
-        attendance_percentage = (present / len(today_records)) * 100
+    attendance_percentage = (present_count / total_attendance_records * 100) if total_attendance_records > 0 else 0
     
-    # Active students
-    query = select(func.count(Student.id)).where(Student.status == "active")
-    if dept_id:
-        query = query.where(Student.dept_id == dept_id)
-    result = await db.execute(query)
-    active_students = result.scalar() or 0
-    
-    # Pending activities
-    query = select(func.count(Activity.id)).where(Activity.status == "upcoming")
-    if dept_id:
-        query = query.where(Activity.dept_id == dept_id)
-    result = await db.execute(query)
-    pending_activities = result.scalar() or 0
-    
-    # Conflicts (timetable slots in same room at same time)
-    conflicts = 0
-    
-    return DashboardKPI(
-        attendance_percentage=round(attendance_percentage, 2),
-        active_students=active_students,
-        pending_activities=pending_activities,
-        conflicts=conflicts
+    return DashboardStats(
+        total_students=total_students,
+        total_activities=total_activities,
+        total_records=total_attendance_records,
+        avg_percentage=attendance_percentage
     )
 
-@router.get("/attendance-trend", response_model=AttendanceTrendResponse)
-async def get_attendance_trend(
-    token: str = Depends(lambda: None),
+@router.get("/attendance")
+async def get_attendance_stats(
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-    dept_id: Optional[int] = Query(None),
-    months: int = Query(6)
+    dept_id: int = None
 ):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await get_current_user(token, db)
-    
-    from_date = datetime.utcnow() - timedelta(days=30*months)
-    
-    query = select(AttendanceRecord).join(AttendanceSession).where(
-        AttendanceSession.date >= from_date
-    )
-    
-    result = await db.execute(query)
-    records = result.scalars().all()
-    
-    daily_data = {}
-    for record in records:
-        date_str = record.session.date.strftime("%Y-%m-%d")
-        if date_str not in daily_data:
-            daily_data[date_str] = {"present": 0, "total": 0}
-        daily_data[date_str]["total"] += 1
-        if record.status == AttendanceStatus.present:
-            daily_data[date_str]["present"] += 1
-    
-    trends = []
-    for date_str in sorted(daily_data.keys()):
-        data = daily_data[date_str]
-        percentage = (data["present"] / data["total"] * 100) if data["total"] > 0 else 0
-        trends.append(AttendanceTrend(date=date_str, percentage=round(percentage, 2)))
-    
-    return AttendanceTrendResponse(trends=trends)
-
-@router.get("/department-comparison", response_model=List[DepartmentComparison])
-async def get_department_comparison(
-    token: str = Depends(lambda: None),
-    db: AsyncSession = Depends(get_db),
-    semester: Optional[int] = Query(None)
-):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await get_current_user(token, db)
-    
-    query = select(Department)
-    result = await db.execute(query)
+    result = await db.execute(select(Department))
     departments = result.scalars().all()
     
-    comparisons = []
+    stats = []
     for dept in departments:
-        # Count active students
-        student_query = select(func.count(Student.id)).where(
-            Student.dept_id == dept.id,
-            Student.status == "active"
+        result = await db.execute(
+            select(func.count(AttendanceRecord.id)).where(
+                AttendanceRecord.student_id.in_(
+                    select(Student.id).where(Student.dept_id == dept.id)
+                )
+            )
         )
-        result = await db.execute(student_query)
-        active_students = result.scalar() or 0
+        total = result.scalar() or 0
         
-        # Calculate attendance percentage
-        attendance_query = select(AttendanceRecord).join(AttendanceSession).join(Student).where(
-            Student.dept_id == dept.id
+        result = await db.execute(
+            select(func.count(AttendanceRecord.id)).where(
+                (AttendanceRecord.status == AttendanceStatus.present) &
+                (AttendanceRecord.student_id.in_(
+                    select(Student.id).where(Student.dept_id == dept.id)
+                ))
+            )
         )
-        result = await db.execute(attendance_query)
-        records = result.scalars().all()
+        present = result.scalar() or 0
         
-        percentage = 0
-        if records:
-            present = sum(1 for r in records if r.status == AttendanceStatus.present)
-            percentage = (present / len(records)) * 100
-        
-        comparisons.append(DepartmentComparison(
-            department=dept.name,
-            attendance_percentage=round(percentage, 2),
-            active_students=active_students
-        ))
+        percentage = (present / total * 100) if total > 0 else 0
+        stats.append({"dept_name": dept.name, "percentage": percentage})
     
-    return comparisons
+    return stats
 
-@router.get("/activity-completion", response_model=ActivityCompletionStats)
-async def get_activity_completion(
-    token: str = Depends(lambda: None),
-    db: AsyncSession = Depends(get_db),
-    year: Optional[int] = Query(None),
-    dept_id: Optional[int] = Query(None)
+@router.get("/activities")
+async def get_activity_stats(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
 ):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await get_current_user(token, db)
-    
-    query = select(Activity)
-    if dept_id:
-        query = query.where(Activity.dept_id == dept_id)
-    
-    result = await db.execute(query)
+    result = await db.execute(select(Activity))
     activities = result.scalars().all()
     
-    total = len(activities)
-    completed = sum(1 for a in activities if a.status == ActivityStatus.completed)
-    percentage = (completed / total * 100) if total > 0 else 0
+    stats = []
+    for activity in activities:
+        result = await db.execute(
+            select(func.count(ActivityEnrollment.id)).where(ActivityEnrollment.activity_id == activity.id)
+        )
+        total_enrolled = result.scalar() or 0
+        
+        result = await db.execute(
+            select(func.count(ActivityEnrollment.id)).where(
+                (ActivityEnrollment.activity_id == activity.id) &
+                (ActivityEnrollment.attended == True)
+            )
+        )
+        attended = result.scalar() or 0
+        
+        percentage = (attended / total_enrolled * 100) if total_enrolled > 0 else 0
+        stats.append({
+            "name": activity.name,
+            "percentage": percentage,
+            "enrolled": total_enrolled,
+            "attended": attended
+        })
     
-    return ActivityCompletionStats(
-        total=total,
-        completed=completed,
-        percentage=round(percentage, 2)
-    )
+    return stats
+
+@router.get("/students/performance")
+async def get_student_performance(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    result = await db.execute(select(Student))
+    students = result.scalars().all()
+    
+    performance = []
+    for student in students:
+        result = await db.execute(
+            select(func.count(AttendanceRecord.id)).where(AttendanceRecord.student_id == student.id)
+        )
+        total_sessions = result.scalar() or 0
+        
+        result = await db.execute(
+            select(func.count(AttendanceRecord.id)).where(
+                (AttendanceRecord.student_id == student.id) &
+                (AttendanceRecord.status == AttendanceStatus.present)
+            )
+        )
+        attended = result.scalar() or 0
+        
+        attendance_percentage = (attended / total_sessions * 100) if total_sessions > 0 else 0
+        
+        result = await db.execute(
+            select(func.count(ActivityEnrollment.id)).where(ActivityEnrollment.student_id == student.id)
+        )
+        total_activities = result.scalar() or 0
+        
+        result = await db.execute(
+            select(func.count(ActivityEnrollment.id)).where(
+                (ActivityEnrollment.student_id == student.id) &
+                (ActivityEnrollment.attended == True)
+            )
+        )
+        activities_attended = result.scalar() or 0
+        
+        activity_percentage = (activities_attended / total_activities * 100) if total_activities > 0 else 0
+        
+        performance.append({
+            "student_name": student.name,
+            "attendance_percentage": attendance_percentage,
+            "activity_percentage": activity_percentage
+        })
+    
+    return performance

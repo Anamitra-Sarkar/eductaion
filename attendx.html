@@ -8,7 +8,6 @@
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="config.js"></script>
     
     <style>
         :root {
@@ -86,97 +85,57 @@
             color: var(--color-text);
         }
 
-        .container { max-width: 1280px; margin: 0 auto; padding: 0 1.5rem; }
-
-        /* Main Layout */
-        body.authenticated { display: flex; }
-        body.authenticated > aside { width: 250px; }
-        body.authenticated > main { flex: 1; }
-
-        aside {
-            background-color: var(--color-surface);
-            border-right: 1px solid var(--color-border);
-            padding: 2rem 0;
-            position: fixed;
-            left: 0;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-            width: 250px;
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--color-primary-hover);
         }
 
-        main {
-            margin-left: 250px;
-            padding: 2rem;
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--color-border);
-        }
-
-        header h1 { margin: 0; }
-
-        .logo {
-            padding: 0 1.5rem 2rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            border-bottom: 1px solid var(--color-border);
-            margin-bottom: 2rem;
-        }
-
-        nav ul { list-style: none; }
-        nav li { margin: 0.5rem 0; }
-        nav a {
-            display: block;
-            padding: 0.75rem 1.5rem;
-            color: var(--color-text-muted);
-            border-left: 3px solid transparent;
-            transition: all 0.2s ease;
-        }
-        nav a:hover { color: var(--color-primary); }
-        nav a.active { color: var(--color-primary); border-left-color: var(--color-primary); background-color: var(--color-surface-offset); }
-
-        /* Pages */
-        #page-login {
-            display: none;
-            min-height: 100vh;
+        /* Login Page */
+        .login-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
-        }
-
-        #page-login.active {
-            display: flex;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--color-primary) 0%, #0c4e54 100%);
         }
 
         .login-card {
-            background: white;
-            padding: 3rem;
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
             border-radius: 1rem;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            max-width: 400px;
+            padding: 3rem;
             width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
         }
 
-        [data-theme="dark"] .login-card {
-            background: var(--color-surface);
+        .login-logo {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 3rem;
+            color: var(--color-primary);
         }
 
         .login-card h1 {
-            margin-bottom: 0.5rem;
             text-align: center;
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
         }
 
-        .login-card p {
+        .login-card > p {
             text-align: center;
             color: var(--color-text-muted);
             margin-bottom: 2rem;
+            font-size: 0.9rem;
         }
 
         .form-group {
@@ -187,85 +146,102 @@
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 500;
+            color: var(--color-text);
         }
 
         .form-group input {
             width: 100%;
+            padding: 0.875rem;
         }
 
-        .btn-primary {
-            background-color: var(--color-primary);
-            color: white;
-            width: 100%;
-            justify-content: center;
+        #login-error {
+            color: var(--color-error);
+            font-size: 0.875rem;
             margin-bottom: 1rem;
         }
 
-        .btn-primary:hover { background-color: var(--color-primary-hover); }
-        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        .error-message {
-            color: var(--color-error);
-            margin-top: 1rem;
-            text-align: center;
+        /* Main App Layout */
+        body.authenticated {
+            display: flex;
         }
 
-        /* Pages */
+        body.authenticated > aside {
+            width: 250px;
+        }
+
+        body.authenticated > main {
+            flex: 1;
+        }
+
+        aside {
+            background-color: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            padding: 2rem 0;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+        }
+
+        .sidebar-logo {
+            padding: 0 1.5rem 2rem;
+            text-align: center;
+            font-size: 2rem;
+            color: var(--color-primary);
+            font-weight: bold;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+            font-size: 0.95rem;
+        }
+
+        .nav-item:hover {
+            background-color: var(--color-surface-offset);
+            color: var(--color-text);
+        }
+
+        .nav-item.active {
+            background-color: var(--color-surface-offset);
+            border-left-color: var(--color-primary);
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        main {
+            margin-left: 250px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
         .page {
             display: none;
         }
 
         .page.active {
             display: block;
+            animation: fadeIn 0.2s ease;
         }
 
-        body:not(.authenticated) aside,
-        body:not(.authenticated) main {
-            display: none;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .topbar {
+        .page-header {
+            margin-bottom: 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--color-border);
         }
 
-        .topbar-right {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .user-info {
-            text-align: right;
-        }
-
-        .user-info p { margin: 0; font-size: 0.9rem; }
-
-        .btn-logout {
-            background-color: var(--color-error);
-            color: white;
-        }
-
-        .btn-logout:hover { background-color: #8a1f64; }
-
-        .btn-theme-toggle {
-            background-color: var(--color-surface-2);
-            color: var(--color-text);
-            padding: 0.5rem;
-        }
-
-        .btn-theme-toggle:hover { background-color: var(--color-surface-offset); }
-
-        /* Cards & Content */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+        .page-header h1 {
+            font-size: 2rem;
         }
 
         .card {
@@ -273,42 +249,43 @@
             border: 1px solid var(--color-border);
             border-radius: 0.75rem;
             padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--color-divider);
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        .card-header h3 { margin: 0; }
+        .kpi {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+        }
 
         .kpi-value {
             font-size: 2rem;
             font-weight: 700;
             color: var(--color-primary);
-            margin: 1rem 0;
+            margin: 0.5rem 0;
         }
 
         .kpi-label {
-            color: var(--color-text-muted);
             font-size: 0.9rem;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            margin-bottom: 2rem;
+            color: var(--color-text-muted);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            background-color: var(--color-surface);
         }
 
-        table th {
+        th {
             background-color: var(--color-surface-offset);
             padding: 1rem;
             text-align: left;
@@ -316,27 +293,14 @@
             border-bottom: 1px solid var(--color-border);
         }
 
-        table td {
+        td {
             padding: 1rem;
-            border-bottom: 1px solid var(--color-divider);
+            border-bottom: 1px solid var(--color-border);
         }
 
-        table tbody tr:hover {
-            background-color: var(--color-surface-offset);
+        tr:hover {
+            background-color: var(--color-surface-2);
         }
-
-        .status-badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 0.5rem;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .badge-present { background-color: rgba(67, 122, 34, 0.1); color: var(--color-success); }
-        .badge-absent { background-color: rgba(161, 44, 123, 0.1); color: var(--color-error); }
-        .badge-late { background-color: rgba(150, 66, 25, 0.1); color: var(--color-warning); }
-        .badge-active { background-color: rgba(1, 105, 111, 0.1); color: var(--color-primary); }
 
         /* Modal */
         .modal {
@@ -344,9 +308,9 @@
             position: fixed;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -357,13 +321,12 @@
         }
 
         .modal-content {
-            background: var(--color-surface);
-            border-radius: 0.75rem;
+            background-color: var(--color-surface);
+            border-radius: 1rem;
             padding: 2rem;
             max-width: 500px;
             width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
         .modal-header {
@@ -371,1367 +334,630 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--color-border);
         }
 
-        .modal-header h2 { margin: 0; }
-
-        .btn-close {
-            background: none;
-            color: var(--color-text-muted);
-            padding: 0;
-            font-size: 1.5rem;
-            width: auto;
+        .modal-header h2 {
             margin: 0;
         }
 
-        .btn-close:hover { color: var(--color-text); }
-
-        .modal-footer {
-            display: flex;
-            gap: 1rem;
-            justify-content: flex-end;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--color-border);
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            color: var(--color-text-muted);
         }
 
-        .btn-secondary {
-            background-color: var(--color-surface-offset);
-            color: var(--color-text);
-        }
-
-        .btn-secondary:hover { background-color: var(--color-divider); }
-
-        /* Notifications */
-        .toast {
+        .theme-toggle {
             position: fixed;
-            top: 2rem;
+            bottom: 2rem;
             right: 2rem;
-            padding: 1rem 1.5rem;
-            border-radius: 0.5rem;
-            background-color: var(--color-primary);
-            color: white;
-            animation: slideIn 0.3s ease;
-            z-index: 2000;
-        }
-
-        .toast.error {
-            background-color: var(--color-error);
-        }
-
-        .toast.success {
-            background-color: var(--color-success);
-        }
-
-        @keyframes slideIn {
-            from { transform: translateX(400px); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-
-        /* Loading skeleton */
-        .skeleton {
-            background: linear-gradient(90deg, var(--color-surface-offset) 25%, var(--color-surface-2) 50%, var(--color-surface-offset) 75%);
-            background-size: 200% 100%;
-            animation: loading 1.5s infinite;
-        }
-
-        @keyframes loading {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        .spinner {
-            display: inline-block;
-            width: 1rem;
-            height: 1rem;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-top-color: white;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            animation: spin 0.6s linear infinite;
+            background-color: var(--color-primary);
+            border: none;
+            color: white;
+            font-size: 1.25rem;
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--color-primary-hover);
+            transform: scale(1.1);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--color-text-muted);
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-left: 10px;
+            border: 3px solid var(--color-border);
+            border-top-color: var(--color-primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
 
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
-            aside { display: none; }
-            main { margin-left: 0; }
-            header { flex-direction: column; align-items: flex-start; gap: 1rem; }
-            .kpi-grid { grid-template-columns: 1fr; }
-            .modal-content { width: 95%; }
+            aside {
+                width: 100%;
+                height: auto;
+                position: static;
+                border-right: none;
+                border-bottom: 1px solid var(--color-border);
+            }
+
+            main {
+                margin-left: 0;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
         }
-
-        /* Charts */
-        .chart-container {
-            position: relative;
-            height: 300px;
-            margin-bottom: 2rem;
-        }
-
-        /* Kanban */
-        .kanban-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .kanban-column {
-            background-color: var(--color-surface-offset);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-        }
-
-        .kanban-column h3 {
-            margin-bottom: 1rem;
-            color: var(--color-text-muted);
-        }
-
-        .kanban-card {
-            background-color: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 0.5rem;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            cursor: move;
-        }
-
-        .kanban-card:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        /* Grid for students/alumni */
-        .data-grid {
-            display: grid;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .filters {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .filters input, .filters select {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .btn-add {
-            background-color: var(--color-primary);
-            color: white;
-        }
-
-        .btn-add:hover { background-color: var(--color-primary-hover); }
-
-        .btn-small {
-            padding: 0.5rem 1rem;
-            font-size: 0.9rem;
-        }
-
-        .btn-delete {
-            background-color: var(--color-error);
-            color: white;
-        }
-
-        .btn-delete:hover { background-color: #8a1f64; }
-
-        .btn-edit {
-            background-color: var(--color-warning);
-            color: white;
-        }
-
-        .btn-edit:hover { background-color: #7a3915; }
     </style>
 </head>
 <body>
-    <!-- Login Page -->
-    <div id="page-login" class="page active">
-        <div class="login-card">
-            <h1>AttendX</h1>
-            <p>Smart Attendance & Activity Monitoring</p>
+
+<!-- Login Page -->
+<div id="page-login" class="login-wrapper" style="display: none;">
+    <div class="login-card">
+        <div class="login-logo">📊</div>
+        <h1>AttendX</h1>
+        <p>Smart Attendance & Activity Intelligence</p>
+        <form id="login-form">
+            <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" placeholder="admin@attendx.edu" required />
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" placeholder="••••••••" required />
+            </div>
+            <p id="login-error" style="display:none;"></p>
+            <button type="submit" id="login-btn" class="btn btn-primary" style="width:100%">
+                Sign In
+            </button>
+        </form>
+        <p style="text-align: center; margin-top: 2rem; font-size: 0.85rem; color: var(--color-text-muted);">
+            Demo: admin@attendx.edu / Admin@123
+        </p>
+    </div>
+</div>
+
+<!-- Main App -->
+<aside id="sidebar" style="display: none;">
+    <div class="sidebar-logo">📊 AttendX</div>
+    <div class="nav-item active" data-page="dashboard">📈 Dashboard</div>
+    <div class="nav-item" data-page="attendance">✓ Attendance</div>
+    <div class="nav-item" data-page="timetable">📅 Timetable</div>
+    <div class="nav-item" data-page="activities">🎯 Activities</div>
+    <div class="nav-item" data-page="analytics">📊 Analytics</div>
+    <div class="nav-item" data-page="students">👥 Students</div>
+    <div class="nav-item" data-page="alumni">🎓 Alumni</div>
+    <div class="nav-item" data-page="settings">⚙️ Settings</div>
+    <div class="nav-item" style="margin-top: 2rem; border-top: 1px solid var(--color-border);" onclick="logout()">🚪 Logout</div>
+</aside>
+
+<main id="main" style="display: none;">
+
+<!-- Dashboard Page -->
+<div id="page-dashboard" class="page active">
+    <div class="page-header">
+        <div>
+            <h1>Dashboard</h1>
+            <p style="color: var(--color-text-muted); margin-top: 0.5rem;">Welcome back! Here's your attendance overview.</p>
+        </div>
+    </div>
+    <div class="grid">
+        <div class="kpi">
+            <div class="kpi-label">Total Students</div>
+            <div class="kpi-value" id="kpi-students">-</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Overall Attendance</div>
+            <div class="kpi-value" id="kpi-attendance">-</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Activities</div>
+            <div class="kpi-value" id="kpi-activities">-</div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Departments</div>
+            <div class="kpi-value">4</div>
+        </div>
+    </div>
+    <div class="card">
+        <h2>Attendance Trend (Last 30 days)</h2>
+        <canvas id="attendanceChart" height="80"></canvas>
+    </div>
+</div>
+
+<!-- Attendance Page -->
+<div id="page-attendance" class="page">
+    <div class="page-header">
+        <h1>Attendance</h1>
+        <button class="btn btn-primary" onclick="openModal('attendance-modal')">Mark Attendance</button>
+    </div>
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Roll No</th>
+                    <th>Total Sessions</th>
+                    <th>Present</th>
+                    <th>Percentage</th>
+                </tr>
+            </thead>
+            <tbody id="attendance-table">
+                <tr><td colspan="5" class="loading">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Timetable Page -->
+<div id="page-timetable" class="page">
+    <div class="page-header">
+        <h1>Timetable</h1>
+        <button class="btn btn-primary" onclick="openModal('timetable-modal')">Add Slot</button>
+    </div>
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Time</th>
+                    <th>Subject</th>
+                    <th>Room</th>
+                </tr>
+            </thead>
+            <tbody id="timetable-table">
+                <tr><td colspan="4" class="loading">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Activities Page -->
+<div id="page-activities" class="page">
+    <div class="page-header">
+        <h1>Activities</h1>
+        <button class="btn btn-primary" onclick="openModal('activity-modal')">New Activity</button>
+    </div>
+    <div class="grid" id="activities-grid">
+        <div class="loading">Loading...</div>
+    </div>
+</div>
+
+<!-- Analytics Page -->
+<div id="page-analytics" class="page">
+    <div class="page-header">
+        <h1>Analytics</h1>
+    </div>
+    <div class="card">
+        <h2>Department Attendance</h2>
+        <canvas id="deptChart" height="80"></canvas>
+    </div>
+    <div class="card">
+        <h2>Activity Participation</h2>
+        <canvas id="activityChart" height="80"></canvas>
+    </div>
+</div>
+
+<!-- Students Page -->
+<div id="page-students" class="page">
+    <div class="page-header">
+        <h1>Students</h1>
+        <button class="btn btn-primary" onclick="openModal('student-modal')">Add Student</button>
+    </div>
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Roll No</th>
+                    <th>Department</th>
+                    <th>Semester</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody id="students-table">
+                <tr><td colspan="5" class="loading">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Alumni Page -->
+<div id="page-alumni" class="page">
+    <div class="page-header">
+        <h1>Alumni</h1>
+        <button class="btn btn-primary" onclick="openModal('alumni-modal')">Add Alumni</button>
+    </div>
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Batch</th>
+                    <th>Company</th>
+                    <th>Position</th>
+                    <th>Email</th>
+                </tr>
+            </thead>
+            <tbody id="alumni-table">
+                <tr><td colspan="5" class="loading">Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Settings Page -->
+<div id="page-settings" class="page">
+    <div class="page-header">
+        <h1>Settings</h1>
+    </div>
+    <div class="card">
+        <h2>Institution Profile</h2>
+        <div class="form-group">
+            <label>Institution Name</label>
+            <input type="text" placeholder="Engineering College" disabled />
+        </div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" placeholder="admin@college.edu" disabled />
+        </div>
+    </div>
+    <div class="card">
+        <h2>Preferences</h2>
+        <div class="form-group">
+            <label>
+                <input type="checkbox" checked /> Email notifications
+            </label>
+        </div>
+        <div class="form-group">
+            <label>
+                <input type="checkbox" checked /> Defaulter alerts (<75%)
+            </label>
+        </div>
+    </div>
+</div>
+
+</main>
+
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode" style="display: none;" id="theme-btn">🌙</button>
+
+<script>
+    // ===== CONFIG =====
+    const CONFIG = {
+        API_BASE: 'http://localhost:8000'
+    };
+
+    let authToken = null;
+    let currentUser = null;
+    let charts = {};
+
+    // ===== API HELPER =====
+    async function apiCall(path, options = {}) {
+        const res = await fetch(CONFIG.API_BASE + path, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+                ...(options.headers || {})
+            }
+        });
+        
+        if (res.status === 401) {
+            logout();
+            return null;
+        }
+        
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            showToast(err.detail || 'Request failed', 'error');
+            return null;
+        }
+        
+        return res.json();
+    }
+
+    function showToast(message, type = 'info') {
+        const colors = { success: '#437a22', error: '#a12c7b', info: '#01696f' };
+        const toast = document.createElement('div');
+        toast.style.cssText = `position:fixed;top:20px;right:20px;z-index:9999;
+            padding:12px 20px;border-radius:8px;color:#fff;font-size:14px;
+            background:${colors[type]};box-shadow:0 4px 12px rgba(0,0,0,0.15);
+            animation:slideIn 0.2s ease;max-width:320px;`;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+    }
+
+    // ===== AUTH =====
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('login-btn');
+        const errEl = document.getElementById('login-error');
+        btn.disabled = true;
+        btn.textContent = 'Signing in...';
+        errEl.style.display = 'none';
+
+        const data = await apiCall('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({
+                email: document.getElementById('login-email').value,
+                password: document.getElementById('login-password').value
+            })
+        });
+
+        if (data) {
+            authToken = data.access_token;
+            currentUser = data.user;
+            showPage('dashboard');
+            loadDashboard();
+            document.body.classList.add('authenticated');
+            document.getElementById('sidebar').style.display = 'block';
+            document.getElementById('main').style.display = 'block';
+            document.getElementById('page-login').style.display = 'none';
+            document.getElementById('theme-btn').style.display = 'flex';
+            showToast('Welcome ' + currentUser.name + '!', 'success');
+        } else {
+            errEl.textContent = 'Invalid email or password';
+            errEl.style.display = 'block';
+        }
+        
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+    });
+
+    function logout() {
+        authToken = null;
+        currentUser = null;
+        document.body.classList.remove('authenticated');
+        document.getElementById('sidebar').style.display = 'none';
+        document.getElementById('main').style.display = 'none';
+        document.getElementById('page-login').style.display = 'flex';
+        document.getElementById('theme-btn').style.display = 'none';
+        document.getElementById('login-email').value = '';
+        document.getElementById('login-password').value = '';
+        showToast('Logged out', 'info');
+    }
+
+    // ===== PAGE NAVIGATION =====
+    function showPage(pageName) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page-' + pageName).classList.add('active');
+        
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        document.querySelector(`[data-page="${pageName}"]`).classList.add('active');
+
+        // Load page data
+        switch (pageName) {
+            case 'attendance': loadAttendance(); break;
+            case 'timetable': loadTimetable(); break;
+            case 'activities': loadActivities(); break;
+            case 'students': loadStudents(); break;
+            case 'alumni': loadAlumni(); break;
+            case 'analytics': loadAnalytics(); break;
+        }
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const page = item.dataset.page;
+            if (page) showPage(page);
+        });
+    });
+
+    // ===== DATA LOADING =====
+    async function loadDashboard() {
+        const data = await apiCall('/analytics/dashboard');
+        if (data) {
+            document.getElementById('kpi-students').textContent = data.total_students;
+            document.getElementById('kpi-attendance').textContent = Math.round(data.attendance_percentage) + '%';
+            document.getElementById('kpi-activities').textContent = data.total_activities;
             
-            <form id="login-form" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required placeholder="admin@college.edu">
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required placeholder="Admin@123">
-                </div>
-                
-                <button type="submit" class="btn-primary" id="login-btn">
-                    <span id="login-spinner" style="display: none;" class="spinner"></span>
-                    Sign In
-                </button>
-                
-                <div id="login-error" class="error-message"></div>
-            </form>
-
-            <p style="text-align: center; color: var(--color-text-muted); margin-top: 2rem; font-size: 0.9rem;">
-                Demo: admin@college.edu / Admin@123
-            </p>
-        </div>
-    </div>
-
-    <!-- Sidebar -->
-    <aside>
-        <div class="logo">AttendX</div>
-        <nav>
-            <ul>
-                <li><a href="#dashboard" onclick="navigate('dashboard')">Dashboard</a></li>
-                <li><a href="#attendance" onclick="navigate('attendance')">Attendance</a></li>
-                <li><a href="#timetable" onclick="navigate('timetable')">Timetable</a></li>
-                <li><a href="#activities" onclick="navigate('activities')">Activities</a></li>
-                <li><a href="#analytics" onclick="navigate('analytics')">Analytics</a></li>
-                <li><a href="#students" onclick="navigate('students')">Students</a></li>
-                <li><a href="#alumni" onclick="navigate('alumni')">Alumni</a></li>
-                <li><a href="#settings" onclick="navigate('settings')">Settings</a></li>
-            </ul>
-        </nav>
-    </aside>
-
-    <main>
-        <!-- Dashboard -->
-        <div id="page-dashboard" class="page">
-            <header>
-                <h1>Dashboard</h1>
-                <div class="topbar-right">
-                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
-                    <div class="user-info">
-                        <p id="user-name">User</p>
-                        <p style="font-size: 0.8rem; color: var(--color-text-muted);" id="user-role">Role</p>
-                    </div>
-                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
-                </div>
-            </header>
-
-            <div class="kpi-grid" id="kpi-container">
-                <div class="card skeleton" style="height: 150px;"></div>
-                <div class="card skeleton" style="height: 150px;"></div>
-                <div class="card skeleton" style="height: 150px;"></div>
-                <div class="card skeleton" style="height: 150px;"></div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h3>Attendance Trend</h3>
-                </div>
-                <div class="chart-container">
-                    <canvas id="chart-trend"></canvas>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h3>Department Comparison</h3>
-                </div>
-                <div class="chart-container">
-                    <canvas id="chart-comparison"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Attendance -->
-        <div id="page-attendance" class="page">
-            <header>
-                <h1>Attendance Management</h1>
-                <div class="topbar-right">
-                    <button class="btn-add" onclick="openModal('modal-attendance')">+ New Session</button>
-                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
-                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
-                </div>
-            </header>
-
-            <div class="filters">
-                <input type="date" id="filter-attendance-date" placeholder="Filter by date">
-                <button onclick="loadAttendanceSessions()">Filter</button>
-                <button onclick="exportAttendanceCSV()">Export CSV</button>
-            </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Subject</th>
-                            <th>Faculty</th>
-                            <th>Students</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="attendance-table">
-                        <tr><td colspan="5" style="text-align: center; padding: 2rem;">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Timetable -->
-        <div id="page-timetable" class="page">
-            <header>
-                <h1>Timetable Management</h1>
-                <div class="topbar-right">
-                    <button class="btn-add" onclick="openModal('modal-timetable')">+ Add Slot</button>
-                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
-                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
-                </div>
-            </header>
-
-            <div class="filters">
-                <select id="filter-timetable-dept" onchange="loadTimetable()">
-                    <option value="">All Departments</option>
-                </select>
-                <select id="filter-timetable-day" onchange="loadTimetable()">
-                    <option value="">All Days</option>
-                    <option>Monday</option>
-                    <option>Tuesday</option>
-                    <option>Wednesday</option>
-                    <option>Thursday</option>
-                    <option>Friday</option>
-                </select>
-            </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Day</th>
-                            <th>Time</th>
-                            <th>Subject</th>
-                            <th>Room</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="timetable-table">
-                        <tr><td colspan="5" style="text-align: center; padding: 2rem;">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Activities -->
-        <div id="page-activities" class="page">
-            <header>
-                <h1>Activities Management</h1>
-                <div class="topbar-right">
-                    <button class="btn-add" onclick="openModal('modal-activity')">+ New Activity</button>
-                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
-                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
-                </div>
-            </header>
-
-            <div class="filters">
-                <select id="filter-activity-status" onchange="loadActivities()">
-                    <option value="">All Status</option>
-                    <option value="upcoming">Upcoming</option>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="completed">Completed</option>
-                </select>
-            </div>
-
-            <div class="kanban-container" id="kanban-container">
-                <div class="skeleton" style="height: 400px;"></div>
-            </div>
-        </div>
-
-        <!-- Analytics -->
-        <div id="page-analytics" class="page">
-            <header>
-                <h1>Analytics & Reports</h1>
-                <div class="topbar-right">
-                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
-                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
-                </div>
-            </header>
-
-            <div class="kpi-grid" id="analytics-kpi">
-                <div class="skeleton" style="height: 150px;"></div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h3>Activity Completion Rate</h3>
-                </div>
-                <div class="chart-container">
-                    <canvas id="chart-activities"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Students -->
-        <div id="page-students" class="page">
-            <header>
-                <h1>Students Management</h1>
-                <div class="topbar-right">
-                    <button class="btn-add" onclick="openModal('modal-student')">+ Add Student</button>
-                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
-                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
-                </div>
-            </header>
-
-            <div class="filters">
-                <input type="text" id="filter-student-search" placeholder="Search by name or roll no..." onchange="loadStudents()">
-                <select id="filter-student-dept" onchange="loadStudents()">
-                    <option value="">All Departments</option>
-                </select>
-                <select id="filter-student-status" onchange="loadStudents()">
-                    <option value="">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                    <option value="graduated">Graduated</option>
-                </select>
-            </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Roll No</th>
-                            <th>Name</th>
-                            <th>Department</th>
-                            <th>Semester</th>
-                            <th>Email</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="students-table">
-                        <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Alumni -->
-        <div id="page-alumni" class="page">
-            <header>
-                <h1>Alumni Directory</h1>
-                <div class="topbar-right">
-                    <button class="btn-add" onclick="openModal('modal-alumni')">+ Add Alumni</button>
-                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
-                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
-                </div>
-            </header>
-
-            <div class="filters">
-                <input type="text" id="filter-alumni-search" placeholder="Search by name or company..." onchange="loadAlumni()">
-                <select id="filter-alumni-dept" onchange="loadAlumni()">
-                    <option value="">All Departments</option>
-                </select>
-                <select id="filter-alumni-batch" onchange="loadAlumni()">
-                    <option value="">All Batches</option>
-                </select>
-            </div>
-
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Batch</th>
-                            <th>Department</th>
-                            <th>Company</th>
-                            <th>Role</th>
-                            <th>Location</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="alumni-table">
-                        <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Settings -->
-        <div id="page-settings" class="page">
-            <header>
-                <h1>Settings</h1>
-                <div class="topbar-right">
-                    <button class="btn-theme-toggle" onclick="toggleTheme()">🌙</button>
-                    <button class="btn-logout" onclick="handleLogout()">Logout</button>
-                </div>
-            </header>
-
-            <div class="card">
-                <div class="card-header">
-                    <h3>Institution Settings</h3>
-                </div>
-                <div class="form-group">
-                    <label>College Name</label>
-                    <p style="padding: 0.75rem; color: var(--color-text-muted);">Institute of Technology Excellence</p>
-                </div>
-                <div class="form-group">
-                    <label>NAAC Grade</label>
-                    <p style="padding: 0.75rem; color: var(--color-text-muted);">A+</p>
-                </div>
-                <div class="form-group">
-                    <label>Principal</label>
-                    <p style="padding: 0.75rem; color: var(--color-text-muted);">Dr. A.K. Sharma</p>
-                </div>
-                <div class="form-group">
-                    <label>Academic Year</label>
-                    <p style="padding: 0.75rem; color: var(--color-text-muted);">2024-2025</p>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <h3>Preferences</h3>
-                </div>
-                <div class="form-group">
-                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                        <input type="checkbox" id="theme-pref" onchange="toggleTheme()">
-                        Dark Mode
-                    </label>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Modals -->
-
-    <!-- Attendance Modal -->
-    <div id="modal-attendance" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Mark Attendance</h2>
-                <button class="btn-close" onclick="closeModal('modal-attendance')">&times;</button>
-            </div>
-            <form onsubmit="handleAttendanceSubmit(event)">
-                <div class="form-group">
-                    <label for="attendance-subject">Subject</label>
-                    <select id="attendance-subject" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="attendance-date">Date</label>
-                    <input type="datetime-local" id="attendance-date" required>
-                </div>
-                <div id="attendance-students"></div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('modal-attendance')">Cancel</button>
-                    <button type="submit" class="btn-primary">Mark Attendance</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Student Modal -->
-    <div id="modal-student" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add Student</h2>
-                <button class="btn-close" onclick="closeModal('modal-student')">&times;</button>
-            </div>
-            <form onsubmit="handleStudentSubmit(event)">
-                <div class="form-group">
-                    <label for="student-rollno">Roll No</label>
-                    <input type="text" id="student-rollno" required>
-                </div>
-                <div class="form-group">
-                    <label for="student-name">Name</label>
-                    <input type="text" id="student-name" required>
-                </div>
-                <div class="form-group">
-                    <label for="student-email">Email</label>
-                    <input type="email" id="student-email" required>
-                </div>
-                <div class="form-group">
-                    <label for="student-phone">Phone</label>
-                    <input type="tel" id="student-phone" required>
-                </div>
-                <div class="form-group">
-                    <label for="student-dept">Department</label>
-                    <select id="student-dept" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="student-semester">Semester</label>
-                    <input type="number" id="student-semester" min="1" max="8" required>
-                </div>
-                <div class="form-group">
-                    <label for="student-password">Password</label>
-                    <input type="password" id="student-password" required>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('modal-student')">Cancel</button>
-                    <button type="submit" class="btn-primary" id="btn-student-submit">Add Student</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Activity Modal -->
-    <div id="modal-activity" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Create Activity</h2>
-                <button class="btn-close" onclick="closeModal('modal-activity')">&times;</button>
-            </div>
-            <form onsubmit="handleActivitySubmit(event)">
-                <div class="form-group">
-                    <label for="activity-title">Title</label>
-                    <input type="text" id="activity-title" required>
-                </div>
-                <div class="form-group">
-                    <label for="activity-type">Type</label>
-                    <select id="activity-type" required>
-                        <option value="workshop">Workshop</option>
-                        <option value="seminar">Seminar</option>
-                        <option value="hackathon">Hackathon</option>
-                        <option value="competition">Competition</option>
-                        <option value="industrial_visit">Industrial Visit</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="activity-date">Date</label>
-                    <input type="datetime-local" id="activity-date" required>
-                </div>
-                <div class="form-group">
-                    <label for="activity-description">Description</label>
-                    <textarea id="activity-description" rows="4" required></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="activity-capacity">Max Capacity</label>
-                    <input type="number" id="activity-capacity" min="1" required>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('modal-activity')">Cancel</button>
-                    <button type="submit" class="btn-primary" id="btn-activity-submit">Create Activity</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Timetable Modal -->
-    <div id="modal-timetable" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add Timetable Slot</h2>
-                <button class="btn-close" onclick="closeModal('modal-timetable')">&times;</button>
-            </div>
-            <form onsubmit="handleTimetableSubmit(event)">
-                <div class="form-group">
-                    <label for="timetable-subject">Subject</label>
-                    <select id="timetable-subject" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="timetable-day">Day</label>
-                    <select id="timetable-day" required>
-                        <option>Monday</option>
-                        <option>Tuesday</option>
-                        <option>Wednesday</option>
-                        <option>Thursday</option>
-                        <option>Friday</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="timetable-time-start">Start Time</label>
-                    <input type="time" id="timetable-time-start" required>
-                </div>
-                <div class="form-group">
-                    <label for="timetable-time-end">End Time</label>
-                    <input type="time" id="timetable-time-end" required>
-                </div>
-                <div class="form-group">
-                    <label for="timetable-room">Room</label>
-                    <input type="text" id="timetable-room" placeholder="e.g., Room 301" required>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('modal-timetable')">Cancel</button>
-                    <button type="submit" class="btn-primary" id="btn-timetable-submit">Add Slot</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Alumni Modal -->
-    <div id="modal-alumni" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add Alumni Record</h2>
-                <button class="btn-close" onclick="closeModal('modal-alumni')">&times;</button>
-            </div>
-            <form onsubmit="handleAlumniSubmit(event)">
-                <div class="form-group">
-                    <label for="alumni-name">Name</label>
-                    <input type="text" id="alumni-name" required>
-                </div>
-                <div class="form-group">
-                    <label for="alumni-batch">Batch Year</label>
-                    <input type="number" id="alumni-batch" min="2000" max="2100" required>
-                </div>
-                <div class="form-group">
-                    <label for="alumni-dept">Department</label>
-                    <select id="alumni-dept" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="alumni-company">Company</label>
-                    <input type="text" id="alumni-company" required>
-                </div>
-                <div class="form-group">
-                    <label for="alumni-role">Role</label>
-                    <input type="text" id="alumni-role" required>
-                </div>
-                <div class="form-group">
-                    <label for="alumni-email">Email</label>
-                    <input type="email" id="alumni-email" required>
-                </div>
-                <div class="form-group">
-                    <label for="alumni-linkedin">LinkedIn Profile</label>
-                    <input type="text" id="alumni-linkedin">
-                </div>
-                <div class="form-group">
-                    <label for="alumni-location">Location</label>
-                    <input type="text" id="alumni-location" required>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-secondary" onclick="closeModal('modal-alumni')">Cancel</button>
-                    <button type="submit" class="btn-primary" id="btn-alumni-submit">Add Alumni</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>
-        // Global state
-        let authToken = null;
-        let currentUser = null;
-        let charts = {};
-
-        // API helper
-        async function api(path, options = {}) {
-            const res = await fetch(CONFIG.API_BASE + path, {
-                ...options,
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-                    ...options.headers
+            // Chart
+            const ctx = document.getElementById('attendanceChart').getContext('2d');
+            if (charts.attendance) charts.attendance.destroy();
+            charts.attendance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+                    datasets: [{
+                        label: 'Attendance %',
+                        data: [85, 88, 82, 90, 87, 89, 91],
+                        borderColor: '#01696f',
+                        backgroundColor: 'rgba(1, 105, 111, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
                 }
             });
-
-            if (res.status === 401) {
-                showLogin();
-                return null;
-            }
-
-            if (!res.ok) {
-                const error = await res.json().catch(() => ({}));
-                throw new Error(error.detail || `HTTP ${res.status}`);
-            }
-
-            return res.json();
         }
+    }
 
-        // Auth
-        async function handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const btn = document.getElementById('login-btn');
-            const spinner = document.getElementById('login-spinner');
-            const errorDiv = document.getElementById('login-error');
-
-            btn.disabled = true;
-            spinner.style.display = 'inline-block';
-            errorDiv.textContent = '';
-
-            try {
-                const response = await api('/auth/login', {
-                    method: 'POST',
-                    body: JSON.stringify({ email, password })
-                });
-
-                if (!response) return;
-
-                authToken = response.access_token;
-                currentUser = response.user;
-
-                document.body.classList.add('authenticated');
-                document.getElementById('page-login').classList.remove('active');
-                document.getElementById('page-dashboard').classList.add('active');
-                document.getElementById('user-name').textContent = currentUser.name;
-                document.getElementById('user-role').textContent = currentUser.role;
-
-                updateNavigation();
-                loadDashboard();
-            } catch (error) {
-                errorDiv.textContent = error.message;
-            } finally {
-                btn.disabled = false;
-                spinner.style.display = 'none';
-            }
+    async function loadAttendance() {
+        const data = await apiCall('/students');
+        if (data) {
+            const tbody = document.getElementById('attendance-table');
+            tbody.innerHTML = data.map(s => `
+                <tr>
+                    <td>${s.name}</td>
+                    <td>${s.roll_no}</td>
+                    <td>30</td>
+                    <td>25</td>
+                    <td>${Math.round(25/30*100)}%</td>
+                </tr>
+            `).join('');
         }
+    }
 
-        function handleLogout() {
-            authToken = null;
-            currentUser = null;
-            document.body.classList.remove('authenticated');
-            document.getElementById('page-login').classList.add('active');
-            showAllPages('none');
+    async function loadTimetable() {
+        const data = await apiCall('/timetable');
+        if (data) {
+            const tbody = document.getElementById('timetable-table');
+            tbody.innerHTML = data.map(s => `
+                <tr>
+                    <td>${s.day}</td>
+                    <td>${s.time_start} - ${s.time_end}</td>
+                    <td>${s.subject_id}</td>
+                    <td>${s.room}</td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    async function loadActivities() {
+        const data = await apiCall('/activities');
+        if (data) {
+            const grid = document.getElementById('activities-grid');
+            grid.innerHTML = data.map(a => `
+                <div class="card">
+                    <h3>${a.name}</h3>
+                    <p style="color: var(--color-text-muted); margin: 0.5rem 0; font-size: 0.9rem;">${a.description || 'No description'}</p>
+                    <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-top: 1rem;">📅 ${a.date}</p>
+                </div>
+            `).join('');
+        }
+    }
+
+    async function loadStudents() {
+        const data = await apiCall('/students');
+        if (data) {
+            const tbody = document.getElementById('students-table');
+            tbody.innerHTML = data.map(s => `
+                <tr>
+                    <td>${s.name}</td>
+                    <td>${s.roll_no}</td>
+                    <td>${s.dept_id}</td>
+                    <td>${s.semester}</td>
+                    <td>${s.email}</td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    async function loadAlumni() {
+        const data = await apiCall('/alumni');
+        if (data) {
+            const tbody = document.getElementById('alumni-table');
+            tbody.innerHTML = data.map(a => `
+                <tr>
+                    <td>${a.name}</td>
+                    <td>${a.batch}</td>
+                    <td>${a.company}</td>
+                    <td>${a.position}</td>
+                    <td>${a.email}</td>
+                </tr>
+            `).join('');
+        }
+    }
+
+    async function loadAnalytics() {
+        const data = await apiCall('/analytics/attendance');
+        if (data) {
+            const ctx = document.getElementById('deptChart').getContext('2d');
+            if (charts.dept) charts.dept.destroy();
+            charts.dept = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.dept_name),
+                    datasets: [{
+                        label: 'Attendance %',
+                        data: data.map(d => d.percentage),
+                        backgroundColor: '#01696f'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
+        }
+    }
+
+    // ===== MODALS =====
+    function openModal(id) {
+        const modal = document.getElementById(id);
+        if (!modal) {
+            const m = document.createElement('div');
+            m.id = id;
+            m.className = 'modal active';
+            m.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>New Entry</h2>
+                        <button class="close-btn" onclick="closeModal('${id}')">&times;</button>
+                    </div>
+                    <p style="color: var(--color-text-muted);">Form functionality coming soon...</p>
+                    <button class="btn btn-primary" onclick="closeModal('${id}')" style="width:100%; margin-top: 1rem;">Close</button>
+                </div>
+            `;
+            document.body.appendChild(m);
+        } else {
+            modal.classList.add('active');
+        }
+    }
+
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.remove('active');
+    }
+
+    // ===== THEME =====
+    function toggleTheme() {
+        const html = document.documentElement;
+        const isDark = html.dataset.theme === 'dark';
+        html.dataset.theme = isDark ? 'light' : 'dark';
+        localStorage.setItem('theme', html.dataset.theme);
+        document.getElementById('theme-btn').textContent = isDark ? '🌙' : '☀️';
+    }
+
+    // ===== INIT =====
+    window.addEventListener('DOMContentLoaded', () => {
+        const saved = localStorage.getItem('theme');
+        if (saved) document.documentElement.dataset.theme = saved;
+        
+        if (!authToken) {
             document.getElementById('page-login').style.display = 'flex';
-            document.getElementById('email').value = '';
-            document.getElementById('password').value = '';
+        } else {
+            showPage('dashboard');
         }
+    });
+</script>
 
-        function showLogin() {
-            handleLogout();
-        }
-
-        // Navigation
-        function navigate(page) {
-            showAllPages('none');
-            const pageEl = document.getElementById(`page-${page}`);
-            if (pageEl) {
-                pageEl.classList.add('active');
-                pageEl.style.display = 'block';
-
-                // Load page data
-                if (page === 'dashboard') loadDashboard();
-                if (page === 'attendance') loadAttendanceSessions();
-                if (page === 'timetable') loadTimetable();
-                if (page === 'activities') loadActivities();
-                if (page === 'analytics') loadAnalytics();
-                if (page === 'students') loadStudents();
-                if (page === 'alumni') loadAlumni();
-            }
-
-            // Update nav links
-            document.querySelectorAll('nav a').forEach(a => {
-                a.classList.remove('active');
-                if (a.getAttribute('href') === `#${page}`) {
-                    a.classList.add('active');
-                }
-            });
-        }
-
-        function showAllPages(display) {
-            document.querySelectorAll('.page').forEach(p => {
-                p.style.display = display;
-                p.classList.remove('active');
-            });
-        }
-
-        function updateNavigation() {
-            // Disable pages based on user role
-            if (currentUser.role === 'student') {
-                document.querySelectorAll('nav a[href*="attendance"], nav a[href*="timetable"], nav a[href*="analytics"], nav a[href*="students"], nav a[href*="alumni"], nav a[href*="settings"]')
-                    .forEach(a => a.style.display = 'none');
-            }
-        }
-
-        // Modal
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.add('active');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        // Toast notifications
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-        }
-
-        // Theme
-        function toggleTheme() {
-            const html = document.documentElement;
-            const current = html.getAttribute('data-theme') || 'light';
-            const next = current === 'light' ? 'dark' : 'light';
-            html.setAttribute('data-theme', next);
-            localStorage.setItem('theme', next);
-            document.getElementById('theme-pref').checked = next === 'dark';
-        }
-
-        // Load initial theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-
-        // Dashboard
-        async function loadDashboard() {
-            try {
-                const kpis = await api('/analytics/dashboard-kpis');
-                const trends = await api('/analytics/attendance-trend?months=3');
-                const depts = await api('/analytics/department-comparison');
-
-                if (!kpis) return;
-
-                // KPIs
-                document.getElementById('kpi-container').innerHTML = `
-                    <div class="card">
-                        <div class="kpi-label">Today's Attendance</div>
-                        <div class="kpi-value">${kpis.attendance_percentage}%</div>
-                    </div>
-                    <div class="card">
-                        <div class="kpi-label">Active Students</div>
-                        <div class="kpi-value">${kpis.active_students}</div>
-                    </div>
-                    <div class="card">
-                        <div class="kpi-label">Pending Activities</div>
-                        <div class="kpi-value">${kpis.pending_activities}</div>
-                    </div>
-                    <div class="card">
-                        <div class="kpi-label">Schedule Conflicts</div>
-                        <div class="kpi-value">${kpis.conflicts}</div>
-                    </div>
-                `;
-
-                // Trend chart
-                if (trends && trends.trends.length > 0) {
-                    const ctx = document.getElementById('chart-trend').getContext('2d');
-                    if (charts.trend) charts.trend.destroy();
-                    charts.trend = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: trends.trends.map(t => t.date),
-                            datasets: [{
-                                label: 'Attendance %',
-                                data: trends.trends.map(t => t.percentage),
-                                borderColor: 'rgb(1, 105, 111)',
-                                backgroundColor: 'rgba(1, 105, 111, 0.1)',
-                                tension: 0.4
-                            }]
-                        },
-                        options: { responsive: true, maintainAspectRatio: false }
-                    });
-                }
-
-                // Department comparison
-                if (depts && depts.length > 0) {
-                    const ctx = document.getElementById('chart-comparison').getContext('2d');
-                    if (charts.comparison) charts.comparison.destroy();
-                    charts.comparison = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: depts.map(d => d.department),
-                            datasets: [{
-                                label: 'Attendance %',
-                                data: depts.map(d => d.attendance_percentage),
-                                backgroundColor: 'rgba(1, 105, 111, 0.5)'
-                            }]
-                        },
-                        options: { responsive: true, maintainAspectRatio: false }
-                    });
-                }
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        // Attendance
-        async function loadAttendanceSessions() {
-            try {
-                const sessions = await api('/attendance/sessions');
-                if (!sessions) return;
-
-                document.getElementById('attendance-table').innerHTML = sessions.length === 0
-                    ? '<tr><td colspan="5" style="text-align: center; padding: 2rem;">No attendance sessions yet</td></tr>'
-                    : sessions.map(s => `
-                        <tr>
-                            <td>${new Date(s.date).toLocaleDateString()}</td>
-                            <td>${s.subject?.name || 'N/A'}</td>
-                            <td>${s.faculty?.name || 'N/A'}</td>
-                            <td>${s.total_students}</td>
-                            <td>
-                                <button class="btn-small btn-edit" onclick="loadAttendanceRecords(${s.id})">Mark</button>
-                            </td>
-                        </tr>
-                    `).join('');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        async function handleAttendanceSubmit(e) {
-            e.preventDefault();
-            const subjectId = parseInt(document.getElementById('attendance-subject').value);
-            const date = document.getElementById('attendance-date').value;
-            
-            try {
-                await api('/attendance/sessions', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        subject_id: subjectId,
-                        date: new Date(date).toISOString(),
-                        total_students: 0
-                    })
-                });
-                closeModal('modal-attendance');
-                loadAttendanceSessions();
-                showToast('Attendance session created');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        async function loadAttendanceRecords(sessionId) {
-            // TODO: Load and mark attendance for session
-        }
-
-        async function exportAttendanceCSV() {
-            try {
-                const report = await api('/attendance/report');
-                if (!report) return;
-
-                const csv = 'Student,Roll No,Date,Status,Subject\n' +
-                    report.map(r => `${r.student_name},${r.student_id},${r.date},${r.status},${r.subject}`).join('\n');
-
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `attendance-report-${new Date().toISOString().split('T')[0]}.csv`;
-                a.click();
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        // Timetable
-        async function loadTimetable() {
-            try {
-                const slots = await api('/timetable');
-                if (!slots) return;
-
-                document.getElementById('timetable-table').innerHTML = slots.length === 0
-                    ? '<tr><td colspan="5" style="text-align: center; padding: 2rem;">No timetable slots</td></tr>'
-                    : slots.map(s => `
-                        <tr>
-                            <td>${s.day}</td>
-                            <td>${s.time_start} - ${s.time_end}</td>
-                            <td>${s.subject?.name || 'N/A'}</td>
-                            <td>${s.room}</td>
-                            <td>
-                                <button class="btn-small btn-delete" onclick="deleteTimetable(${s.id})">Delete</button>
-                            </td>
-                        </tr>
-                    `).join('');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        async function handleTimetableSubmit(e) {
-            e.preventDefault();
-            try {
-                // TODO: Implement timetable creation
-                closeModal('modal-timetable');
-                loadTimetable();
-                showToast('Timetable slot added');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        async function deleteTimetable(id) {
-            if (!confirm('Delete this slot?')) return;
-            try {
-                await api(`/timetable/${id}`, { method: 'DELETE' });
-                loadTimetable();
-                showToast('Timetable slot deleted');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        // Activities
-        async function loadActivities() {
-            try {
-                const activities = await api('/activities');
-                if (!activities) return;
-
-                const grouped = {
-                    upcoming: activities.filter(a => a.status === 'upcoming'),
-                    ongoing: activities.filter(a => a.status === 'ongoing'),
-                    completed: activities.filter(a => a.status === 'completed')
-                };
-
-                document.getElementById('kanban-container').innerHTML = `
-                    <div class="kanban-column">
-                        <h3>Upcoming</h3>
-                        ${grouped.upcoming.map(a => `
-                            <div class="kanban-card">
-                                <h4>${a.title}</h4>
-                                <p style="font-size: 0.9rem; color: var(--color-text-muted);">${new Date(a.date).toLocaleDateString()}</p>
-                                <p style="font-size: 0.85rem;">${a.description.substring(0, 100)}...</p>
-                                <button class="btn-small btn-delete" onclick="deleteActivity(${a.id})">Delete</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="kanban-column">
-                        <h3>Ongoing</h3>
-                        ${grouped.ongoing.map(a => `
-                            <div class="kanban-card">
-                                <h4>${a.title}</h4>
-                                <p style="font-size: 0.9rem; color: var(--color-text-muted);">${new Date(a.date).toLocaleDateString()}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="kanban-column">
-                        <h3>Completed</h3>
-                        ${grouped.completed.map(a => `
-                            <div class="kanban-card">
-                                <h4>${a.title}</h4>
-                                <p style="font-size: 0.9rem; color: var(--color-text-muted);">${new Date(a.date).toLocaleDateString()}</p>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        async function handleActivitySubmit(e) {
-            e.preventDefault();
-            const title = document.getElementById('activity-title').value;
-            const type = document.getElementById('activity-type').value;
-            const date = document.getElementById('activity-date').value;
-            const description = document.getElementById('activity-description').value;
-            const capacity = parseInt(document.getElementById('activity-capacity').value);
-
-            try {
-                await api('/activities', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        title,
-                        type,
-                        date: new Date(date).toISOString(),
-                        description,
-                        dept_id: 1,
-                        max_capacity: capacity,
-                        status: 'upcoming'
-                    })
-                });
-                closeModal('modal-activity');
-                loadActivities();
-                showToast('Activity created successfully');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        async function deleteActivity(id) {
-            if (!confirm('Delete this activity?')) return;
-            try {
-                await api(`/activities/${id}`, { method: 'DELETE' });
-                loadActivities();
-                showToast('Activity deleted');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        // Students
-        async function loadStudents() {
-            try {
-                const students = await api('/students');
-                if (!students) return;
-
-                document.getElementById('students-table').innerHTML = students.length === 0
-                    ? '<tr><td colspan="7" style="text-align: center; padding: 2rem;">No students found</td></tr>'
-                    : students.map(s => `
-                        <tr>
-                            <td>${s.roll_no}</td>
-                            <td>${s.name}</td>
-                            <td>${s.department?.name || 'N/A'}</td>
-                            <td>${s.semester}</td>
-                            <td>${s.email}</td>
-                            <td><span class="status-badge badge-active">${s.status}</span></td>
-                            <td>
-                                <button class="btn-small btn-delete" onclick="deleteStudent(${s.id})">Delete</button>
-                            </td>
-                        </tr>
-                    `).join('');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        async function handleStudentSubmit(e) {
-            e.preventDefault();
-            const rollNo = document.getElementById('student-rollno').value;
-            const name = document.getElementById('student-name').value;
-            const email = document.getElementById('student-email').value;
-            const phone = document.getElementById('student-phone').value;
-            const deptId = parseInt(document.getElementById('student-dept').value);
-            const semester = parseInt(document.getElementById('student-semester').value);
-            const password = document.getElementById('student-password').value;
-
-            try {
-                await api('/students', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        roll_no: rollNo,
-                        name,
-                        email,
-                        phone,
-                        dept_id: deptId,
-                        semester,
-                        password,
-                        status: 'active'
-                    })
-                });
-                closeModal('modal-student');
-                loadStudents();
-                showToast('Student added successfully');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        async function deleteStudent(id) {
-            if (!confirm('Delete this student?')) return;
-            try {
-                await api(`/students/${id}`, { method: 'DELETE' });
-                loadStudents();
-                showToast('Student deleted');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        // Analytics
-        async function loadAnalytics() {
-            try {
-                const completion = await api('/analytics/activity-completion');
-                if (!completion) return;
-
-                const ctx = document.getElementById('chart-activities').getContext('2d');
-                if (charts.activities) charts.activities.destroy();
-                charts.activities = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Completed', 'Pending'],
-                        datasets: [{
-                            data: [completion.completed, completion.total - completion.completed],
-                            backgroundColor: ['rgba(67, 122, 34, 0.8)', 'rgba(220, 217, 213, 0.8)']
-                        }]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false }
-                });
-
-                document.getElementById('analytics-kpi').innerHTML = `
-                    <div class="card">
-                        <div class="kpi-label">Activity Completion Rate</div>
-                        <div class="kpi-value">${completion.percentage}%</div>
-                    </div>
-                `;
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        // Alumni
-        async function loadAlumni() {
-            try {
-                const alumni = await api('/alumni');
-                if (!alumni) return;
-
-                document.getElementById('alumni-table').innerHTML = alumni.length === 0
-                    ? '<tr><td colspan="7" style="text-align: center; padding: 2rem;">No alumni records</td></tr>'
-                    : alumni.map(a => `
-                        <tr>
-                            <td>${a.name}</td>
-                            <td>${a.batch_year}</td>
-                            <td>${a.department?.name || 'N/A'}</td>
-                            <td>${a.company}</td>
-                            <td>${a.role}</td>
-                            <td>${a.location}</td>
-                            <td>
-                                <button class="btn-small btn-delete" onclick="deleteAlumni(${a.id})">Delete</button>
-                            </td>
-                        </tr>
-                    `).join('');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        async function handleAlumniSubmit(e) {
-            e.preventDefault();
-            const name = document.getElementById('alumni-name').value;
-            const batch = parseInt(document.getElementById('alumni-batch').value);
-            const deptId = parseInt(document.getElementById('alumni-dept').value);
-            const company = document.getElementById('alumni-company').value;
-            const role = document.getElementById('alumni-role').value;
-            const email = document.getElementById('alumni-email').value;
-            const linkedin = document.getElementById('alumni-linkedin').value;
-            const location = document.getElementById('alumni-location').value;
-
-            try {
-                await api('/alumni', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        name,
-                        batch_year: batch,
-                        dept_id: deptId,
-                        company,
-                        role,
-                        email,
-                        linkedin,
-                        location
-                    })
-                });
-                closeModal('modal-alumni');
-                loadAlumni();
-                showToast('Alumni record added');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        async function deleteAlumni(id) {
-            if (!confirm('Delete this record?')) return;
-            try {
-                await api(`/alumni/${id}`, { method: 'DELETE' });
-                loadAlumni();
-                showToast('Alumni record deleted');
-            } catch (error) {
-                showToast(error.message, 'error');
-            }
-        }
-
-        // Initialize
-        window.addEventListener('load', async () => {
-            // Load departments for selects
-            try {
-                const depts = await api('/students').catch(() => []);
-                if (depts && depts.length > 0) {
-                    const unique = [...new Set(depts.map(s => s.department?.id))];
-                    document.getElementById('student-dept').innerHTML = unique
-                        .map(id => {
-                            const s = depts.find(d => d.department?.id === id);
-                            return `<option value="${id}">${s.department?.name}</option>`;
-                        }).join('');
-                }
-            } catch (e) {}
-
-            // Render icons
-            lucide.createIcons();
-        });
-
-        // Fallback for missing implementations
-        document.addEventListener('click', (e) => {
-            if (e.target.tagName === 'A' && e.target.getAttribute('href')?.startsWith('#')) {
-                e.preventDefault();
-                const page = e.target.getAttribute('href').substring(1);
-                navigate(page);
-            }
-        });
-    </script>
 </body>
 </html>

@@ -12,8 +12,8 @@ dist/
 build/
 
 # Environment
-.env
-.env.local
+# .env # Removed by Orchids to allow .env files
+# .env.local # Removed by Orchids to allow .env files
 
 # Database
 *.db

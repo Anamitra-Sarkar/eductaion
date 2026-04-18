@@ -19,17 +19,12 @@ async def verify_faculty_or_admin(token: str, db: AsyncSession) -> User:
 
 @router.get("/sessions", response_model=List[AttendanceSessionWithRecords])
 async def get_sessions(
-    token: str = Depends(lambda: None),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     date: Optional[str] = Query(None),
     subject_id: Optional[int] = Query(None),
     dept_id: Optional[int] = Query(None)
 ):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await get_current_user(token, db)
-    
     query = select(AttendanceSession)
     
     if subject_id:
@@ -48,11 +43,9 @@ async def get_sessions(
     return sessions
 
 @router.post("/sessions", response_model=AttendanceSessionSchema)
-async def create_session(session: AttendanceSessionCreate, token: str = Depends(lambda: None), db: AsyncSession = Depends(get_db)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    user = await verify_faculty_or_admin(token, db)
+async def create_session(session: AttendanceSessionCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if current_user.role not in [UserRole.faculty, UserRole.admin]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     
     result = await db.execute(select(Subject).where(Subject.id == session.subject_id))
     if not result.scalars().first():
@@ -61,7 +54,7 @@ async def create_session(session: AttendanceSessionCreate, token: str = Depends(
     db_session = AttendanceSession(
         subject_id=session.subject_id,
         date=session.date,
-        faculty_id=user.id,
+        faculty_id=current_user.id,
         total_students=session.total_students
     )
     db.add(db_session)
@@ -70,11 +63,9 @@ async def create_session(session: AttendanceSessionCreate, token: str = Depends(
     return db_session
 
 @router.post("/sessions/{id}/records")
-async def mark_attendance(id: int, records: List[AttendanceRecordCreate], token: str = Depends(lambda: None), db: AsyncSession = Depends(get_db)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await verify_faculty_or_admin(token, db)
+async def mark_attendance(id: int, records: List[AttendanceRecordCreate], current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if current_user.role not in [UserRole.faculty, UserRole.admin]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     
     result = await db.execute(select(AttendanceSession).where(AttendanceSession.id == id))
     session = result.scalars().first()
