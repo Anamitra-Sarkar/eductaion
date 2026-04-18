@@ -4,11 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AttendX - Smart Attendance & Activity Monitoring</title>
-    
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    
+    <script src="./config.js"></script>
     <style>
         :root {
             --color-bg: #f7f6f2;
@@ -26,938 +25,605 @@
             --color-warning: #964219;
             --color-error: #a12c7b;
         }
-        
         [data-theme="dark"] {
             --color-bg: #171614;
             --color-surface: #1c1b19;
             --color-surface-2: #201f1d;
+            --color-surface-offset: #262321;
+            --color-divider: #2f2d2b;
             --color-border: #393836;
             --color-text: #cdccca;
             --color-text-muted: #797876;
+            --color-text-faint: #5f5e5c;
             --color-primary: #4f98a3;
+            --color-primary-hover: #3e8089;
             --color-success: #6daa45;
             --color-warning: #bb653b;
+            --color-error: #d163a7;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
-
         body {
             font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background-color: var(--color-bg);
             color: var(--color-text);
             line-height: 1.5;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            transition: background-color 0.2s ease, color 0.2s ease;
         }
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'General Sans', sans-serif;
-            font-weight: 700;
-            color: var(--color-text);
-        }
-
-        a { color: var(--color-primary); text-decoration: none; }
-
+        h1, h2, h3, h4, h5, h6 { font-family: 'General Sans', sans-serif; font-weight: 700; color: var(--color-text); }
+        button, input, select, textarea { font: inherit; }
         button {
-            font-family: inherit;
             cursor: pointer;
             border: none;
-            padding: 0.75rem 1.5rem;
+            padding: 0.75rem 1rem;
             border-radius: 0.75rem;
-            font-weight: 500;
+            font-weight: 600;
             transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
+            min-height: 44px;
         }
-
         input, select, textarea {
-            font-family: inherit;
-            padding: 0.75rem;
+            width: 100%;
+            padding: 0.875rem 1rem;
             border: 1px solid var(--color-border);
-            border-radius: 0.5rem;
-            background-color: var(--color-surface);
+            border-radius: 0.75rem;
+            background: var(--color-surface);
             color: var(--color-text);
+            outline: none;
         }
-
-        .btn-primary {
-            background-color: var(--color-primary);
-            color: white;
+        input:focus, select:focus, textarea:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(1,105,111,0.12); }
+        .btn-primary { background: var(--color-primary); color: #fff; }
+        .btn-primary:hover { background: var(--color-primary-hover); }
+        .btn-secondary { background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.3rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
-        
-        .btn-primary:hover {
-            background-color: var(--color-primary-hover);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Login Page */
+        .badge-success { background: rgba(67,122,34,0.12); color: var(--color-success); }
+        .badge-warning { background: rgba(150,66,25,0.12); color: var(--color-warning); }
+        .badge-error { background: rgba(161,44,123,0.12); color: var(--color-error); }
         .login-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background: linear-gradient(135deg, var(--color-primary) 0%, #0c4e54 100%);
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #0d4b4f 0%, #01696f 100%);
         }
-
         .login-card {
-            background-color: var(--color-surface);
+            background: var(--color-surface);
             border: 1px solid var(--color-border);
-            border-radius: 1rem;
-            padding: 3rem;
+            border-radius: 1.25rem;
+            padding: 2rem;
             width: 100%;
-            max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            max-width: 440px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
         }
-
-        .login-logo {
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 3rem;
-            color: var(--color-primary);
-        }
-
-        .login-card h1 {
-            text-align: center;
-            font-size: 1.75rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .login-card > p {
-            text-align: center;
-            color: var(--color-text-muted);
-            margin-bottom: 2rem;
-            font-size: 0.9rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: var(--color-text);
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.875rem;
-        }
-
-        #login-error {
-            color: var(--color-error);
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Main App Layout */
-        body.authenticated {
-            display: flex;
-        }
-
-        body.authenticated > aside {
-            width: 250px;
-        }
-
-        body.authenticated > main {
-            flex: 1;
-        }
-
+        .login-logo { display:flex; align-items:center; justify-content:center; margin-bottom:1.25rem; color: var(--color-primary); }
+        .login-card h1 { text-align: center; font-size: 1.9rem; margin-bottom: 0.35rem; }
+        .login-card > p { text-align: center; color: var(--color-text-muted); margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display:block; margin-bottom:0.45rem; font-weight:600; }
+        #login-error { color: var(--color-error); font-size: 0.9rem; margin-bottom: 1rem; }
+        body.authenticated { display: flex; }
         aside {
-            background-color: var(--color-surface);
+            width: 250px;
+            background: var(--color-surface);
             border-right: 1px solid var(--color-border);
-            padding: 2rem 0;
             position: fixed;
-            left: 0;
             top: 0;
+            left: 0;
             height: 100vh;
             overflow-y: auto;
+            padding: 1.5rem 0;
         }
-
         .sidebar-logo {
-            padding: 0 1.5rem 2rem;
-            text-align: center;
-            font-size: 2rem;
-            color: var(--color-primary);
-            font-weight: bold;
-        }
-
-        .nav-item {
-            padding: 0.75rem 1.5rem;
-            color: var(--color-text-muted);
-            cursor: pointer;
-            border-left: 3px solid transparent;
-            transition: all 0.2s ease;
-            font-size: 0.95rem;
-        }
-
-        .nav-item:hover {
-            background-color: var(--color-surface-offset);
+            display:flex;
+            align-items:center;
+            gap:0.75rem;
+            padding: 0 1.25rem 1.5rem;
+            font-weight: 700;
+            font-size: 1.2rem;
             color: var(--color-text);
         }
-
-        .nav-item.active {
-            background-color: var(--color-surface-offset);
-            border-left-color: var(--color-primary);
-            color: var(--color-primary);
-            font-weight: 600;
-        }
-
-        main {
-            margin-left: 250px;
-            padding: 2rem;
-            min-height: 100vh;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-            animation: fadeIn 0.2s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .page-header {
-            margin-bottom: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .page-header h1 {
-            font-size: 2rem;
-        }
-
-        .card {
-            background-color: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .kpi {
-            background-color: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            text-align: center;
-        }
-
-        .kpi-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--color-primary);
-            margin: 0.5rem 0;
-        }
-
-        .kpi-label {
-            font-size: 0.9rem;
+        .nav-item {
+            padding: 0.9rem 1.25rem;
             color: var(--color-text-muted);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background-color: var(--color-surface);
-        }
-
-        th {
-            background-color: var(--color-surface-offset);
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            border-bottom: 1px solid var(--color-border);
-        }
-
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--color-border);
-        }
-
-        tr:hover {
-            background-color: var(--color-surface-2);
-        }
-
-        /* Modal */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background-color: var(--color-surface);
-            border-radius: 1rem;
-            padding: 2rem;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .modal-header h2 {
-            margin: 0;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
             cursor: pointer;
-            padding: 0;
-            color: var(--color-text-muted);
-        }
-
-        .theme-toggle {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: var(--color-primary);
-            border: none;
-            color: white;
-            font-size: 1.25rem;
-            cursor: pointer;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             transition: all 0.2s ease;
+            display:flex;
+            align-items:center;
+            gap:0.75rem;
+            border-left: 3px solid transparent;
         }
-
-        .theme-toggle:hover {
-            background-color: var(--color-primary-hover);
-            transform: scale(1.1);
+        .nav-item:hover { background: var(--color-surface-offset); color: var(--color-text); }
+        .nav-item.active { background: var(--color-surface-offset); color: var(--color-primary); border-left-color: var(--color-primary); }
+        main { margin-left: 250px; padding: 2rem; min-height: 100vh; width: calc(100% - 250px); }
+        .page { display:none; }
+        .page.active { display:block; animation: fadeIn 0.18s ease; }
+        @keyframes fadeIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform: translateY(0);} }
+        .page-header { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.5rem; }
+        .page-header h1 { font-size: 1.9rem; }
+        .page-sub { color: var(--color-text-muted); margin-top: 0.35rem; }
+        .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1.25rem; margin-bottom:1.5rem; }
+        .card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.03);
         }
-
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: var(--color-text-muted);
+        .kpi { background: var(--color-surface); border:1px solid var(--color-border); border-radius:1rem; padding:1.25rem; }
+        .kpi-label { color: var(--color-text-muted); font-size: 0.9rem; }
+        .kpi-value { color: var(--color-primary); font-size: 2rem; font-weight: 700; margin-top: 0.45rem; }
+        table { width:100%; border-collapse: collapse; }
+        th, td { padding: 0.95rem 0.85rem; text-align:left; border-bottom:1px solid var(--color-border); }
+        th { background: var(--color-surface-offset); font-size: 0.9rem; }
+        tbody tr:hover { background: var(--color-surface-2); }
+        .table-wrap { overflow-x:auto; }
+        .loading { text-align:center; padding:1.5rem; color: var(--color-text-muted); }
+        .muted { color: var(--color-text-muted); }
+        .activities-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:1.25rem; }
+        .theme-toggle {
+            position: fixed; right: 1.5rem; bottom: 1.5rem; width: 50px; height: 50px; border-radius: 50%;
+            background: var(--color-primary); color:#fff; z-index:1000;
         }
-
-        .loading::after {
-            content: '';
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            margin-left: 10px;
-            border: 3px solid var(--color-border);
-            border-top-color: var(--color-primary);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        @media (max-width: 768px) {
-            aside {
-                width: 100%;
-                height: auto;
-                position: static;
-                border-right: none;
-                border-bottom: 1px solid var(--color-border);
-            }
-
-            main {
-                margin-left: 0;
-            }
-
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-
-            .grid {
-                grid-template-columns: 1fr;
-            }
+        .top-actions { display:flex; gap:0.75rem; align-items:center; }
+        .status-pill { font-size:0.8rem; font-weight:700; }
+        .empty-state { text-align:center; color: var(--color-text-muted); padding: 1.5rem 0; }
+        @media (max-width: 900px) {
+            aside { width: 100%; height:auto; position:static; border-right:none; border-bottom:1px solid var(--color-border); }
+            main { margin-left:0; width:100%; padding:1.25rem; }
+            body.authenticated { display:block; }
+            .page-header { flex-direction:column; align-items:flex-start; }
         }
     </style>
 </head>
 <body>
-
-<!-- Login Page -->
-<div id="page-login" class="login-wrapper" style="display: none;">
+<div id="page-login" class="login-wrapper" style="display:none;">
     <div class="login-card">
-        <div class="login-logo">📊</div>
+        <div class="login-logo">
+            <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AttendX logo">
+                <path d="M26 8L10 42H18L21.5 34H30.5L34 42H42L26 8Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+                <path d="M21.5 34L26 22L30.5 34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                <path d="M18 16C20.5 13.5 23 12 26 12C29 12 31.5 13.5 34 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
+            </svg>
+        </div>
         <h1>AttendX</h1>
         <p>Smart Attendance & Activity Intelligence</p>
         <form id="login-form">
             <div class="form-group">
                 <label for="login-email">Email</label>
-                <input type="email" id="login-email" placeholder="admin@attendx.edu" required />
+                <input type="email" id="login-email" required />
             </div>
             <div class="form-group">
                 <label for="login-password">Password</label>
-                <input type="password" id="login-password" placeholder="••••••••" required />
+                <input type="password" id="login-password" required />
             </div>
             <p id="login-error" style="display:none;"></p>
-            <button type="submit" id="login-btn" class="btn btn-primary" style="width:100%">
-                Sign In
-            </button>
+            <button type="submit" id="login-btn" class="btn-primary" style="width:100%;">Sign In</button>
         </form>
-        <p style="text-align: center; margin-top: 2rem; font-size: 0.85rem; color: var(--color-text-muted);">
-            Demo: admin@attendx.edu / Admin@123
-        </p>
     </div>
 </div>
-
-<!-- Main App -->
-<aside id="sidebar" style="display: none;">
-    <div class="sidebar-logo">📊 AttendX</div>
-    <div class="nav-item active" data-page="dashboard">📈 Dashboard</div>
-    <div class="nav-item" data-page="attendance">✓ Attendance</div>
-    <div class="nav-item" data-page="timetable">📅 Timetable</div>
-    <div class="nav-item" data-page="activities">🎯 Activities</div>
-    <div class="nav-item" data-page="analytics">📊 Analytics</div>
-    <div class="nav-item" data-page="students">👥 Students</div>
-    <div class="nav-item" data-page="alumni">🎓 Alumni</div>
-    <div class="nav-item" data-page="settings">⚙️ Settings</div>
-    <div class="nav-item" style="margin-top: 2rem; border-top: 1px solid var(--color-border);" onclick="logout()">🚪 Logout</div>
+<aside id="sidebar" style="display:none;">
+    <div class="sidebar-logo">
+        <svg width="28" height="28" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M26 8L10 42H18L21.5 34H30.5L34 42H42L26 8Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M21.5 34L26 22L30.5 34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <span>AttendX</span>
+    </div>
+    <div class="nav-item active" data-page="dashboard">📈 <span>Dashboard</span></div>
+    <div class="nav-item" data-page="attendance">✅ <span>Attendance</span></div>
+    <div class="nav-item" data-page="timetable">📅 <span>Timetable</span></div>
+    <div class="nav-item" data-page="activities">🎯 <span>Activities</span></div>
+    <div class="nav-item" data-page="analytics">📊 <span>Analytics</span></div>
+    <div class="nav-item" data-page="students">👥 <span>Students</span></div>
+    <div class="nav-item" data-page="alumni">🎓 <span>Alumni</span></div>
+    <div class="nav-item" data-page="settings">⚙️ <span>Settings</span></div>
+    <div class="nav-item" onclick="logout()" style="margin-top:1rem;border-top:1px solid var(--color-border);">🚪 <span>Logout</span></div>
 </aside>
-
-<main id="main" style="display: none;">
-
-<!-- Dashboard Page -->
-<div id="page-dashboard" class="page active">
-    <div class="page-header">
-        <div>
-            <h1>Dashboard</h1>
-            <p style="color: var(--color-text-muted); margin-top: 0.5rem;">Welcome back! Here's your attendance overview.</p>
+<main id="main" style="display:none;">
+    <div id="page-dashboard" class="page active">
+        <div class="page-header">
+            <div>
+                <h1>Dashboard</h1>
+                <p class="page-sub">Institution overview and live attendance insights.</p>
+            </div>
+        </div>
+        <div class="grid">
+            <div class="kpi"><div class="kpi-label">Active Students</div><div class="kpi-value" id="kpi-students">-</div></div>
+            <div class="kpi"><div class="kpi-label">Attendance</div><div class="kpi-value" id="kpi-attendance">-</div></div>
+            <div class="kpi"><div class="kpi-label">Pending Activities</div><div class="kpi-value" id="kpi-activities">-</div></div>
+            <div class="kpi"><div class="kpi-label">Conflicts</div><div class="kpi-value" id="kpi-conflicts">-</div></div>
+        </div>
+        <div class="card">
+            <h2 style="margin-bottom:1rem;">Attendance Trend</h2>
+            <div style="height:320px;"><canvas id="attendanceChart"></canvas></div>
         </div>
     </div>
-    <div class="grid">
-        <div class="kpi">
-            <div class="kpi-label">Total Students</div>
-            <div class="kpi-value" id="kpi-students">-</div>
-        </div>
-        <div class="kpi">
-            <div class="kpi-label">Overall Attendance</div>
-            <div class="kpi-value" id="kpi-attendance">-</div>
-        </div>
-        <div class="kpi">
-            <div class="kpi-label">Activities</div>
-            <div class="kpi-value" id="kpi-activities">-</div>
-        </div>
-        <div class="kpi">
-            <div class="kpi-label">Departments</div>
-            <div class="kpi-value">4</div>
+    <div id="page-attendance" class="page">
+        <div class="page-header"><h1>Attendance</h1></div>
+        <div class="card table-wrap">
+            <table>
+                <thead><tr><th>Student Name</th><th>Roll No</th><th>Department</th><th>Semester</th><th>Email</th><th>Status</th></tr></thead>
+                <tbody id="attendance-table"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+            </table>
         </div>
     </div>
-    <div class="card">
-        <h2>Attendance Trend (Last 30 days)</h2>
-        <canvas id="attendanceChart" height="80"></canvas>
-    </div>
-</div>
-
-<!-- Attendance Page -->
-<div id="page-attendance" class="page">
-    <div class="page-header">
-        <h1>Attendance</h1>
-        <button class="btn btn-primary" onclick="openModal('attendance-modal')">Mark Attendance</button>
-    </div>
-    <div class="card">
-        <table>
-            <thead>
-                <tr>
-                    <th>Student Name</th>
-                    <th>Roll No</th>
-                    <th>Total Sessions</th>
-                    <th>Present</th>
-                    <th>Percentage</th>
-                </tr>
-            </thead>
-            <tbody id="attendance-table">
-                <tr><td colspan="5" class="loading">Loading...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Timetable Page -->
-<div id="page-timetable" class="page">
-    <div class="page-header">
-        <h1>Timetable</h1>
-        <button class="btn btn-primary" onclick="openModal('timetable-modal')">Add Slot</button>
-    </div>
-    <div class="card">
-        <table>
-            <thead>
-                <tr>
-                    <th>Day</th>
-                    <th>Time</th>
-                    <th>Subject</th>
-                    <th>Room</th>
-                </tr>
-            </thead>
-            <tbody id="timetable-table">
-                <tr><td colspan="4" class="loading">Loading...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Activities Page -->
-<div id="page-activities" class="page">
-    <div class="page-header">
-        <h1>Activities</h1>
-        <button class="btn btn-primary" onclick="openModal('activity-modal')">New Activity</button>
-    </div>
-    <div class="grid" id="activities-grid">
-        <div class="loading">Loading...</div>
-    </div>
-</div>
-
-<!-- Analytics Page -->
-<div id="page-analytics" class="page">
-    <div class="page-header">
-        <h1>Analytics</h1>
-    </div>
-    <div class="card">
-        <h2>Department Attendance</h2>
-        <canvas id="deptChart" height="80"></canvas>
-    </div>
-    <div class="card">
-        <h2>Activity Participation</h2>
-        <canvas id="activityChart" height="80"></canvas>
-    </div>
-</div>
-
-<!-- Students Page -->
-<div id="page-students" class="page">
-    <div class="page-header">
-        <h1>Students</h1>
-        <button class="btn btn-primary" onclick="openModal('student-modal')">Add Student</button>
-    </div>
-    <div class="card">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Roll No</th>
-                    <th>Department</th>
-                    <th>Semester</th>
-                    <th>Email</th>
-                </tr>
-            </thead>
-            <tbody id="students-table">
-                <tr><td colspan="5" class="loading">Loading...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Alumni Page -->
-<div id="page-alumni" class="page">
-    <div class="page-header">
-        <h1>Alumni</h1>
-        <button class="btn btn-primary" onclick="openModal('alumni-modal')">Add Alumni</button>
-    </div>
-    <div class="card">
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Batch</th>
-                    <th>Company</th>
-                    <th>Position</th>
-                    <th>Email</th>
-                </tr>
-            </thead>
-            <tbody id="alumni-table">
-                <tr><td colspan="5" class="loading">Loading...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Settings Page -->
-<div id="page-settings" class="page">
-    <div class="page-header">
-        <h1>Settings</h1>
-    </div>
-    <div class="card">
-        <h2>Institution Profile</h2>
-        <div class="form-group">
-            <label>Institution Name</label>
-            <input type="text" placeholder="Engineering College" disabled />
-        </div>
-        <div class="form-group">
-            <label>Email</label>
-            <input type="email" placeholder="admin@college.edu" disabled />
+    <div id="page-timetable" class="page">
+        <div class="page-header"><h1>Timetable</h1></div>
+        <div class="card table-wrap">
+            <table>
+                <thead><tr><th>Day</th><th>Time</th><th>Subject ID</th><th>Room</th><th>Semester</th></tr></thead>
+                <tbody id="timetable-table"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+            </table>
         </div>
     </div>
-    <div class="card">
-        <h2>Preferences</h2>
-        <div class="form-group">
-            <label>
-                <input type="checkbox" checked /> Email notifications
-            </label>
+    <div id="page-activities" class="page">
+        <div class="page-header"><h1>Activities</h1></div>
+        <div class="activities-grid" id="activities-grid"><div class="loading">Loading...</div></div>
+    </div>
+    <div id="page-analytics" class="page">
+        <div class="page-header"><h1>Analytics</h1></div>
+        <div class="card">
+            <h2 style="margin-bottom:1rem;">Department Attendance</h2>
+            <div style="height:320px;"><canvas id="deptChart"></canvas></div>
         </div>
-        <div class="form-group">
-            <label>
-                <input type="checkbox" checked /> Defaulter alerts (<75%)
-            </label>
+        <div class="card">
+            <h2 style="margin-bottom:1rem;">Activity Participation</h2>
+            <div style="height:320px;"><canvas id="activityChart"></canvas></div>
         </div>
     </div>
-</div>
-
+    <div id="page-students" class="page">
+        <div class="page-header"><h1>Students</h1></div>
+        <div class="card table-wrap">
+            <table>
+                <thead><tr><th>Name</th><th>Roll No</th><th>Department ID</th><th>Semester</th><th>Email</th><th>Status</th></tr></thead>
+                <tbody id="students-table"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+    <div id="page-alumni" class="page">
+        <div class="page-header"><h1>Alumni</h1></div>
+        <div class="card table-wrap">
+            <table>
+                <thead><tr><th>Name</th><th>Batch</th><th>Company</th><th>Role</th><th>Email</th><th>Location</th></tr></thead>
+                <tbody id="alumni-table"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+    <div id="page-settings" class="page">
+        <div class="page-header"><h1>Settings</h1></div>
+        <div class="card">
+            <h2 style="margin-bottom:0.75rem;">Institution Profile</h2>
+            <p class="muted">Managed from backend configuration and seeded data.</p>
+        </div>
+    </div>
 </main>
-
-<button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode" style="display: none;" id="theme-btn">🌙</button>
-
+<button id="theme-btn" class="theme-toggle" onclick="toggleTheme()" style="display:none;">🌙</button>
 <script>
-    // ===== CONFIG =====
-    const CONFIG = {
-        API_BASE: 'http://localhost:8000'
-    };
-
     let authToken = null;
     let currentUser = null;
     let charts = {};
+    let currentTheme = 'light';
 
-    // ===== API HELPER =====
     async function apiCall(path, options = {}) {
-        const res = await fetch(CONFIG.API_BASE + path, {
-            ...options,
-            headers: {
-                'Content-Type': 'application/json',
-                ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-                ...(options.headers || {})
+        try {
+            const res = await fetch((window.CONFIG?.API_BASE || CONFIG.API_BASE) + path, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+                    ...(options.headers || {})
+                }
+            });
+            if (res.status === 401) {
+                logout(false);
+                return null;
             }
-        });
-        
-        if (res.status === 401) {
-            logout();
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                showToast(data?.detail || 'Request failed', 'error');
+                return null;
+            }
+            return data;
+        } catch (error) {
+            showToast('Unable to reach server. Please check backend deployment.', 'error');
             return null;
         }
-        
-        if (!res.ok) {
-            const err = await res.json().catch(() => ({}));
-            showToast(err.detail || 'Request failed', 'error');
-            return null;
-        }
-        
-        return res.json();
     }
 
     function showToast(message, type = 'info') {
         const colors = { success: '#437a22', error: '#a12c7b', info: '#01696f' };
         const toast = document.createElement('div');
-        toast.style.cssText = `position:fixed;top:20px;right:20px;z-index:9999;
-            padding:12px 20px;border-radius:8px;color:#fff;font-size:14px;
-            background:${colors[type]};box-shadow:0 4px 12px rgba(0,0,0,0.15);
-            animation:slideIn 0.2s ease;max-width:320px;`;
+        toast.style.cssText = `position:fixed;top:20px;right:20px;z-index:9999;padding:12px 16px;border-radius:10px;color:#fff;background:${colors[type]};box-shadow:0 8px 24px rgba(0,0,0,0.15);max-width:340px;`;
         toast.textContent = message;
         document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 4000);
+        setTimeout(() => toast.remove(), 3500);
     }
 
-    // ===== AUTH =====
+    function statusBadge(status) {
+        const value = String(status || '').toLowerCase();
+        if (value.includes('active') || value.includes('present') || value.includes('completed')) return `<span class="badge badge-success">${status}</span>`;
+        if (value.includes('upcoming') || value.includes('ongoing') || value.includes('late') || value.includes('warning')) return `<span class="badge badge-warning">${status}</span>`;
+        return `<span class="badge badge-error">${status || 'Unknown'}</span>`;
+    }
+
+    function showApp() {
+        document.body.classList.add('authenticated');
+        document.getElementById('page-login').style.display = 'none';
+        document.getElementById('sidebar').style.display = 'block';
+        document.getElementById('main').style.display = 'block';
+        document.getElementById('theme-btn').style.display = 'flex';
+    }
+
+    function showLogin() {
+        document.body.classList.remove('authenticated');
+        document.getElementById('page-login').style.display = 'flex';
+        document.getElementById('sidebar').style.display = 'none';
+        document.getElementById('main').style.display = 'none';
+        document.getElementById('theme-btn').style.display = 'none';
+    }
+
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('login-btn');
         const errEl = document.getElementById('login-error');
         btn.disabled = true;
-        btn.textContent = 'Signing in...';
+        btn.textContent = 'Signing In...';
         errEl.style.display = 'none';
 
         const data = await apiCall('/auth/login', {
             method: 'POST',
             body: JSON.stringify({
-                email: document.getElementById('login-email').value,
+                email: document.getElementById('login-email').value.trim(),
                 password: document.getElementById('login-password').value
             })
         });
 
-        if (data) {
+        if (data?.access_token) {
             authToken = data.access_token;
             currentUser = data.user;
+            showApp();
             showPage('dashboard');
             loadDashboard();
-            document.body.classList.add('authenticated');
-            document.getElementById('sidebar').style.display = 'block';
-            document.getElementById('main').style.display = 'block';
-            document.getElementById('page-login').style.display = 'none';
-            document.getElementById('theme-btn').style.display = 'flex';
-            showToast('Welcome ' + currentUser.name + '!', 'success');
+            showToast(`Welcome ${currentUser.name}`, 'success');
         } else {
             errEl.textContent = 'Invalid email or password';
             errEl.style.display = 'block';
         }
-        
         btn.disabled = false;
         btn.textContent = 'Sign In';
     });
 
-    function logout() {
+    function logout(showMessage = true) {
         authToken = null;
         currentUser = null;
-        document.body.classList.remove('authenticated');
-        document.getElementById('sidebar').style.display = 'none';
-        document.getElementById('main').style.display = 'none';
-        document.getElementById('page-login').style.display = 'flex';
-        document.getElementById('theme-btn').style.display = 'none';
-        document.getElementById('login-email').value = '';
-        document.getElementById('login-password').value = '';
-        showToast('Logged out', 'info');
+        showLogin();
+        document.getElementById('login-form').reset();
+        if (showMessage) showToast('Logged out', 'info');
     }
 
-    // ===== PAGE NAVIGATION =====
     function showPage(pageName) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById('page-' + pageName).classList.add('active');
-        
-        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-        document.querySelector(`[data-page="${pageName}"]`).classList.add('active');
-
-        // Load page data
-        switch (pageName) {
-            case 'attendance': loadAttendance(); break;
-            case 'timetable': loadTimetable(); break;
-            case 'activities': loadActivities(); break;
-            case 'students': loadStudents(); break;
-            case 'alumni': loadAlumni(); break;
-            case 'analytics': loadAnalytics(); break;
-        }
+        document.querySelectorAll('.nav-item[data-page]').forEach(item => item.classList.remove('active'));
+        const nav = document.querySelector(`.nav-item[data-page="${pageName}"]`);
+        if (nav) nav.classList.add('active');
+        if (pageName === 'dashboard') loadDashboard();
+        if (pageName === 'attendance') loadAttendance();
+        if (pageName === 'timetable') loadTimetable();
+        if (pageName === 'activities') loadActivities();
+        if (pageName === 'analytics') loadAnalytics();
+        if (pageName === 'students') loadStudents();
+        if (pageName === 'alumni') loadAlumni();
     }
 
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', () => {
-            const page = item.dataset.page;
-            if (page) showPage(page);
-        });
+    document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+        item.addEventListener('click', () => showPage(item.dataset.page));
     });
 
-    // ===== DATA LOADING =====
+    function chartColors() {
+        const dark = document.documentElement.dataset.theme === 'dark';
+        return {
+            primary: dark ? '#4f98a3' : '#01696f',
+            grid: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+            text: dark ? '#cdccca' : '#28251d'
+        };
+    }
+
     async function loadDashboard() {
         const data = await apiCall('/analytics/dashboard');
-        if (data) {
-            document.getElementById('kpi-students').textContent = data.total_students;
-            document.getElementById('kpi-attendance').textContent = Math.round(data.attendance_percentage) + '%';
-            document.getElementById('kpi-activities').textContent = data.total_activities;
-            
-            // Chart
-            const ctx = document.getElementById('attendanceChart').getContext('2d');
-            if (charts.attendance) charts.attendance.destroy();
-            charts.attendance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
-                    datasets: [{
-                        label: 'Attendance %',
-                        data: [85, 88, 82, 90, 87, 89, 91],
-                        borderColor: '#01696f',
-                        backgroundColor: 'rgba(1, 105, 111, 0.1)',
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
+        if (!data) return;
+        document.getElementById('kpi-students').textContent = data.active_students ?? 0;
+        document.getElementById('kpi-attendance').textContent = `${Math.round(data.attendance_percentage ?? 0)}%`;
+        document.getElementById('kpi-activities').textContent = data.pending_activities ?? 0;
+        document.getElementById('kpi-conflicts').textContent = data.conflicts ?? 0;
+
+        const { primary, grid, text } = chartColors();
+        const ctx = document.getElementById('attendanceChart').getContext('2d');
+        if (charts.attendance) charts.attendance.destroy();
+        charts.attendance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Attendance %',
+                    data: [78, 82, 80, 86, 84, 88, Math.round(data.attendance_percentage ?? 0)],
+                    borderColor: primary,
+                    backgroundColor: primary + '22',
+                    fill: true,
+                    tension: 0.35
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: text } } },
+                scales: { x: { ticks: { color: text }, grid: { color: grid } }, y: { ticks: { color: text }, grid: { color: grid } } }
+            }
+        });
     }
 
     async function loadAttendance() {
         const data = await apiCall('/students');
-        if (data) {
-            const tbody = document.getElementById('attendance-table');
-            tbody.innerHTML = data.map(s => `
-                <tr>
-                    <td>${s.name}</td>
-                    <td>${s.roll_no}</td>
-                    <td>30</td>
-                    <td>25</td>
-                    <td>${Math.round(25/30*100)}%</td>
-                </tr>
-            `).join('');
+        const tbody = document.getElementById('attendance-table');
+        if (!data || !Array.isArray(data)) {
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No records found</td></tr>';
+            return;
         }
+        tbody.innerHTML = data.map(s => `
+            <tr>
+                <td>${s.name}</td>
+                <td>${s.roll_no}</td>
+                <td>${s.dept_id}</td>
+                <td>${s.semester}</td>
+                <td>${s.email}</td>
+                <td>${statusBadge(s.status)}</td>
+            </tr>
+        `).join('');
     }
 
     async function loadTimetable() {
         const data = await apiCall('/timetable');
-        if (data) {
-            const tbody = document.getElementById('timetable-table');
-            tbody.innerHTML = data.map(s => `
-                <tr>
-                    <td>${s.day}</td>
-                    <td>${s.time_start} - ${s.time_end}</td>
-                    <td>${s.subject_id}</td>
-                    <td>${s.room}</td>
-                </tr>
-            `).join('');
+        const tbody = document.getElementById('timetable-table');
+        if (!data || !Array.isArray(data)) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No timetable records found</td></tr>';
+            return;
         }
+        tbody.innerHTML = data.map(s => `
+            <tr>
+                <td>${s.day}</td>
+                <td>${s.time_start} - ${s.time_end}</td>
+                <td>${s.subject_id}</td>
+                <td>${s.room}</td>
+                <td>${s.semester}</td>
+            </tr>
+        `).join('');
     }
 
     async function loadActivities() {
         const data = await apiCall('/activities');
-        if (data) {
-            const grid = document.getElementById('activities-grid');
-            grid.innerHTML = data.map(a => `
-                <div class="card">
-                    <h3>${a.name}</h3>
-                    <p style="color: var(--color-text-muted); margin: 0.5rem 0; font-size: 0.9rem;">${a.description || 'No description'}</p>
-                    <p style="color: var(--color-text-muted); font-size: 0.85rem; margin-top: 1rem;">📅 ${a.date}</p>
-                </div>
-            `).join('');
+        const grid = document.getElementById('activities-grid');
+        if (!data || !Array.isArray(data) || !data.length) {
+            grid.innerHTML = '<div class="card empty-state">No activities available</div>';
+            return;
         }
+        grid.innerHTML = data.map(a => `
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;margin-bottom:0.75rem;">
+                    <h3>${a.title}</h3>
+                    ${statusBadge(a.status)}
+                </div>
+                <p class="muted" style="margin-bottom:0.75rem;">${a.description || 'No description available'}</p>
+                <div class="muted" style="font-size:0.9rem; display:grid; gap:0.35rem;">
+                    <div>Type: ${a.activity_type}</div>
+                    <div>Date: ${new Date(a.date).toLocaleDateString()}</div>
+                    <div>Department ID: ${a.dept_id}</div>
+                    <div>Capacity: ${a.max_capacity}</div>
+                </div>
+            </div>
+        `).join('');
     }
 
     async function loadStudents() {
         const data = await apiCall('/students');
-        if (data) {
-            const tbody = document.getElementById('students-table');
-            tbody.innerHTML = data.map(s => `
-                <tr>
-                    <td>${s.name}</td>
-                    <td>${s.roll_no}</td>
-                    <td>${s.dept_id}</td>
-                    <td>${s.semester}</td>
-                    <td>${s.email}</td>
-                </tr>
-            `).join('');
+        const tbody = document.getElementById('students-table');
+        if (!data || !Array.isArray(data)) {
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No student records found</td></tr>';
+            return;
         }
+        tbody.innerHTML = data.map(s => `
+            <tr>
+                <td>${s.name}</td>
+                <td>${s.roll_no}</td>
+                <td>${s.dept_id}</td>
+                <td>${s.semester}</td>
+                <td>${s.email}</td>
+                <td>${statusBadge(s.status)}</td>
+            </tr>
+        `).join('');
     }
 
     async function loadAlumni() {
         const data = await apiCall('/alumni');
-        if (data) {
-            const tbody = document.getElementById('alumni-table');
-            tbody.innerHTML = data.map(a => `
-                <tr>
-                    <td>${a.name}</td>
-                    <td>${a.batch}</td>
-                    <td>${a.company}</td>
-                    <td>${a.position}</td>
-                    <td>${a.email}</td>
-                </tr>
-            `).join('');
+        const tbody = document.getElementById('alumni-table');
+        if (!data || !Array.isArray(data)) {
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No alumni records found</td></tr>';
+            return;
         }
+        tbody.innerHTML = data.map(a => `
+            <tr>
+                <td>${a.name}</td>
+                <td>${a.batch_year}</td>
+                <td>${a.company}</td>
+                <td>${a.role}</td>
+                <td>${a.email}</td>
+                <td>${a.location}</td>
+            </tr>
+        `).join('');
     }
 
     async function loadAnalytics() {
-        const data = await apiCall('/analytics/attendance');
-        if (data) {
-            const ctx = document.getElementById('deptChart').getContext('2d');
-            if (charts.dept) charts.dept.destroy();
-            charts.dept = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: data.map(d => d.dept_name),
-                    datasets: [{
-                        label: 'Attendance %',
-                        data: data.map(d => d.percentage),
-                        backgroundColor: '#01696f'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
-                }
-            });
-        }
+        const attendanceData = await apiCall('/analytics/attendance');
+        const activityData = await apiCall('/analytics/activities');
+        const { primary, grid, text } = chartColors();
+
+        const deptCtx = document.getElementById('deptChart').getContext('2d');
+        if (charts.dept) charts.dept.destroy();
+        charts.dept = new Chart(deptCtx, {
+            type: 'bar',
+            data: {
+                labels: (attendanceData || []).map(d => d.dept_name),
+                datasets: [{ label: 'Attendance %', data: (attendanceData || []).map(d => d.percentage), backgroundColor: primary }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: text } } },
+                scales: { x: { ticks: { color: text }, grid: { color: grid } }, y: { ticks: { color: text }, grid: { color: grid } } }
+            }
+        });
+
+        const activityCtx = document.getElementById('activityChart').getContext('2d');
+        if (charts.activity) charts.activity.destroy();
+        charts.activity = new Chart(activityCtx, {
+            type: 'doughnut',
+            data: {
+                labels: (activityData || []).map(a => a.name),
+                datasets: [{ data: (activityData || []).map(a => a.percentage), backgroundColor: [primary, '#437a22', '#964219', '#a12c7b', '#6b7280'] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: text } } } }
+        });
     }
 
-    // ===== MODALS =====
-    function openModal(id) {
-        const modal = document.getElementById(id);
-        if (!modal) {
-            const m = document.createElement('div');
-            m.id = id;
-            m.className = 'modal active';
-            m.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>New Entry</h2>
-                        <button class="close-btn" onclick="closeModal('${id}')">&times;</button>
-                    </div>
-                    <p style="color: var(--color-text-muted);">Form functionality coming soon...</p>
-                    <button class="btn btn-primary" onclick="closeModal('${id}')" style="width:100%; margin-top: 1rem;">Close</button>
-                </div>
-            `;
-            document.body.appendChild(m);
-        } else {
-            modal.classList.add('active');
-        }
-    }
-
-    function closeModal(id) {
-        const modal = document.getElementById(id);
-        if (modal) modal.classList.remove('active');
-    }
-
-    // ===== THEME =====
     function toggleTheme() {
-        const html = document.documentElement;
-        const isDark = html.dataset.theme === 'dark';
-        html.dataset.theme = isDark ? 'light' : 'dark';
-        localStorage.setItem('theme', html.dataset.theme);
-        document.getElementById('theme-btn').textContent = isDark ? '🌙' : '☀️';
+        currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.dataset.theme = currentTheme;
+        document.getElementById('theme-btn').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+        if (authToken) {
+            const activePage = document.querySelector('.page.active')?.id?.replace('page-', '') || 'dashboard';
+            showPage(activePage);
+        }
     }
 
-    // ===== INIT =====
     window.addEventListener('DOMContentLoaded', () => {
-        const saved = localStorage.getItem('theme');
-        if (saved) document.documentElement.dataset.theme = saved;
-        
-        if (!authToken) {
-            document.getElementById('page-login').style.display = 'flex';
-        } else {
-            showPage('dashboard');
-        }
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        currentTheme = prefersDark ? 'dark' : 'light';
+        document.documentElement.dataset.theme = currentTheme;
+        document.getElementById('theme-btn').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+        showLogin();
+        if (window.lucide) lucide.createIcons();
     });
 </script>
-
 </body>
 </html>
