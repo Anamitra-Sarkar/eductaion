@@ -14,6 +14,7 @@ build/
 # Environment
 # .env # Removed by Orchids to allow .env files
 # .env.local # Removed by Orchids to allow .env files
+backend/.env
 
 # Database
 *.db
