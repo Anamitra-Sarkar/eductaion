@@ -1,0 +1,2247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AttendX - Smart Attendance & Activity Monitoring</title>
+    
+    <!-- Fontshare Fonts -->
+    <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        :root {
+            --color-bg: #f7f6f2;
+            --color-surface: #f9f8f5;
+            --color-surface-2: #fbfbf9;
+            --color-surface-offset: #f3f0ec;
+            --color-divider: #dcd9d5;
+            --color-border: #d4d1ca;
+            --color-text: #28251d;
+            --color-text-muted: #7a7974;
+            --color-text-faint: #bab9b4;
+            --color-primary: #01696f;
+            --color-primary-hover: #0c4e54;
+            --color-success: #437a22;
+            --color-warning: #964219;
+            --color-error: #a12c7b;
+        }
+        
+        [data-theme="dark"] {
+            --color-bg: #171614;
+            --color-surface: #1c1b19;
+            --color-surface-2: #201f1d;
+            --color-border: #393836;
+            --color-text: #cdccca;
+            --color-text-muted: #797876;
+            --color-primary: #4f98a3;
+            --color-success: #6daa45;
+            --color-warning: #bb653b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.5;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'General Sans', sans-serif;
+            font-weight: 700;
+            color: var(--color-text);
+        }
+
+        a {
+            color: var(--color-primary);
+            text-decoration: none;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        input, select, textarea {
+            font-family: inherit;
+            padding: 0.75rem;
+            border: 1px solid var(--color-border);
+            border-radius: 0.5rem;
+            background-color: var(--color-surface);
+            color: var(--color-text);
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 240px;
+            height: 100vh;
+            background-color: var(--color-surface);
+            border-right: 1px solid var(--color-border);
+            padding: 1.5rem 1rem;
+            overflow-y: auto;
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+
+        .sidebar.collapsed {
+            width: 64px;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            color: var(--color-primary);
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .sidebar.collapsed .sidebar-logo-text {
+            display: none;
+        }
+
+        .sidebar-logo svg {
+            width: 40px;
+            height: 40px;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            margin-bottom: 2rem;
+        }
+
+        .sidebar-nav-item {
+            padding: 0.5rem 0;
+        }
+
+        .sidebar-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            color: var(--color-text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-nav-link:hover {
+            background-color: var(--color-surface-2);
+            color: var(--color-primary);
+        }
+
+        .sidebar-nav-link.active {
+            background-color: var(--color-primary);
+            color: #fff;
+        }
+
+        .sidebar-nav-link svg {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-nav-label {
+            flex: 1;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        .sidebar.collapsed .sidebar-nav-label {
+            display: none;
+        }
+
+        .sidebar-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 1rem;
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sidebar-footer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--color-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+
+        .sidebar-footer-text {
+            flex: 1;
+        }
+
+        .sidebar.collapsed .sidebar-footer-text {
+            display: none;
+        }
+
+        .sidebar-footer-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .sidebar-footer-role {
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+        }
+
+        /* Top Bar Styles */
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 240px;
+            right: 0;
+            height: 80px;
+            background-color: var(--color-surface);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            z-index: 999;
+            transition: left 0.2s ease;
+        }
+
+        .sidebar.collapsed ~ .topbar {
+            left: 64px;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .topbar-breadcrumb {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+        }
+
+        .topbar-center {
+            flex: 1;
+            margin: 0 2rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .topbar-search {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--color-border);
+            border-radius: 0.5rem;
+            background-color: var(--color-bg);
+            font-size: 0.875rem;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .topbar-icon-btn {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            cursor: pointer;
+            color: var(--color-text-muted);
+            transition: color 0.2s ease;
+        }
+
+        .topbar-icon-btn:hover {
+            color: var(--color-primary);
+        }
+
+        .topbar-icon-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--color-error);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 240px;
+            margin-top: 80px;
+            padding: 2rem;
+            min-height: calc(100vh - 80px);
+            transition: margin-left 0.2s ease;
+        }
+
+        .sidebar.collapsed ~ .main-content {
+            margin-left: 64px;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.15s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* KPI Card */
+        .kpi-card {
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-label {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            font-weight: 500;
+        }
+
+        /* Button Styles */
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--color-surface-2);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--color-surface-offset);
+        }
+
+        .btn-ghost {
+            background-color: transparent;
+            color: var(--color-primary);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-ghost:hover {
+            background-color: var(--color-surface);
+        }
+
+        /* Badge Styles */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background-color: rgba(67, 122, 34, 0.1);
+            color: var(--color-success);
+        }
+
+        .badge-warning {
+            background-color: rgba(150, 66, 25, 0.1);
+            color: var(--color-warning);
+        }
+
+        .badge-error {
+            background-color: rgba(161, 44, 123, 0.1);
+            color: var(--color-error);
+        }
+
+        /* Table Styles */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        th {
+            background-color: var(--color-surface-2);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid var(--color-border);
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--color-divider);
+        }
+
+        tbody tr:hover {
+            background-color: var(--color-surface-2);
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: var(--color-surface);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--color-surface);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+            animation: slideUp 0.2s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--color-text-muted);
+            padding: 0;
+            width: 24px;
+            height: 24px;
+        }
+
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(1, 105, 111, 0.1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -240px;
+                transition: left 0.3s ease;
+                z-index: 1001;
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .topbar {
+                left: 0;
+            }
+
+            .main-content {
+                margin-left: 0;
+                margin-top: 0;
+                padding: 1rem;
+            }
+
+            .topbar-search {
+                display: none;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            /* Bottom Tab Bar for Mobile */
+            .mobile-tab-bar {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                height: 60px;
+                background-color: var(--color-surface);
+                border-top: 1px solid var(--color-border);
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                z-index: 999;
+            }
+
+            .mobile-tab-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.25rem;
+                font-size: 0.75rem;
+                color: var(--color-text-muted);
+                cursor: pointer;
+                transition: color 0.2s ease;
+            }
+
+            .mobile-tab-item.active {
+                color: var(--color-primary);
+            }
+
+            .mobile-tab-item svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .main-content {
+                margin-bottom: 60px;
+            }
+        }
+
+        /* Heatmap Table */
+        .heatmap-cell {
+            padding: 1rem;
+            text-align: center;
+            border-radius: 0.25rem;
+            color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .heatmap-high { background-color: var(--color-success); }
+        .heatmap-medium { background-color: var(--color-warning); }
+        .heatmap-low { background-color: var(--color-error); }
+
+        /* Activity Feed */
+        .activity-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .activity-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background-color: var(--color-surface-2);
+            border-radius: 0.5rem;
+        }
+
+        .activity-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--color-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--color-text);
+        }
+
+        .activity-text {
+            font-size: 0.875rem;
+            color: var(--color-text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.75rem;
+            color: var(--color-text-faint);
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--color-text-muted);
+        }
+
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, var(--color-surface-2) 25%, var(--color-surface-offset) 50%, var(--color-surface-2) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Counter Animation */
+        @keyframes countUp {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .count-animated {
+            animation: countUp 0.5s ease;
+        }
+
+        /* Pulse Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+
+        /* Shake Animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+            20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+
+        .shake { animation: shake 0.5s; }
+
+        /* Kanban Columns */
+        .kanban-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kanban-column {
+            background-color: var(--color-surface-2);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            min-height: 400px;
+        }
+
+        .kanban-header {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--color-border);
+        }
+
+        .kanban-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .kanban-card {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            cursor: move;
+            transition: all 0.2s ease;
+        }
+
+        .kanban-card:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Grid Layouts */
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        .grid-4 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+        }
+
+        /* Export Button */
+        .export-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1rem;
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .export-btn:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        /* Dropdown */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 0.5rem;
+            min-width: 160px;
+            z-index: 1;
+        }
+
+        .dropdown-menu.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border: none;
+            background: none;
+            color: var(--color-text);
+            cursor: pointer;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--color-surface-2);
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--color-border);
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: '';
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        input:checked + .toggle-slider {
+            background-color: var(--color-primary);
+        }
+
+        input:checked + .toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Print Styles */
+        @media print {
+            .sidebar, .topbar, .mobile-tab-bar {
+                display: none;
+            }
+            .main-content {
+                margin: 0;
+                padding: 0;
+            }
+            .btn-primary, .btn-secondary, .export-btn, button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M8 20a6 6 0 1 0 12 0 6 6 0 0 0-12 0"></path>
+                <path d="M20 14v12m4-8h-8"></path>
+                <path d="M32 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4"></path>
+                <path d="M4 32c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4"></path>
+            </svg>
+            <span class="sidebar-logo-text">AttendX</span>
+        </div>
+
+        <ul class="sidebar-nav" id="sidebar-nav">
+            <li class="sidebar-nav-item">
+                <a href="#dashboard" class="sidebar-nav-link active" data-page="dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 12 3"></polyline>
+                        <line x1="3.27" y1="6.96" x2="12.73" y2="12.5"></line>
+                        <line x1="12" y1="12.5" x2="12" y2="21"></line>
+                        <polyline points="20 7.5 12 12.5 4 7.5"></polyline>
+                    </svg>
+                    <span class="sidebar-nav-label">Dashboard</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                <a href="#attendance" class="sidebar-nav-link" data-page="attendance">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="sidebar-nav-label">Attendance</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                <a href="#timetable" class="sidebar-nav-link" data-page="timetable">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span class="sidebar-nav-label">Timetable</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                <a href="#activities" class="sidebar-nav-link" data-page="activities">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span class="sidebar-nav-label">Activities</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                <a href="#analytics" class="sidebar-nav-link" data-page="analytics">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="2" x2="12" y2="22"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h.5M6 19h12M7 11h10"></path>
+                    </svg>
+                    <span class="sidebar-nav-label">Analytics</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                <a href="#alumni" class="sidebar-nav-link" data-page="alumni">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span class="sidebar-nav-label">Alumni</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                <a href="#students" class="sidebar-nav-link" data-page="students">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-5-3.87"></path>
+                        <path d="M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"></path>
+                        <path d="M23 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    </svg>
+                    <span class="sidebar-nav-label">Students</span>
+                </a>
+            </li>
+            <li class="sidebar-nav-item">
+                <a href="#settings" class="sidebar-nav-link" data-page="settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6"></path>
+                        <path d="M4.22 4.22l4.24 4.24m2.12 2.12l4.24 4.24"></path>
+                        <path d="M1 12h6m6 0h6"></path>
+                        <path d="M4.22 19.78l4.24-4.24m2.12-2.12l4.24-4.24"></path>
+                    </svg>
+                    <span class="sidebar-nav-label">Settings</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-footer-avatar">AS</div>
+            <div class="sidebar-footer-text">
+                <div class="sidebar-footer-name">Dr. Sharma</div>
+                <div class="sidebar-footer-role">Admin</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Top Bar -->
+    <header class="topbar" id="topbar">
+        <div class="topbar-left">
+            <button class="topbar-icon-btn" id="sidebar-toggle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <div class="topbar-breadcrumb" id="breadcrumb">Dashboard</div>
+        </div>
+
+        <div class="topbar-center">
+            <input type="text" class="topbar-search" placeholder="Search students, classes..." id="global-search">
+        </div>
+
+        <div class="topbar-right">
+            <button class="topbar-icon-btn" id="notification-btn" style="position: relative;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+                <div class="notification-badge">3</div>
+            </button>
+            <button class="topbar-icon-btn" id="theme-toggle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="sun-icon">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="moon-icon" style="display: none;">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Dashboard Page -->
+        <div class="page active" id="page-dashboard">
+            <div class="container">
+                <h1>Good morning, Dr. Sharma</h1>
+                <p style="color: var(--color-text-muted); margin-bottom: 2rem;">RCCIIT Campus</p>
+
+                <!-- KPI Cards -->
+                <div class="grid grid-4" style="margin-bottom: 2rem;">
+                    <div class="card kpi-card">
+                        <div class="kpi-value" id="kpi-attendance">82<span style="font-size: 1.25rem;">%</span></div>
+                        <div class="kpi-label">Today's Attendance</div>
+                    </div>
+                    <div class="card kpi-card">
+                        <div class="kpi-value" id="kpi-students">1,245</div>
+                        <div class="kpi-label">Active Students</div>
+                    </div>
+                    <div class="card kpi-card">
+                        <div class="kpi-value" id="kpi-activities">23</div>
+                        <div class="kpi-label">Pending Activities</div>
+                    </div>
+                    <div class="card kpi-card">
+                        <div class="kpi-value" id="kpi-conflicts">4</div>
+                        <div class="kpi-label">Timetable Conflicts</div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-2" style="margin-bottom: 2rem;">
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">Attendance Trend (Last 30 Days)</h3>
+                        <canvas id="attendance-chart" height="300"></canvas>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">Department-wise Attendance (Last 7 Days)</h3>
+                        <div class="table-wrapper">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Department</th>
+                                        <th>Mon</th>
+                                        <th>Tue</th>
+                                        <th>Wed</th>
+                                        <th>Thu</th>
+                                        <th>Fri</th>
+                                        <th>Sat</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>CSE</strong></td>
+                                        <td class="heatmap-cell heatmap-high">92%</td>
+                                        <td class="heatmap-cell heatmap-high">89%</td>
+                                        <td class="heatmap-cell heatmap-high">94%</td>
+                                        <td class="heatmap-cell heatmap-medium">78%</td>
+                                        <td class="heatmap-cell heatmap-high">85%</td>
+                                        <td class="heatmap-cell heatmap-high">88%</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>ECE</strong></td>
+                                        <td class="heatmap-cell heatmap-high">88%</td>
+                                        <td class="heatmap-cell heatmap-medium">75%</td>
+                                        <td class="heatmap-cell heatmap-high">86%</td>
+                                        <td class="heatmap-cell heatmap-high">82%</td>
+                                        <td class="heatmap-cell heatmap-medium">71%</td>
+                                        <td class="heatmap-cell heatmap-high">81%</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>MECH</strong></td>
+                                        <td class="heatmap-cell heatmap-medium">79%</td>
+                                        <td class="heatmap-cell heatmap-high">84%</td>
+                                        <td class="heatmap-cell heatmap-high">87%</td>
+                                        <td class="heatmap-cell heatmap-medium">73%</td>
+                                        <td class="heatmap-cell heatmap-medium">72%</td>
+                                        <td class="heatmap-cell heatmap-medium">76%</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>CIVIL</strong></td>
+                                        <td class="heatmap-cell heatmap-medium">75%</td>
+                                        <td class="heatmap-cell heatmap-medium">68%</td>
+                                        <td class="heatmap-cell heatmap-medium">72%</td>
+                                        <td class="heatmap-cell heatmap-low">58%</td>
+                                        <td class="heatmap-cell heatmap-low">61%</td>
+                                        <td class="heatmap-cell heatmap-medium">69%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">Quick Actions</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button class="btn-primary" onclick="app.openModal('mark-attendance-modal')">Mark Attendance</button>
+                            <button class="btn-secondary" onclick="app.openModal('add-activity-modal')">Add Activity</button>
+                            <button class="btn-secondary" onclick="app.navigateTo('timetable')">View Timetable</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">Recent Activity Feed</h3>
+                        <div class="activity-feed">
+                            <div class="activity-item">
+                                <div class="activity-avatar">RS</div>
+                                <div class="activity-content">
+                                    <div class="activity-name">Raj Singh marked present</div>
+                                    <div class="activity-text">CS301 - Database Systems</div>
+                                    <div class="activity-time">5 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-avatar">AP</div>
+                                <div class="activity-content">
+                                    <div class="activity-name">Anjali Patel marked absent</div>
+                                    <div class="activity-text">EC202 - Signals & Systems</div>
+                                    <div class="activity-time">12 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-avatar">VK</div>
+                                <div class="activity-content">
+                                    <div class="activity-name">Vikram Kumar attended activity</div>
+                                    <div class="activity-text">Python Workshop - Ongoing</div>
+                                    <div class="activity-time">32 minutes ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-avatar">NK</div>
+                                <div class="activity-content">
+                                    <div class="activity-name">Neha Kapoor completed activity</div>
+                                    <div class="activity-text">Research Paper Submission</div>
+                                    <div class="activity-time">1 hour ago</div>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-avatar">SA</div>
+                                <div class="activity-content">
+                                    <div class="activity-name">Shreya Azad marked present</div>
+                                    <div class="activity-text">ME401 - Thermodynamics</div>
+                                    <div class="activity-time">2 hours ago</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Page -->
+        <div class="page" id="page-attendance">
+            <div class="container">
+                <h1>Attendance Overview</h1>
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <input type="date" id="attendance-date" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                    <select id="department-filter" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                        <option value="">All Departments</option>
+                        <option value="CSE">CSE</option>
+                        <option value="ECE">ECE</option>
+                        <option value="MECH">MECH</option>
+                        <option value="CIVIL">CIVIL</option>
+                    </select>
+                    <select id="semester-filter" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                        <option value="">All Semesters</option>
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                        <option value="3">Semester 3</option>
+                        <option value="4">Semester 4</option>
+                    </select>
+                    <button class="export-btn" onclick="app.exportCSV('attendance')">Export CSV</button>
+                </div>
+
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div class="table-wrapper">
+                        <table id="attendance-table">
+                            <thead>
+                                <tr>
+                                    <th>Roll No</th>
+                                    <th>Name</th>
+                                    <th>Department</th>
+                                    <th>Semester</th>
+                                    <th>Total Classes</th>
+                                    <th>Attended</th>
+                                    <th>% Attendance</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="grid grid-3">
+                    <div class="card kpi-card">
+                        <div class="kpi-value" id="class-avg">81.5</div>
+                        <div class="kpi-label">Class Average %</div>
+                    </div>
+                    <div class="card kpi-card">
+                        <div class="kpi-value" id="defaulter-count">8</div>
+                        <div class="kpi-label">Defaulters (<60%)</div>
+                    </div>
+                    <div class="card kpi-card">
+                        <div class="kpi-value" id="at-risk-count">15</div>
+                        <div class="kpi-label">At-Risk (60-75%)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timetable Page -->
+        <div class="page" id="page-timetable">
+            <div class="container">
+                <h1>Smart Timetable Scheduler</h1>
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                    <button class="btn-primary" onclick="app.openModal('add-slot-modal')">Add New Slot</button>
+                </div>
+
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">Weekly Timetable</h3>
+                        <div class="table-wrapper">
+                            <table id="timetable">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th style="background-color: #01696f20;">Monday</th>
+                                        <th style="background-color: #4f98a320;">Tuesday</th>
+                                        <th style="background-color: #01696f20;">Wednesday</th>
+                                        <th style="background-color: #4f98a320;">Thursday</th>
+                                        <th style="background-color: #01696f20;">Friday</th>
+                                        <th style="background-color: #4f98a320;">Saturday</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>8:00 AM</strong></td>
+                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #01696f20; border-radius: 0.25rem;"><strong>CS301</strong><br>Dr. Banerjee<br>Room 101</td>
+                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #4f98a320; border-radius: 0.25rem;"><strong>EC202</strong><br>Prof. Chatterjee<br>Room 205</td>
+                                        <td>-</td>
+                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #4f98a320; border-radius: 0.25rem;"><strong>CS301</strong><br>Dr. Banerjee<br>Room 101</td>
+                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #01696f20; border-radius: 0.25rem;"><strong>ME401</strong><br>Dr. Kumar<br>Room 310</td>
+                                        <td>-</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>9:00 AM</strong></td>
+                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #01696f20; border-radius: 0.25rem;"><strong>EC202</strong><br>Prof. Chatterjee<br>Room 205</td>
+                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #4f98a320; border-radius: 0.25rem;"><strong>CS301</strong><br>Dr. Banerjee<br>Room 101</td>
+                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #01696f20; border-radius: 0.25rem;"><strong>EC202</strong><br>Prof. Chatterjee<br>Room 205</td>
+                                        <td>-</td>
+                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #4f98a320; border-radius: 0.25rem;"><strong>EC202</strong><br>Prof. Chatterjee<br>Room 205</td>
+                                        <td>-</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>10:00 AM</strong></td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #01696f20; border-radius: 0.25rem;"><strong>ME401</strong><br>Dr. Kumar<br>Room 310</td>
+                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #4f98a320; border-radius: 0.25rem;"><strong>CE501</strong><br>Prof. Sharma<br>Room 405</td>
+                                        <td>-</td>
+                                        <td style="padding: 0.5rem; font-size: 0.75rem; background-color: #4f98a320; border-radius: 0.25rem;"><strong>CS301</strong><br>Dr. Banerjee<br>Room 101</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">Room Utilization</h3>
+                        <canvas id="room-utilization-chart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activities Page -->
+        <div class="page" id="page-activities">
+            <div class="container">
+                <h1>Curriculum Activity Tracker</h1>
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <select id="activity-department" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                        <option value="">All Departments</option>
+                        <option value="CSE">CSE</option>
+                        <option value="ECE">ECE</option>
+                        <option value="MECH">MECH</option>
+                        <option value="CIVIL">CIVIL</option>
+                    </select>
+                    <select id="activity-type" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                        <option value="">All Types</option>
+                        <option value="Workshop">Workshop</option>
+                        <option value="Seminar">Seminar</option>
+                        <option value="Lab">Lab</option>
+                        <option value="Field Visit">Field Visit</option>
+                        <option value="Project">Project</option>
+                    </select>
+                    <button class="btn-primary" onclick="app.openModal('add-activity-modal')">Add Activity</button>
+                </div>
+
+                <div class="kanban-container" id="activities-kanban">
+                    <!-- Kanban board populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Page -->
+        <div class="page" id="page-analytics">
+            <div class="container">
+                <h1>Institutional Analytics</h1>
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+                    <input type="date" id="analytics-start-date">
+                    <input type="date" id="analytics-end-date">
+                    <button class="btn-secondary" onclick="app.updateAnalytics()">Update</button>
+                </div>
+
+                <div class="grid grid-2" style="margin-bottom: 2rem;">
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">Month-wise Attendance by Semester</h3>
+                        <canvas id="attendance-by-semester-chart" height="300"></canvas>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">Department Comparison</h3>
+                        <canvas id="department-comparison-chart" height="300"></canvas>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">Activity Completion Status</h3>
+                    <canvas id="activity-completion-chart" height="150"></canvas>
+                </div>
+
+                <div class="card" style="margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">Student Performance Matrix (Sample)</h3>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>CS301</th>
+                                    <th>EC202</th>
+                                    <th>ME401</th>
+                                    <th>CE501</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Raj Singh</strong></td>
+                                    <td>92</td>
+                                    <td>88</td>
+                                    <td>85</td>
+                                    <td>90</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Anjali Patel</strong></td>
+                                    <td>85</td>
+                                    <td>92</td>
+                                    <td>88</td>
+                                    <td>86</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Vikram Kumar</strong></td>
+                                    <td>78</td>
+                                    <td>81</td>
+                                    <td>79</td>
+                                    <td>80</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="grid grid-2">
+                    <button class="btn-primary" onclick="app.exportReport('attendance')">Download Attendance Report (PDF)</button>
+                    <button class="btn-primary" onclick="app.exportReport('defaulters')">Download Defaulters List</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alumni Page -->
+        <div class="page" id="page-alumni">
+            <div class="container">
+                <h1>Alumni Data Management</h1>
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <input type="text" placeholder="Search by name or company..." id="alumni-search" style="flex: 1; max-width: 300px;">
+                    <select id="alumni-batch" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                        <option value="">All Batches</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                    </select>
+                    <select id="alumni-dept" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                        <option value="">All Departments</option>
+                        <option value="CSE">CSE</option>
+                        <option value="ECE">ECE</option>
+                        <option value="MECH">MECH</option>
+                        <option value="CIVIL">CIVIL</option>
+                    </select>
+                    <button class="btn-primary" onclick="app.openModal('add-alumni-modal')">Add Alumni</button>
+                </div>
+
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table id="alumni-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Batch</th>
+                                    <th>Department</th>
+                                    <th>Company</th>
+                                    <th>Role</th>
+                                    <th>Email</th>
+                                    <th>Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Students Page -->
+        <div class="page" id="page-students">
+            <div class="container">
+                <h1>Student Management</h1>
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;">
+                    <input type="text" placeholder="Search students..." id="student-search" style="flex: 1; max-width: 300px;">
+                    <select id="student-status" style="padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                        <option value="">All</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Exchange">Exchange</option>
+                    </select>
+                    <button class="btn-primary" onclick="app.openModal('bulk-import-modal')">Bulk Import</button>
+                </div>
+
+                <div class="card">
+                    <div class="table-wrapper">
+                        <table id="students-table">
+                            <thead>
+                                <tr>
+                                    <th>Avatar</th>
+                                    <th>Roll No</th>
+                                    <th>Name</th>
+                                    <th>Department</th>
+                                    <th>Semester</th>
+                                    <th>CGPA</th>
+                                    <th>Phone</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Data populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Page -->
+        <div class="page" id="page-settings">
+            <div class="container">
+                <h1>Settings</h1>
+                
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h3 style="margin-bottom: 1.5rem;">Institution Profile</h3>
+                        <div class="form-group">
+                            <label>College Name</label>
+                            <input type="text" value="RCCIIT (Rajendra Chandra College of Information & Information Technology)" />
+                        </div>
+                        <div class="form-group">
+                            <label>Address</label>
+                            <textarea rows="3">Eastern Metropolitan Bypass, Khardaha, Kolkata, West Bengal 700107</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>NAAC Grade</label>
+                            <input type="text" value="A" />
+                        </div>
+                        <div class="form-group">
+                            <label>Principal Name</label>
+                            <input type="text" value="Dr. Arvind Kumar Singh" />
+                        </div>
+                        <div class="form-group">
+                            <label>Academic Year</label>
+                            <input type="text" value="2024-2025" />
+                        </div>
+                        <button class="btn-primary">Save Changes</button>
+                    </div>
+
+                    <div>
+                        <div class="card" style="margin-bottom: 1.5rem;">
+                            <h3 style="margin-bottom: 1.5rem;">Notification Preferences</h3>
+                            <div class="form-group">
+                                <label>SMS Alert Threshold (%)</label>
+                                <input type="number" min="0" max="100" value="60" />
+                            </div>
+                            <div class="form-group">
+                                <label>Email Alerts</label>
+                                <label style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
+                                    <span>Enabled</span>
+                                </label>
+                            </div>
+                            <button class="btn-primary">Save Preferences</button>
+                        </div>
+
+                        <div class="card">
+                            <h3 style="margin-bottom: 1.5rem;">Appearance</h3>
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span>Dark Mode</span>
+                                <label class="toggle-switch" id="dark-mode-toggle">
+                                    <input type="checkbox">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <!-- Mark Attendance Modal -->
+    <div class="modal" id="mark-attendance-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Mark Attendance</h2>
+                <button class="modal-close" onclick="app.closeModal('mark-attendance-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Course</label>
+                    <select>
+                        <option>Select Course</option>
+                        <option>CS301 - Database Systems</option>
+                        <option>EC202 - Signals & Systems</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <select>
+                        <option>Select Subject</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" />
+                </div>
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <div style="padding: 1rem; border: 1px solid var(--color-border); border-radius: 0.5rem; margin-bottom: 0.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" checked /> Raj Singh (2021CSE001)
+                        </label>
+                    </div>
+                    <div style="padding: 1rem; border: 1px solid var(--color-border); border-radius: 0.5rem; margin-bottom: 0.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" /> Anjali Patel (2021CSE002)
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="app.closeModal('mark-attendance-modal')">Cancel</button>
+                <button class="btn-primary" onclick="app.closeModal('mark-attendance-modal')">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Activity Modal -->
+    <div class="modal" id="add-activity-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Activity</h2>
+                <button class="modal-close" onclick="app.closeModal('add-activity-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Activity Title</label>
+                    <input type="text" placeholder="e.g., National Level Hackathon" />
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select>
+                        <option>Workshop</option>
+                        <option>Seminar</option>
+                        <option>Lab</option>
+                        <option>Field Visit</option>
+                        <option>Project</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" />
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <select>
+                        <option>CSE</option>
+                        <option>ECE</option>
+                        <option>MECH</option>
+                        <option>CIVIL</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Max Capacity</label>
+                    <input type="number" value="50" />
+                </div>
+                <div class="form-group">
+                    <label>Credit Hours</label>
+                    <input type="number" value="2" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="app.closeModal('add-activity-modal')">Cancel</button>
+                <button class="btn-primary" onclick="app.closeModal('add-activity-modal')">Add Activity</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Slot Modal -->
+    <div class="modal" id="add-slot-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Timetable Slot</h2>
+                <button class="modal-close" onclick="app.closeModal('add-slot-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" placeholder="e.g., CS301" />
+                </div>
+                <div class="form-group">
+                    <label>Faculty</label>
+                    <select>
+                        <option>Dr. A. Banerjee</option>
+                        <option>Prof. S. Chatterjee</option>
+                        <option>Dr. R. Kumar</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Room No</label>
+                    <input type="text" placeholder="e.g., 101" />
+                </div>
+                <div class="form-group">
+                    <label>Time Slot</label>
+                    <select>
+                        <option>8:00 AM</option>
+                        <option>9:00 AM</option>
+                        <option>10:00 AM</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Day</label>
+                    <select>
+                        <option>Monday</option>
+                        <option>Tuesday</option>
+                        <option>Wednesday</option>
+                        <option>Thursday</option>
+                        <option>Friday</option>
+                        <option>Saturday</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="app.closeModal('add-slot-modal')">Cancel</button>
+                <button class="btn-primary" onclick="app.closeModal('add-slot-modal')">Add Slot</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Alumni Modal -->
+    <div class="modal" id="add-alumni-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Add Alumni</h2>
+                <button class="modal-close" onclick="app.closeModal('add-alumni-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" />
+                </div>
+                <div class="form-group">
+                    <label>Batch</label>
+                    <select>
+                        <option>2022</option>
+                        <option>2021</option>
+                        <option>2020</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <select>
+                        <option>CSE</option>
+                        <option>ECE</option>
+                        <option>MECH</option>
+                        <option>CIVIL</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Company</label>
+                    <input type="text" />
+                </div>
+                <div class="form-group">
+                    <label>Role</label>
+                    <input type="text" />
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="app.closeModal('add-alumni-modal')">Cancel</button>
+                <button class="btn-primary" onclick="app.closeModal('add-alumni-modal')">Add Alumni</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Import Modal -->
+    <div class="modal" id="bulk-import-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Bulk Import Students</h2>
+                <button class="modal-close" onclick="app.closeModal('bulk-import-modal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Upload CSV File</label>
+                    <input type="file" accept=".csv" />
+                </div>
+                <p style="font-size: 0.875rem; color: var(--color-text-muted); margin-top: 1rem;">
+                    CSV should contain: Roll No, Name, Department, Semester, CGPA, Phone
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="app.closeModal('bulk-import-modal')">Cancel</button>
+                <button class="btn-primary" onclick="app.closeModal('bulk-import-modal')">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock Data
+        const mockStudents = [
+            { rollNo: '2021CSE001', name: 'Raj Singh', dept: 'CSE', semester: 3, attended: 92, total: 100 },
+            { rollNo: '2021CSE002', name: 'Anjali Patel', dept: 'CSE', semester: 3, attended: 85, total: 100 },
+            { rollNo: '2021CSE003', name: 'Vikram Kumar', dept: 'CSE', semester: 3, attended: 78, total: 100 },
+            { rollNo: '2021ECE001', name: 'Shreya Azad', dept: 'ECE', semester: 3, attended: 88, total: 100 },
+            { rollNo: '2021ECE002', name: 'Neha Kapoor', dept: 'ECE', semester: 3, attended: 72, total: 100 },
+            { rollNo: '2021MECH001', name: 'Arjun Singh', dept: 'MECH', semester: 3, attended: 65, total: 100 },
+            { rollNo: '2021CIVIL001', name: 'Priya Sharma', dept: 'CIVIL', semester: 3, attended: 58, total: 100 },
+        ];
+
+        const mockAlumni = [
+            { name: 'Rohit Sharma', batch: 2022, dept: 'CSE', company: 'Google', role: 'Software Engineer', email: 'rohit@google.com', location: 'Bangalore' },
+            { name: 'Priya Gupta', batch: 2021, dept: 'ECE', company: 'TCS', role: 'Senior Developer', email: 'priya@tcs.com', location: 'Mumbai' },
+            { name: 'Arun Kumar', batch: 2020, dept: 'CSE', company: 'Infosys', role: 'Consultant', email: 'arun@infosys.com', location: 'Pune' },
+            { name: 'Divya Mehta', batch: 2019, dept: 'MECH', company: 'DRDO', role: 'Scientist', email: 'divya@drdo.com', location: 'Delhi' },
+            { name: 'Vikram Singh', batch: 2018, dept: 'CIVIL', company: 'L&T', role: 'Project Manager', email: 'vikram@lt.com', location: 'Hyderabad' },
+        ];
+
+        const mockActivities = [
+            { name: 'National Level Hackathon', type: 'Workshop', dept: 'CSE', date: '2024-04-15', enrolled: 45, status: 'Upcoming' },
+            { name: 'Industrial Visit to ISRO', type: 'Field Visit', dept: 'ECE', date: '2024-04-10', enrolled: 30, status: 'Ongoing' },
+            { name: 'Python Workshop', type: 'Workshop', dept: 'CSE', date: '2024-03-20', enrolled: 50, status: 'Completed' },
+            { name: 'Research Paper Submission', type: 'Project', dept: 'MECH', date: '2024-04-20', enrolled: 25, status: 'Upcoming' },
+        ];
+
+        // Main App Object
+        const app = {
+            currentPage: 'dashboard',
+            charts: {},
+            
+            init() {
+                this.setupEventListeners();
+                this.renderPage('dashboard');
+                this.loadData();
+            },
+
+            setupEventListeners() {
+                document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const page = e.currentTarget.dataset.page;
+                        this.navigateTo(page);
+                    });
+                });
+
+                document.getElementById('sidebar-toggle').addEventListener('click', () => {
+                    document.getElementById('sidebar').classList.toggle('collapsed');
+                });
+
+                document.getElementById('theme-toggle').addEventListener('click', () => {
+                    const html = document.documentElement;
+                    const isDark = html.dataset.theme === 'dark';
+                    html.dataset.theme = isDark ? 'light' : 'dark';
+                    this.updateChartThemes();
+                });
+
+                // Close modals on outside click
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            this.closeModal(modal.id);
+                        }
+                    });
+                });
+            },
+
+            navigateTo(page) {
+                this.currentPage = page;
+                this.renderPage(page);
+            },
+
+            renderPage(page) {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById('page-' + page).classList.add('active');
+                
+                document.querySelectorAll('.sidebar-nav-link').forEach(link => link.classList.remove('active'));
+                document.querySelector(`[data-page="${page}"]`).classList.add('active');
+
+                const breadcrumbs = {
+                    'dashboard': 'Dashboard',
+                    'attendance': 'Attendance Overview',
+                    'timetable': 'Timetable Scheduler',
+                    'activities': 'Activity Tracker',
+                    'analytics': 'Analytics',
+                    'alumni': 'Alumni Management',
+                    'students': 'Student Management',
+                    'settings': 'Settings'
+                };
+                document.getElementById('breadcrumb').textContent = breadcrumbs[page];
+
+                setTimeout(() => {
+                    if (page === 'dashboard') this.initDashboardCharts();
+                    else if (page === 'timetable') this.initTimetableCharts();
+                    else if (page === 'analytics') this.initAnalyticsCharts();
+                    else if (page === 'attendance') this.populateAttendanceTable();
+                    else if (page === 'alumni') this.populateAlumniTable();
+                    else if (page === 'students') this.populateStudentsTable();
+                    else if (page === 'activities') this.populateActivitiesKanban();
+                }, 100);
+            },
+
+            loadData() {
+                this.animateCounters();
+                this.populateAttendanceTable();
+                this.populateAlumniTable();
+                this.populateStudentsTable();
+                this.populateActivitiesKanban();
+            },
+
+            animateCounters() {
+                const animate = (element, target) => {
+                    let current = 0;
+                    const increment = target / 30;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            element.textContent = target;
+                            clearInterval(timer);
+                        } else {
+                            element.textContent = Math.floor(current);
+                        }
+                    }, 30);
+                };
+
+                animate(document.getElementById('kpi-attendance'), 82);
+                animate(document.getElementById('kpi-students'), 1245);
+                animate(document.getElementById('kpi-activities'), 23);
+                animate(document.getElementById('kpi-conflicts'), 4);
+            },
+
+            initDashboardCharts() {
+                const ctx = document.getElementById('attendance-chart');
+                if (!ctx) return;
+
+                if (this.charts.attendance) this.charts.attendance.destroy();
+
+                const isDark = document.documentElement.dataset.theme === 'dark';
+                const textColor = isDark ? '#cdccca' : '#28251d';
+                const gridColor = isDark ? '#393836' : '#dcd9d5';
+
+                this.charts.attendance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7', 'Day 8', 'Day 9', 'Day 10'],
+                        datasets: [
+                            {
+                                label: 'CSE',
+                                data: [92, 89, 94, 78, 85, 88, 91, 87, 90, 92],
+                                borderColor: '#01696f',
+                                backgroundColor: 'rgba(1, 105, 111, 0.1)',
+                                tension: 0.4,
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'ECE',
+                                data: [88, 75, 86, 82, 71, 81, 79, 83, 85, 88],
+                                borderColor: '#4f98a3',
+                                backgroundColor: 'rgba(79, 152, 163, 0.1)',
+                                tension: 0.4,
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'MECH',
+                                data: [79, 84, 87, 73, 72, 76, 78, 80, 82, 79],
+                                borderColor: '#437a22',
+                                backgroundColor: 'rgba(67, 122, 34, 0.1)',
+                                tension: 0.4,
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'CIVIL',
+                                data: [75, 68, 72, 58, 61, 69, 71, 73, 75, 78],
+                                borderColor: '#a12c7b',
+                                backgroundColor: 'rgba(161, 44, 123, 0.1)',
+                                tension: 0.4,
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                labels: { color: textColor }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                ticks: { color: textColor },
+                                grid: { color: gridColor }
+                            },
+                            x: {
+                                ticks: { color: textColor },
+                                grid: { color: gridColor }
+                            }
+                        }
+                    }
+                });
+            },
+
+            initTimetableCharts() {
+                const ctx = document.getElementById('room-utilization-chart');
+                if (!ctx) return;
+
+                if (this.charts.roomUtilization) this.charts.roomUtilization.destroy();
+
+                const isDark = document.documentElement.dataset.theme === 'dark';
+                const textColor = isDark ? '#cdccca' : '#28251d';
+                const gridColor = isDark ? '#393836' : '#dcd9d5';
+
+                this.charts.roomUtilization = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Room 101', 'Room 205', 'Room 310', 'Room 405'],
+                        datasets: [{
+                            label: 'Utilization %',
+                            data: [92, 78, 85, 65],
+                            backgroundColor: ['#01696f', '#4f98a3', '#437a22', '#a12c7b']
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        plugins: {
+                            legend: { labels: { color: textColor } }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: textColor },
+                                grid: { color: gridColor },
+                                max: 100
+                            },
+                            y: {
+                                ticks: { color: textColor }
+                            }
+                        }
+                    }
+                });
+            },
+
+            initAnalyticsCharts() {
+                const isDark = document.documentElement.dataset.theme === 'dark';
+                const textColor = isDark ? '#cdccca' : '#28251d';
+                const gridColor = isDark ? '#393836' : '#dcd9d5';
+
+                // Attendance by Semester
+                const ctx1 = document.getElementById('attendance-by-semester-chart');
+                if (ctx1 && !this.charts.attendanceBySemester) {
+                    this.charts.attendanceBySemester = new Chart(ctx1, {
+                        type: 'line',
+                        data: {
+                            labels: ['Jan', 'Feb', 'Mar', 'Apr'],
+                            datasets: [
+                                { label: 'Sem 1', data: [85, 88, 90, 87], borderColor: '#01696f', tension: 0.4, borderWidth: 2 },
+                                { label: 'Sem 2', data: [82, 85, 88, 86], borderColor: '#4f98a3', tension: 0.4, borderWidth: 2 },
+                                { label: 'Sem 3', data: [80, 83, 85, 82], borderColor: '#437a22', tension: 0.4, borderWidth: 2 }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { labels: { color: textColor } } },
+                            scales: {
+                                y: { ticks: { color: textColor }, grid: { color: gridColor } },
+                                x: { ticks: { color: textColor }, grid: { color: gridColor } }
+                            }
+                        }
+                    });
+                }
+
+                // Department Comparison
+                const ctx2 = document.getElementById('department-comparison-chart');
+                if (ctx2 && !this.charts.deptComparison) {
+                    this.charts.deptComparison = new Chart(ctx2, {
+                        type: 'bar',
+                        data: {
+                            labels: ['CSE', 'ECE', 'MECH', 'CIVIL'],
+                            datasets: [{
+                                label: 'Average Attendance %',
+                                data: [88, 80, 77, 68],
+                                backgroundColor: ['#01696f', '#4f98a3', '#437a22', '#a12c7b']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { labels: { color: textColor } } },
+                            scales: {
+                                y: { ticks: { color: textColor }, grid: { color: gridColor } },
+                                x: { ticks: { color: textColor } }
+                            }
+                        }
+                    });
+                }
+
+                // Activity Completion
+                const ctx3 = document.getElementById('activity-completion-chart');
+                if (ctx3 && !this.charts.activityCompletion) {
+                    this.charts.activityCompletion = new Chart(ctx3, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Completed', 'Ongoing', 'Upcoming'],
+                            datasets: [{
+                                data: [40, 30, 30],
+                                backgroundColor: ['#437a22', '#01696f', '#a12c7b']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: { legend: { labels: { color: textColor } } }
+                        }
+                    });
+                }
+            },
+
+            populateAttendanceTable() {
+                const tbody = document.querySelector('#attendance-table tbody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = mockStudents.map(student => `
+                    <tr>
+                        <td>${student.rollNo}</td>
+                        <td><strong>${student.name}</strong></td>
+                        <td>${student.dept}</td>
+                        <td>${student.semester}</td>
+                        <td>${student.total}</td>
+                        <td>${student.attended}</td>
+                        <td><strong>${Math.round((student.attended/student.total)*100)}%</strong></td>
+                        <td>
+                            <span class="badge ${(student.attended/student.total)>=0.75 ? 'badge-success' : (student.attended/student.total)>=0.6 ? 'badge-warning' : 'badge-error'}">
+                                ${(student.attended/student.total)>=0.75 ? 'Regular' : (student.attended/student.total)>=0.6 ? 'At Risk' : 'Defaulter'}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            populateAlumniTable() {
+                const tbody = document.querySelector('#alumni-table tbody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = mockAlumni.map(alumni => `
+                    <tr>
+                        <td><strong>${alumni.name}</strong></td>
+                        <td>${alumni.batch}</td>
+                        <td>${alumni.dept}</td>
+                        <td>${alumni.company}</td>
+                        <td>${alumni.role}</td>
+                        <td>${alumni.email}</td>
+                        <td>${alumni.location}</td>
+                    </tr>
+                `).join('');
+            },
+
+            populateStudentsTable() {
+                const tbody = document.querySelector('#students-table tbody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = mockStudents.map(student => `
+                    <tr>
+                        <td><div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #01696f, #4f98a3); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.875rem;">${student.name.split(' ').map(n => n[0]).join('')}</div></td>
+                        <td><strong>${student.rollNo}</strong></td>
+                        <td>${student.name}</td>
+                        <td>${student.dept}</td>
+                        <td>${student.semester}</td>
+                        <td>${(Math.random() * 0.5 + 7.5).toFixed(2)}</td>
+                        <td>+91-XXXX${Math.floor(Math.random()*10000)}</td>
+                        <td><button class="btn-ghost" style="padding: 0.5rem;">View</button></td>
+                    </tr>
+                `).join('');
+            },
+
+            populateActivitiesKanban() {
+                const container = document.getElementById('activities-kanban');
+                if (!container) return;
+
+                const statuses = ['Upcoming', 'Ongoing', 'Completed'];
+                container.innerHTML = statuses.map(status => `
+                    <div class="kanban-column">
+                        <div class="kanban-header">${status}</div>
+                        <div class="kanban-cards">
+                            ${mockActivities.filter(a => a.status === status).map(activity => `
+                                <div class="kanban-card">
+                                    <h4 style="margin-bottom: 0.5rem;">${activity.name}</h4>
+                                    <span class="badge badge-success">${activity.type}</span>
+                                    <p style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.5rem;">
+                                        ${activity.dept} • ${activity.enrolled} enrolled<br/>
+                                        ${activity.date}
+                                    </p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            updateChartThemes() {
+                Object.values(this.charts).forEach(chart => {
+                    if (chart) chart.update();
+                });
+            },
+
+            openModal(modalId) {
+                document.getElementById(modalId).classList.add('active');
+            },
+
+            closeModal(modalId) {
+                document.getElementById(modalId).classList.remove('active');
+            },
+
+            exportCSV(type) {
+                alert(`Exporting ${type} data as CSV...`);
+            },
+
+            exportReport(type) {
+                alert(`Downloading ${type} report as PDF...`);
+            },
+
+            updateAnalytics() {
+                alert('Analytics updated!');
+            }
+        };
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
+    </script>
+</body>
+</html>
