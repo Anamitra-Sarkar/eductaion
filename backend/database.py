@@ -38,6 +38,16 @@ async def get_db():
             await session.close()
 
 async def init_db():
+    from models import (  # ensure all models are registered before create_all
+        College, Department, User, Student, Subject,
+        TimetableSlot, AttendanceSession, AttendanceRecord,
+        Activity, ActivityEnrollment, Alumni,
+        LearningContent, Quiz, QuizQuestion, QuizAttempt,
+        Internship, InternshipApplication,
+        DocumentVerification,
+        CareerProfile,
+        ClassSession
+    )
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 

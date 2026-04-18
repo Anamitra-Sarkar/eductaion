@@ -3,7 +3,11 @@ import asyncio
 from datetime import datetime, timedelta
 from database import AsyncSessionLocal, init_db
 from models import College, Department, User, Student, Subject, TimetableSlot, AttendanceSession, AttendanceRecord, Activity, ActivityEnrollment, Alumni
-from models import UserRole, AttendanceStatus, ActivityType, ActivityStatus, StudentStatus
+from models import (
+    UserRole, AttendanceStatus, ActivityType, ActivityStatus, StudentStatus,
+    LearningContent, LearningContentType, Quiz, QuizQuestion, QuizCorrectOption,
+    Internship, InternshipApplicationStatus, ClassSession, SessionStatus
+)
 from routers.auth import hash_password
 import random
 
@@ -81,27 +85,27 @@ async def seed_database():
             await db.flush()
             dept_map[code] = dept.id
         
-          # 3. Create Admin User
-          admin = User(
-              name="Administrator",
-              email="admin@attendx.edu",
-              hashed_password=hash_password("Admin@123"),
-              role=UserRole.admin,
-              college_id=college_id
-          )
-          db.add(admin)
-          await db.flush()
-          admin_id = admin.id
-          
-          # 4. Create Faculty Users
-          faculty_list = []
-          faculty_names = [
-              ("Dr. Ramesh Kumar", "faculty@attendx.edu"),
-              ("Prof. Sneha Verma", "sneha@attendx.edu"),
-              ("Dr. Ajay Sharma", "ajay@attendx.edu"),
-              ("Prof. Divya Patel", "divya@attendx.edu"),
-          ]
-        
+        # 3. Create Admin User
+        admin = User(
+            name="Administrator",
+            email="admin@attendx.edu",
+            hashed_password=hash_password("Admin@123"),
+            role=UserRole.admin,
+            college_id=college_id
+        )
+        db.add(admin)
+        await db.flush()
+        admin_id = admin.id
+
+        # 4. Create Faculty Users
+        faculty_list = []
+        faculty_names = [
+            ("Dr. Ramesh Kumar", "faculty@attendx.edu"),
+            ("Prof. Sneha Verma", "sneha@attendx.edu"),
+            ("Dr. Ajay Sharma", "ajay@attendx.edu"),
+            ("Prof. Divya Patel", "divya@attendx.edu"),
+        ]
+
         for name, email in faculty_names:
             faculty = User(
                 name=name,
@@ -225,10 +229,9 @@ async def seed_database():
         for title, activity_type in ACTIVITY_TYPES:
             activity_date = datetime.utcnow() + timedelta(days=random.randint(1, 30))
             dept_id = random.choice(list(dept_map.values()))
-            
             activity = Activity(
                 title=title,
-                type=ActivityType(activity_type),
+                activity_type=ActivityType(activity_type),
                 date=activity_date,
                 description=f"Join us for {title}. This is a great opportunity to learn and network.",
                 dept_id=dept_id,
@@ -268,6 +271,94 @@ async def seed_database():
             )
             db.add(alumni)
         
+        # 12. Learning content and quizzes
+        learning_items = []
+        for item in [
+            {"title": "Introduction to Algebra", "subject": "Mathematics", "grade_level": 8, "content_type": LearningContentType.text, "body": "Algebra helps us represent unknown values using symbols.", "url": None, "dept_id": None},
+            {"title": "HTML Basics", "subject": "Computer Science", "grade_level": 9, "content_type": LearningContentType.video, "body": None, "url": "https://www.youtube.com/watch?v=UB1O30fR-EE", "dept_id": dept_map["CSE"]},
+            {"title": "Physics Notes: Motion", "subject": "Physics", "grade_level": 10, "content_type": LearningContentType.pdf, "body": "Download the notes and review formulas for speed, velocity, and acceleration.", "url": "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf", "dept_id": None},
+            {"title": "Chemistry Practice Quiz", "subject": "Chemistry", "grade_level": 11, "content_type": LearningContentType.quiz, "body": "Test your understanding of basic chemistry concepts.", "url": None, "dept_id": None},
+            {"title": "English Grammar Essentials", "subject": "English", "grade_level": 7, "content_type": LearningContentType.text, "body": "Grammar improves clarity in communication and writing.", "url": None, "dept_id": None},
+        ]:
+            content = LearningContent(
+                title=item["title"],
+                subject=item["subject"],
+                grade_level=item["grade_level"],
+                content_type=item["content_type"],
+                url=item["url"],
+                body=item["body"],
+                created_by=admin_id,
+                dept_id=item["dept_id"],
+            )
+            db.add(content)
+            await db.flush()
+            learning_items.append(content)
+
+        quiz_one = Quiz(title="HTML Basics Quiz", content_id=learning_items[1].id)
+        db.add(quiz_one)
+        await db.flush()
+        for question, a, b, c, d, correct in [
+            ("Which tag creates a hyperlink?", "<p>", "<a>", "<img>", "<div>", QuizCorrectOption.b),
+            ("What does HTML stand for?", "Hyper Trainer Marking Language", "HyperText Markup Language", "High Text Machine Language", "None", QuizCorrectOption.b),
+            ("Which element is used for the largest heading?", "<heading>", "<h6>", "<h1>", "<head>", QuizCorrectOption.c),
+        ]:
+            db.add(QuizQuestion(quiz_id=quiz_one.id, question=question, option_a=a, option_b=b, option_c=c, option_d=d, correct_option=correct))
+
+        quiz_two = Quiz(title="Chemistry Quiz", content_id=learning_items[3].id)
+        db.add(quiz_two)
+        await db.flush()
+        for question, a, b, c, d, correct in [
+            ("What is the chemical symbol for water?", "H2O", "O2", "CO2", "NaCl", QuizCorrectOption.a),
+            ("pH less than 7 indicates what?", "Neutral", "Acidic", "Basic", "Salty", QuizCorrectOption.b),
+            ("Which particle has a positive charge?", "Electron", "Neutron", "Proton", "Photon", QuizCorrectOption.c),
+        ]:
+            db.add(QuizQuestion(quiz_id=quiz_two.id, question=question, option_a=a, option_b=b, option_c=c, option_d=d, correct_option=correct))
+
+        # 13. Internships
+        internship_data = [
+            ("Software Engineering Intern", "BuildMate Tech", "Work on product features, APIs, and testing.", "Python, SQL, Git, APIs", 25000, 6, "Bangalore"),
+            ("Civil Design Intern", "InfraWorks", "Support structural drawings and site planning.", "AutoCAD, Surveying, Structural Analysis", 18000, 4, "Hyderabad"),
+            ("Mechanical Intern", "FabForge Industries", "Assist in manufacturing process improvements.", "CAD, Thermodynamics, Manufacturing", 16000, 5, "Pune"),
+            ("Finance Analyst Intern", "CapitalLeaf", "Analyze reports and build financial models.", "Excel, Accounting, Financial Modeling", 22000, 3, "Mumbai"),
+            ("Research Intern", "Quantum Lab", "Help with experiments, literature review, and analysis.", "Research Writing, Statistics, Critical Thinking", 20000, 6, "Delhi"),
+        ]
+        for title, company, description, skills_required, stipend, duration, location in internship_data:
+            db.add(Internship(
+                title=title,
+                company=company,
+                description=description,
+                skills_required=skills_required,
+                stipend=stipend,
+                duration_months=duration,
+                location=location,
+                application_deadline=datetime.utcnow() + timedelta(days=30),
+                posted_by=admin_id,
+            ))
+
+        # 14. Class sessions
+        db.add(ClassSession(
+            title="Data Structures Live Class",
+            subject="Computer Science",
+            faculty_id=faculty_list[0],
+            dept_id=dept_map["CSE"],
+            semester=3,
+            meet_link="https://meet.google.com/demo-live-class",
+            scheduled_at=datetime.utcnow() + timedelta(days=1),
+            duration_minutes=90,
+            status=SessionStatus.scheduled,
+        ))
+        db.add(ClassSession(
+            title="Thermodynamics Revision",
+            subject="Mechanical Engineering",
+            faculty_id=faculty_list[2],
+            dept_id=dept_map["MECH"],
+            semester=5,
+            meet_link="https://meet.google.com/demo-ended-class",
+            scheduled_at=datetime.utcnow() - timedelta(days=1),
+            duration_minutes=60,
+            status=SessionStatus.ended,
+        ))
+
         await db.commit()
         print("✓ Database seeded successfully!")
 

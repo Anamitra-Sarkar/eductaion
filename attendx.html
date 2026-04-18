@@ -6,6 +6,7 @@
     <title>AttendX - Smart Attendance & Activity Monitoring</title>
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
             --color-bg: #f7f6f2;
@@ -112,6 +113,7 @@
         .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1.25rem; margin-bottom:1.5rem; }
         .card { background:var(--color-surface); border:1px solid var(--color-border); border-radius:1rem; padding:1.25rem; margin-bottom:1.25rem; box-shadow:0 6px 18px rgba(0,0,0,0.03); }
         .kpi { background:var(--color-surface); border:1px solid var(--color-border); border-radius:1rem; padding:1.25rem; }
+        .kpi-link { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
         .kpi-label { color:var(--color-text-muted); font-size:0.9rem; }
         .kpi-value { color:var(--color-primary); font-size:2rem; font-weight:700; margin-top:0.45rem; }
         table { width:100%; border-collapse:collapse; }
@@ -123,12 +125,47 @@
         .muted { color:var(--color-text-muted); }
         .activities-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.25rem; }
         .empty-state { text-align:center; color:var(--color-text-muted); padding:1.5rem 0; }
+        .empty-state.error { color:var(--color-warning); }
+        .skeleton { position:relative; overflow:hidden; background:var(--color-surface-offset); border-radius:0.75rem; min-height:16px; }
+        .skeleton::after { content:''; position:absolute; inset:0; transform:translateX(-100%); background:linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent); animation:shimmer 1.4s infinite; }
+        @keyframes shimmer { 100% { transform:translateX(100%); } }
+        .skeleton-card { min-height:120px; margin-bottom:1rem; }
+        .skeleton-line { height:14px; margin-bottom:0.75rem; }
+        .split-layout { display:grid; grid-template-columns:1.35fr 0.95fr; gap:1.25rem; align-items:start; }
+        .sticky-panel { position:sticky; top:1rem; }
+        .tabs { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+        .tab-btn { background:var(--color-surface-offset); color:var(--color-text-muted); }
+        .tab-btn.active { background:var(--color-primary); color:#fff; }
+        .chip-list { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem; }
+        .chip { padding:0.25rem 0.6rem; border-radius:999px; background:var(--color-surface-offset); font-size:0.82rem; }
+        .chip.good { background:rgba(67,122,34,0.12); color:var(--color-success); }
+        .chip.bad { background:rgba(161,44,123,0.12); color:var(--color-error); }
+        .nav-row { display:flex; gap:0.75rem; flex-wrap:wrap; }
+        .nav-row a { text-decoration:none; }
+        .pill { display:inline-flex; align-items:center; gap:0.35rem; padding:0.35rem 0.7rem; border-radius:999px; background:var(--color-surface-offset); font-size:0.85rem; }
+        .badge-blue { background:rgba(1,105,111,0.12); color:var(--color-primary); }
+        .badge-green { background:rgba(67,122,34,0.12); color:var(--color-success); }
+        .badge-yellow { background:rgba(150,66,25,0.12); color:var(--color-warning); }
+        .badge-red { background:rgba(161,44,123,0.12); color:var(--color-error); }
+        .mobile-nav {
+            display:none; position:fixed; left:0; right:0; bottom:0; z-index:1200;
+            background:var(--color-surface); border-top:1px solid var(--color-border);
+            padding:0.55rem 0.75rem;
+        }
+        .mobile-nav-inner { display:grid; grid-template-columns:repeat(5,1fr); gap:0.35rem; }
+        .mobile-nav a { display:flex; flex-direction:column; align-items:center; gap:0.2rem; text-decoration:none; color:var(--color-text-muted); font-size:0.72rem; padding:0.5rem 0.25rem; border-radius:0.65rem; }
+        .mobile-nav a.active, .mobile-nav a:hover { color:var(--color-primary); background:var(--color-surface-offset); }
+        .mobile-nav i { width:18px; height:18px; }
         .theme-toggle { position:fixed; right:1.5rem; bottom:1.5rem; width:50px; height:50px; border-radius:50%; background:var(--color-primary); color:#fff; z-index:1000; }
         @media (max-width:900px) {
             aside { width:100%; height:auto; position:static; border-right:none; border-bottom:1px solid var(--color-border); }
             main { margin-left:0; width:100%; padding:1.25rem; }
             body.authenticated { display:block; }
             .page-header { flex-direction:column; align-items:flex-start; }
+            .split-layout { grid-template-columns:1fr; }
+            .sticky-panel { position:static; }
+            .mobile-nav { display:block; }
+            main { padding-bottom:6rem; }
         }
     </style>
 </head>
@@ -205,26 +242,43 @@
         </svg>
         <span>AttendX</span>
     </div>
-    <div class="nav-item active" data-page="dashboard">📈 <span>Dashboard</span></div>
-    <div class="nav-item" data-page="attendance">✅ <span>Attendance</span></div>
-    <div class="nav-item" data-page="timetable">📅 <span>Timetable</span></div>
-    <div class="nav-item" data-page="activities">🎯 <span>Activities</span></div>
-    <div class="nav-item" data-page="analytics">📊 <span>Analytics</span></div>
-    <div class="nav-item" data-page="students">👥 <span>Students</span></div>
-    <div class="nav-item" data-page="alumni">🎓 <span>Alumni</span></div>
-    <div class="nav-item" data-page="settings">⚙️ <span>Settings</span></div>
-    <div class="nav-item" onclick="logout()" style="margin-top:1rem;border-top:1px solid var(--color-border);">🚪 <span>Logout</span></div>
+    <a href="#dashboard" class="nav-item active" data-page="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+    <a href="#attendance" class="nav-item" data-page="attendance"><i data-lucide="circle-check-big"></i><span>Attendance</span></a>
+    <a href="#timetable" class="nav-item" data-page="timetable"><i data-lucide="calendar-days"></i><span>Timetable</span></a>
+    <a href="#activities" class="nav-item" data-page="activities"><i data-lucide="sparkles"></i><span>Activities</span></a>
+    <a href="#analytics" class="nav-item" data-page="analytics"><i data-lucide="bar-chart-3"></i><span>Analytics</span></a>
+    <a href="#students" class="nav-item" data-page="students"><i data-lucide="users"></i><span>Students</span></a>
+    <a href="#alumni" class="nav-item" data-page="alumni"><i data-lucide="graduation-cap"></i><span>Alumni</span></a>
+    <a href="#learning" class="nav-item" data-page="learning"><i data-lucide="book-open"></i><span>Learning</span></a>
+    <a href="#internships" class="nav-item" data-page="internships"><i data-lucide="briefcase"></i><span>Internships</span></a>
+    <a href="#documents" class="nav-item" data-page="documents"><i data-lucide="shield-check"></i><span>Verify Docs</span></a>
+    <a href="#career" class="nav-item" data-page="career"><i data-lucide="compass"></i><span>Career</span></a>
+    <a href="#classroom" class="nav-item" data-page="classroom"><i data-lucide="video"></i><span>Classroom</span></a>
+    <a href="#settings" class="nav-item" data-page="settings"><i data-lucide="settings-2"></i><span>Settings</span></a>
+    <a class="nav-item" onclick="logout()" style="margin-top:1rem;border-top:1px solid var(--color-border);"><i data-lucide="log-out"></i><span>Logout</span></a>
 </aside>
 <main id="main" style="display:none;">
     <div id="page-dashboard" class="page active">
         <div class="page-header">
-            <div><h1>Dashboard</h1><p class="page-sub">Institution overview and live attendance insights.</p></div>
+            <div><h1>Dashboard</h1><p class="page-sub">Institution overview and live platform insights.</p></div>
         </div>
+        <div id="dashboard-loading" class="card" style="display:none;"></div>
         <div class="grid">
             <div class="kpi"><div class="kpi-label">Active Students</div><div class="kpi-value" id="kpi-students">-</div></div>
             <div class="kpi"><div class="kpi-label">Attendance</div><div class="kpi-value" id="kpi-attendance">-</div></div>
             <div class="kpi"><div class="kpi-label">Pending Activities</div><div class="kpi-value" id="kpi-activities">-</div></div>
             <div class="kpi"><div class="kpi-label">Timetable Conflicts</div><div class="kpi-value" id="kpi-conflicts">-</div></div>
+            <div class="kpi"><div class="kpi-label">Active Sessions</div><div class="kpi-value" id="kpi-sessions">-</div></div>
+            <div class="kpi" id="kpi-verifications-card" style="display:none;"><div class="kpi-label">Pending Verifications</div><div class="kpi-value" id="kpi-verifications">-</div></div>
+        </div>
+        <div class="card">
+            <h2 style="margin-bottom:1rem;">Quick Links</h2>
+            <div class="nav-row">
+                <a class="pill" href="#learning"><i data-lucide="book-open"></i><span>Learning</span></a>
+                <a class="pill" href="#internships"><i data-lucide="briefcase"></i><span>Internships</span></a>
+                <a class="pill" href="#career"><i data-lucide="compass"></i><span>Career</span></a>
+                <a class="pill" href="#classroom"><i data-lucide="video"></i><span>Classroom</span></a>
+            </div>
         </div>
         <div class="card">
             <h2 style="margin-bottom:1rem;">Attendance Trend</h2>
@@ -262,8 +316,8 @@
         <div class="page-header"><h1>Students</h1></div>
         <div class="card table-wrap">
             <table>
-                <thead><tr><th>Name</th><th>Roll No</th><th>Dept ID</th><th>Semester</th><th>Email</th><th>Status</th></tr></thead>
-                <tbody id="students-table"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
+                <thead><tr><th>Name</th><th>Roll No</th><th>Dept ID</th><th>Semester</th><th>Career Profile</th><th>Email</th><th>Status</th></tr></thead>
+                <tbody id="students-table"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
             </table>
         </div>
     </div>
@@ -276,77 +330,193 @@
             </table>
         </div>
     </div>
-      <div id="page-settings" class="page">
-          <div class="page-header"><h1>Settings</h1></div>
-          <div class="card"><h2 style="margin-bottom:0.75rem;">Institution Profile</h2><p class="muted">Managed from backend configuration.</p></div>
-          <div id="faculty-form-container" class="card" style="display:none;">
-              <h2 style="margin-bottom:1rem;">Create Faculty Account</h2>
-              <form id="faculty-form">
-                  <div class="form-group">
-                      <label for="faculty-name">Full Name</label>
-                      <input type="text" id="faculty-name" required />
-                  </div>
-                  <div class="form-group">
-                      <label for="faculty-email">Email</label>
-                      <input type="email" id="faculty-email" required />
-                  </div>
-                  <div class="form-group">
-                      <label for="faculty-password">Password</label>
-                      <input type="password" id="faculty-password" minlength="6" required />
-                  </div>
-                  <p id="faculty-error" class="auth-error" style="display:none;"></p>
-                  <p id="faculty-success" class="auth-success" style="display:none;"></p>
-                  <button type="submit" id="faculty-btn" class="btn-primary" style="width:100%;">Create Faculty Account</button>
-              </form>
-          </div>
-      </div>
+    <div id="page-learning" class="page">
+        <div class="page-header">
+            <div>
+                <h1>Learning</h1>
+                <p class="page-sub">Digital learning content, quizzes, and classroom resources.</p>
+            </div>
+            <div id="learning-actions"></div>
+        </div>
+        <div class="card">
+            <div class="grid" style="grid-template-columns:2fr 1fr 1fr 1fr; gap:0.75rem;">
+                <input id="learning-filter-subject" placeholder="Filter by subject" />
+                <select id="learning-filter-grade"><option value="">Grade level</option></select>
+                <select id="learning-filter-type"><option value="">All types</option><option value="video">Video</option><option value="pdf">PDF</option><option value="quiz">Quiz</option><option value="text">Text</option></select>
+                <button class="btn-primary" id="learning-refresh">Refresh</button>
+            </div>
+        </div>
+        <div class="split-layout">
+            <div>
+                <div id="learning-list"></div>
+            </div>
+            <div class="sticky-panel card" id="learning-preview">
+                <div class="empty-state">
+                    <i data-lucide="book-marked"></i>
+                    <h3>Select content</h3>
+                    <p>Choose an item to preview it here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="page-internships" class="page">
+        <div class="page-header">
+            <div>
+                <h1>Internships</h1>
+                <p class="page-sub">Recommended opportunities and scheme listings.</p>
+            </div>
+            <div id="internship-actions"></div>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" data-internship-tab="recommendations" id="tab-recommendations">Recommended</button>
+            <button class="tab-btn" data-internship-tab="all" id="tab-all">All Internships</button>
+            <button class="tab-btn" data-internship-tab="applications" id="tab-applications">My Applications</button>
+            <button class="tab-btn" data-internship-tab="manage" id="tab-manage" style="display:none;">Manage Applications</button>
+        </div>
+        <div id="internship-filters" class="card" style="display:none;">
+            <div class="grid" style="grid-template-columns:1.2fr 1fr 1fr; gap:0.75rem;">
+                <input id="internship-filter-location" placeholder="Filter by location" />
+                <input id="internship-filter-duration" placeholder="Duration months" />
+                <input id="internship-filter-skills" placeholder="Skills keyword" />
+            </div>
+        </div>
+        <div id="internship-content"></div>
+    </div>
+    <div id="page-documents" class="page">
+        <div class="page-header"><h1>Verify Docs</h1></div>
+        <div class="split-layout">
+            <div>
+                <div class="card" id="document-upload-card" style="display:none;">
+                    <h2 style="margin-bottom:1rem;">Upload Document</h2>
+                    <form id="document-upload-form">
+                        <div class="grid" style="grid-template-columns:1fr 1fr; gap:0.75rem;">
+                            <select id="document-type">
+                                <option value="marksheet">Marksheet</option>
+                                <option value="certificate">Certificate</option>
+                                <option value="id_card">ID Card</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <input type="file" id="document-file" />
+                        </div>
+                        <p id="document-upload-error" class="auth-error" style="display:none;"></p>
+                        <button type="submit" class="btn-primary">Upload</button>
+                    </form>
+                </div>
+                <div class="card" id="my-documents-card" style="display:none;">
+                    <h2 style="margin-bottom:1rem;">My Documents</h2>
+                    <div id="my-documents-table"></div>
+                </div>
+                <div class="card" id="all-documents-card" style="display:none;">
+                    <h2 style="margin-bottom:1rem;">All Documents</h2>
+                    <div id="all-documents-table"></div>
+                </div>
+            </div>
+            <div class="sticky-panel card">
+                <h2 style="margin-bottom:1rem;">Verify Document Authenticity</h2>
+                <div class="form-group">
+                    <label for="verify-hash-input">SHA256 Hash</label>
+                    <input id="verify-hash-input" placeholder="Paste hash here" />
+                </div>
+                <button id="verify-hash-btn" class="btn-primary">Check</button>
+                <div id="verify-hash-result" style="margin-top:1rem;"></div>
+            </div>
+        </div>
+    </div>
+    <div id="page-career" class="page">
+        <div class="page-header"><h1>Career</h1></div>
+        <div class="tabs">
+            <button class="tab-btn active" data-career-tab="profile">My Profile</button>
+            <button class="tab-btn" data-career-tab="advice">Career Advice</button>
+            <button class="tab-btn" data-career-tab="resources">Learning Resources</button>
+        </div>
+        <div id="career-tab-profile" class="career-tab"></div>
+        <div id="career-tab-advice" class="career-tab" style="display:none;"></div>
+        <div id="career-tab-resources" class="career-tab" style="display:none;"></div>
+    </div>
+    <div id="page-classroom" class="page">
+        <div class="page-header">
+            <div>
+                <h1>Classroom</h1>
+                <p class="page-sub">Remote classroom sessions for hybrid learning.</p>
+            </div>
+            <div id="classroom-actions"></div>
+        </div>
+        <div id="classroom-list"></div>
+    </div>
+    <div id="page-settings" class="page">
+        <div class="page-header"><h1>Settings</h1></div>
+        <div class="card"><h2 style="margin-bottom:0.75rem;">Institution Profile</h2><p class="muted">Managed from backend configuration.</p></div>
+        <div id="settings-admin-shortcuts" class="card" style="display:none;">
+            <h2 style="margin-bottom:1rem;">Admin Shortcuts</h2>
+            <div class="nav-row">
+                <a class="pill" href="#documents"><i data-lucide="shield-check"></i><span>Pending Document Verifications</span><span id="pending-doc-count" class="badge badge-yellow">-</span></a>
+                <button type="button" class="pill" id="settings-post-internship"><i data-lucide="briefcase"></i><span>Post Internship</span></button>
+            </div>
+        </div>
+        <div id="faculty-form-container" class="card" style="display:none;">
+            <h2 style="margin-bottom:1rem;">Create Faculty Account</h2>
+            <form id="faculty-form">
+                <div class="form-group">
+                    <label for="faculty-name">Full Name</label>
+                    <input type="text" id="faculty-name" required />
+                </div>
+                <div class="form-group">
+                    <label for="faculty-email">Email</label>
+                    <input type="email" id="faculty-email" required />
+                </div>
+                <div class="form-group">
+                    <label for="faculty-password">Password</label>
+                    <input type="password" id="faculty-password" minlength="6" required />
+                </div>
+                <p id="faculty-error" class="auth-error" style="display:none;"></p>
+                <p id="faculty-success" class="auth-success" style="display:none;"></p>
+                <button type="submit" id="faculty-btn" class="btn-primary" style="width:100%;">Create Faculty Account</button>
+            </form>
+        </div>
+    </div>
 </main>
 <button id="theme-btn" class="theme-toggle" onclick="toggleTheme()" style="display:none;">🌙</button>
+<nav class="mobile-nav" id="mobile-nav" style="display:none;">
+    <div class="mobile-nav-inner">
+        <a href="#dashboard" data-page="dashboard"><i data-lucide="layout-dashboard"></i><span>Home</span></a>
+        <a href="#learning" data-page="learning"><i data-lucide="book-open"></i><span>Learning</span></a>
+        <a href="#internships" data-page="internships"><i data-lucide="briefcase"></i><span>Jobs</span></a>
+        <a href="#career" data-page="career"><i data-lucide="compass"></i><span>Career</span></a>
+        <a href="#classroom" data-page="classroom"><i data-lucide="video"></i><span>Classroom</span></a>
+    </div>
+</nav>
 <script>
     const API_BASE = 'https://eductaion.onrender.com';
-    const STORAGE_KEY = 'attendx_auth';
 
       let authToken = null;
       let currentUser = null;
-      let charts = {};
-      let currentTheme = 'light';
-      let colleges = [];
+    let charts = {};
+    let currentTheme = 'light';
+    let colleges = [];
+    let departments = [];
 
     function saveAuth() {
-        if (authToken && currentUser) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ authToken, currentUser }));
-        }
+        return;
     }
 
     function loadSavedAuth() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return false;
-            const parsed = JSON.parse(raw);
-            if (parsed?.authToken && parsed?.currentUser) {
-                authToken = parsed.authToken;
-                currentUser = parsed.currentUser;
-                return true;
-            }
-        } catch (e) {}
         return false;
     }
 
     function clearAuth() {
-        localStorage.removeItem(STORAGE_KEY);
         authToken = null;
         currentUser = null;
     }
 
     async function apiCall(path, options = {}) {
         try {
+            const headers = { ...(options.headers || {}) };
+            const shouldAuth = options.auth !== false && authToken;
+            if (shouldAuth) headers.Authorization = `Bearer ${authToken}`;
+            if (!(options.body instanceof FormData) && options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
             const res = await fetch(API_BASE + path, {
                 ...options,
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
-                    ...(options.headers || {})
-                }
+                headers
             });
             if (res.status === 401) { logout(false); return null; }
             const data = await res.json().catch(() => null);
@@ -380,6 +550,7 @@
         document.getElementById('sidebar').style.display = 'block';
         document.getElementById('main').style.display = 'block';
         document.getElementById('theme-btn').style.display = 'flex';
+        document.getElementById('mobile-nav').style.display = 'block';
     }
 
     function showLogin() {
@@ -388,6 +559,7 @@
         document.getElementById('sidebar').style.display = 'none';
         document.getElementById('main').style.display = 'none';
         document.getElementById('theme-btn').style.display = 'none';
+        document.getElementById('mobile-nav').style.display = 'none';
     }
 
     function switchAuthTab(tab) {
@@ -540,9 +712,7 @@
           if (loaders[name]) loaders[name]();
       }
 
-    document.querySelectorAll('.nav-item[data-page]').forEach(item => {
-        item.addEventListener('click', () => showPage(item.dataset.page));
-    });
+    // Navigation is rebound later for both sidebar and mobile links.
 
     function cc() {
         const dark = document.documentElement.dataset.theme === 'dark';
@@ -668,7 +838,7 @@
           btn.textContent = 'Create Faculty Account';
       });
 
-      async function loadAnalytics() {
+    async function loadAnalytics() {
         const [attendanceData, activityData] = await Promise.all([apiCall('/analytics/attendance'), apiCall('/analytics/activities')]);
         const { primary, grid, text } = cc();
         const deptCtx = document.getElementById('deptChart').getContext('2d');
@@ -684,6 +854,444 @@
             type:'doughnut',
             data:{ labels:(activityData||[]).map(a=>a.name), datasets:[{data:(activityData||[]).map(a=>a.percentage),backgroundColor:[primary,'#437a22','#964219','#a12c7b','#6b7280']}] },
             options:{ responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:text}}} }
+        });
+    }
+
+    function setHTML(el, html) {
+        el.innerHTML = html;
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function skeletonCards(count = 3) {
+        return Array.from({ length: count }).map(() => `<div class="card skeleton-card"><div class="skeleton skeleton-line" style="width:70%"></div><div class="skeleton skeleton-line" style="width:55%"></div><div class="skeleton skeleton-line" style="width:85%"></div></div>`).join('');
+    }
+
+    function emptyState(icon, title, message) {
+        return `<div class="empty-state"><i data-lucide="${icon}"></i><h3>${title}</h3><p>${message}</p></div>`;
+    }
+
+    function errorState(message, retryFn) {
+        return `<div class="empty-state error"><i data-lucide="wifi-off"></i><h3>Could not load data</h3><p>${message}</p><button class="btn-primary" onclick="${retryFn}">Retry</button></div>`;
+    }
+
+    function showPage(name) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const page = document.getElementById('page-' + name);
+        if (!page) return;
+        page.classList.add('active');
+        document.querySelectorAll('.nav-item[data-page]').forEach(i => i.classList.remove('active'));
+        document.querySelectorAll('.mobile-nav a[data-page]').forEach(i => i.classList.remove('active'));
+        const nav = document.querySelector(`.nav-item[data-page="${name}"]`);
+        const mobile = document.querySelector(`.mobile-nav a[data-page="${name}"]`);
+        if (nav) nav.classList.add('active');
+        if (mobile) mobile.classList.add('active');
+        const loaders = { dashboard: loadDashboard, attendance: loadAttendance, timetable: loadTimetable, activities: loadActivities, analytics: loadAnalytics, students: loadStudents, alumni: loadAlumni, settings: loadSettings, learning: loadLearning, internships: loadInternships, documents: loadDocuments, career: loadCareer, classroom: loadClassroom };
+        if (loaders[name]) loaders[name]();
+        window.location.hash = `#${name}`;
+    }
+
+    document.querySelectorAll('.nav-item[data-page], .mobile-nav a[data-page]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            showPage(item.dataset.page);
+        });
+    });
+
+    async function loadDashboard() {
+        const loading = document.getElementById('dashboard-loading');
+        loading.style.display = 'block';
+        setHTML(loading, skeletonCards(2));
+        const dashRes = await apiCall('/analytics/dashboard');
+        const liveRes = await apiCall('/classroom/sessions?status=live');
+        const docsRes = currentUser?.role === 'admin' ? await apiCall('/documents') : null;
+        if (!dashRes) {
+            setHTML(loading, errorState('Unable to load dashboard metrics.', 'loadDashboard()'));
+            loading.style.display = 'block';
+            return;
+        }
+        loading.style.display = 'none';
+        document.getElementById('kpi-students').textContent = dashRes.active_students ?? 0;
+        document.getElementById('kpi-attendance').textContent = `${Math.round(dashRes.attendance_percentage ?? 0)}%`;
+        document.getElementById('kpi-activities').textContent = dashRes.pending_activities ?? 0;
+        document.getElementById('kpi-conflicts').textContent = dashRes.conflicts ?? 0;
+        document.getElementById('kpi-sessions').textContent = Array.isArray(liveRes) ? liveRes.length : 0;
+        const verCard = document.getElementById('kpi-verifications-card');
+        if (currentUser?.role === 'admin') {
+            verCard.style.display = 'block';
+            document.getElementById('kpi-verifications').textContent = Array.isArray(docsRes) ? docsRes.filter(d => !d.verified).length : 0;
+        } else {
+            verCard.style.display = 'none';
+        }
+        const { primary, grid, text } = cc();
+        const ctx = document.getElementById('attendanceChart').getContext('2d');
+        if (charts.attendance) charts.attendance.destroy();
+        charts.attendance = new Chart(ctx, {
+            type: 'line',
+            data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ label: 'Attendance %', data: [78,82,80,86,84,88,Math.round(dashRes.attendance_percentage ?? 0)], borderColor: primary, backgroundColor: primary + '22', fill: true, tension: 0.35 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: text } } }, scales: { x: { ticks: { color: text }, grid: { color: grid } }, y: { ticks: { color: text }, grid: { color: grid } } } }
+        });
+    }
+
+    async function loadStudents() {
+        const tbody = document.getElementById('students-table');
+        tbody.innerHTML = `<tr><td colspan="7">${skeletonCards(1)}</td></tr>`;
+        const [students, profiles] = await Promise.all([apiCall('/students'), currentUser?.role === 'admin' ? apiCall('/career/profiles') : Promise.resolve([])]);
+        if (!students) { tbody.innerHTML = `<tr><td colspan="7">${errorState('Unable to load students.', 'loadStudents()')}</td></tr>`; return; }
+        if (!students.length) { tbody.innerHTML = `<tr><td colspan="7">${emptyState('users', 'No students yet', 'Student records will appear once students register.')}</td></tr>`; return; }
+        const profileSet = new Set((profiles || []).map(p => p.student_id));
+        tbody.innerHTML = students.map(s => `<tr><td>${escapeHTML(s.name)}</td><td>${escapeHTML(s.roll_no)}</td><td>${escapeHTML(s.dept_id)}</td><td>${escapeHTML(s.semester)}</td><td>${currentUser?.role === 'admin' ? `<span style="width:10px;height:10px;border-radius:999px;display:inline-block;background:${profileSet.has(s.id) ? 'var(--color-success)' : '#9ca3af'}"></span>` : '-'}</td><td>${escapeHTML(s.email)}</td><td>${statusBadge(s.status)}</td></tr>`).join('');
+    }
+
+    async function loadSettings() {
+        const isAdmin = currentUser?.role === 'admin';
+        document.getElementById('faculty-form-container').style.display = isAdmin ? 'block' : 'none';
+        document.getElementById('settings-admin-shortcuts').style.display = isAdmin ? 'block' : 'none';
+        if (isAdmin) {
+            const docs = await apiCall('/documents');
+            document.getElementById('pending-doc-count').textContent = Array.isArray(docs) ? docs.filter(d => !d.verified).length : '-';
+        }
+        const btn = document.getElementById('settings-post-internship');
+        if (btn) btn.onclick = openInternshipModal;
+    }
+
+    async function loadLearning() {
+        learningGradeOptions();
+        const list = document.getElementById('learning-list');
+        const preview = document.getElementById('learning-preview');
+        setHTML(list, skeletonCards(3));
+        const params = new URLSearchParams();
+        const subject = document.getElementById('learning-filter-subject').value.trim();
+        const grade = document.getElementById('learning-filter-grade').value;
+        const type = document.getElementById('learning-filter-type').value;
+        if (subject) params.set('subject', subject);
+        if (grade) params.set('grade_level', grade);
+        if (type) params.set('content_type', type);
+        const items = await apiCall('/learning?' + params.toString(), { auth: false });
+        if (!items) { setHTML(list, errorState('Unable to load learning content.', 'loadLearning()')); return; }
+        if (!items.length) { setHTML(list, emptyState('book-open', 'No learning content', 'Faculty can add content from the button above.')); setHTML(preview, emptyState('sparkles', 'Select a lesson', 'Choose content from the list to preview it here.')); return; }
+        list.innerHTML = items.map(item => `<div class="card" data-learning-id="${item.id}" style="cursor:pointer;"><div style="display:flex;justify-content:space-between;gap:0.75rem;"><div><h3>${escapeHTML(item.title)}</h3><p class="muted">${escapeHTML(item.subject)} · Grade ${escapeHTML(item.grade_level)}</p></div><span class="badge badge-blue">${escapeHTML(item.content_type)}</span></div><p class="muted" style="margin-top:0.75rem;">Created by ${escapeHTML(item.created_by_name || 'Unknown')}</p></div>`).join('');
+        if (window.lucide) lucide.createIcons();
+        list.querySelectorAll('[data-learning-id]').forEach(card => card.onclick = () => selectLearningItem(Number(card.dataset.learningId), items, preview));
+        if (currentUser?.role === 'admin' || currentUser?.role === 'faculty') document.getElementById('learning-actions').innerHTML = `<button class="btn-primary" id="add-learning-btn">Add Content</button>`;
+        else document.getElementById('learning-actions').innerHTML = '';
+        const addBtn = document.getElementById('add-learning-btn');
+        if (addBtn) addBtn.onclick = openLearningModal;
+        if (items[0]) selectLearningItem(items[0].id, items, preview);
+    }
+
+    async function selectLearningItem(id, items, preview) {
+        const item = items.find(i => i.id === id);
+        if (!item) return;
+        if (item.content_type === 'quiz') {
+            setHTML(preview, skeletonCards(1));
+            const quiz = await apiCall(`/learning/${id}/quiz`, { auth: false });
+            if (!quiz) { setHTML(preview, errorState('Unable to load quiz.', 'loadLearning()')); return; }
+            learningState.quiz = quiz;
+            learningState.quizIndex = 0;
+            learningState.quizAnswers = {};
+            renderQuizPreview(item, quiz);
+            return;
+        }
+        const body = item.content_type === 'video'
+            ? `<iframe src="${youtubeEmbed(item.url)}" style="width:100%;aspect-ratio:16/9;border:0;border-radius:0.85rem;"></iframe>`
+            : item.content_type === 'pdf'
+                ? `<a class="btn-primary" href="${escapeHTML(item.url || '')}" target="_blank" rel="noreferrer">Open PDF</a><iframe src="${escapeHTML(item.url || '')}" style="width:100%;height:420px;border:0;border-radius:0.85rem;margin-top:0.75rem;"></iframe>`
+                : `<div style="white-space:pre-wrap">${escapeHTML(item.body || '')}</div>`;
+        setHTML(preview, `<div class="card"><h2>${escapeHTML(item.title)}</h2><p class="muted">${escapeHTML(item.subject)} · Grade ${escapeHTML(item.grade_level)} · ${escapeHTML(item.content_type)}</p><div style="margin-top:1rem;">${body}</div></div>`);
+    }
+
+    function renderQuizPreview(item, quiz) {
+        const preview = document.getElementById('learning-preview');
+        const q = quiz.questions?.[learningState.quizIndex];
+        if (!q) return setHTML(preview, emptyState('clipboard-list', 'Quiz empty', 'No questions available.'));
+        const options = [['a', q.option_a], ['b', q.option_b], ['c', q.option_c], ['d', q.option_d]];
+        setHTML(preview, `<div class="card"><h2>${escapeHTML(item.title)}</h2><p class="muted">Question ${learningState.quizIndex + 1} of ${quiz.questions.length}</p><div style="margin-top:1rem;"><strong>${escapeHTML(q.question)}</strong></div><div style="display:grid;gap:0.6rem;margin-top:1rem;">${options.map(([k, v]) => `<label class="card" style="margin:0;padding:0.9rem;display:flex;gap:0.75rem;align-items:center;cursor:pointer;"><input type="radio" name="quiz-answer" value="${k}" ${learningState.quizAnswers[q.id] === k ? 'checked' : ''} /><span><strong>${k.toUpperCase()}.</strong> ${escapeHTML(v)}</span></label>`).join('')}</div><div style="display:flex;gap:0.5rem;margin-top:1rem;flex-wrap:wrap;"><button class="btn-primary" id="quiz-prev" ${learningState.quizIndex === 0 ? 'disabled' : ''}>Previous</button><button class="btn-primary" id="quiz-next">${learningState.quizIndex === quiz.questions.length - 1 ? 'Submit' : 'Next'}</button></div><div id="quiz-result" style="margin-top:0.75rem;"></div></div>`);
+        document.querySelectorAll('input[name="quiz-answer"]').forEach(r => r.onchange = () => learningState.quizAnswers[q.id] = r.value);
+        document.getElementById('quiz-prev').onclick = () => { if (learningState.quizIndex > 0) { learningState.quizIndex -= 1; renderQuizPreview(item, quiz); } };
+        document.getElementById('quiz-next').onclick = async () => {
+            if (!learningState.quizAnswers[q.id]) return document.getElementById('quiz-result').innerHTML = `<span class="badge badge-error">Select an answer first</span>`;
+            if (learningState.quizIndex < quiz.questions.length - 1) { learningState.quizIndex += 1; renderQuizPreview(item, quiz); return; }
+            const payload = { answers: quiz.questions.map(question => ({ question_id: question.id, answer: learningState.quizAnswers[question.id] || '' })) };
+            const res = await apiCall(`/learning/${item.id}/quiz/attempt`, { method: 'POST', body: JSON.stringify(payload) });
+            document.getElementById('quiz-result').innerHTML = res ? `<span class="badge badge-green">Score: ${escapeHTML(res.score)}%</span>` : `<span class="badge badge-error">Submission failed</span>`;
+        };
+    }
+
+    function learningGradeOptions() {
+        const select = document.getElementById('learning-filter-grade');
+        if (select.options.length > 1) return;
+        for (let i = 1; i <= 12; i++) select.insertAdjacentHTML('beforeend', `<option value="${i}">Grade ${i}</option>`);
+    }
+
+    function youtubeEmbed(url) {
+        const match = String(url || '').match(/(?:youtu\.be\/|v=)([A-Za-z0-9_-]+)/);
+        return match ? `https://www.youtube.com/embed/${match[1]}` : (url || '');
+    }
+
+    async function loadInternships() {
+        const actions = document.getElementById('internship-actions');
+        if (currentUser?.role === 'admin' || currentUser?.role === 'faculty') { actions.innerHTML = `<button class="btn-primary" id="post-internship-btn">Post Internship</button>`; document.getElementById('post-internship-btn').onclick = openInternshipModal; document.getElementById('tab-manage').style.display = 'inline-flex'; } else { actions.innerHTML = ''; document.getElementById('tab-manage').style.display = 'none'; }
+        document.getElementById('internship-filters').style.display = 'block';
+        const container = document.getElementById('internship-content');
+        setHTML(container, skeletonCards(3));
+        const [items, recommendations, applications, manageApps] = await Promise.all([
+            apiCall('/internships'),
+            currentUser?.role === 'student' ? apiCall('/internships/recommend') : Promise.resolve([]),
+            currentUser?.role === 'student' ? apiCall('/internships/my-applications') : Promise.resolve([]),
+            (currentUser?.role === 'admin' || currentUser?.role === 'faculty') ? apiCall('/internships/applications') : Promise.resolve([])
+        ]);
+        if (!items) { setHTML(container, errorState('Unable to load internships.', 'loadInternships()')); return; }
+        internshipState.items = items || [];
+        internshipState.recommendations = recommendations || [];
+        internshipState.applications = applications || [];
+        internshipState.allApplications = manageApps || [];
+        internshipState.appliedIds = new Set((internshipState.applications || []).map(a => a.internship_id));
+        document.getElementById('tab-recommendations').style.display = currentUser?.role === 'student' ? 'inline-flex' : 'none';
+        document.getElementById('tab-applications').style.display = currentUser?.role === 'student' ? 'inline-flex' : 'none';
+        const showRecommend = currentUser?.role === 'student'
+            ? (recommendations === null
+                ? errorState('Unable to load recommendations.', 'loadInternships()')
+                : `<div class="card"><h2 style="margin-bottom:1rem;">Recommended for You</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">${(recommendations || []).slice(0,5).map(item => renderInternshipCard(item)).join('')}</div></div>`)
+            : '';
+        const tab = internshipState.activeTab || 'all';
+        let body = showRecommend;
+        if (tab === 'all') body += `<div class="card"><h2>All Internships</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">${applyInternshipFilters(items || []).map(item => renderInternshipCard(item)).join('')}</div></div>`;
+        if (tab === 'applications' && currentUser?.role === 'student') body += (applications === null ? errorState('Unable to load your applications.', 'loadInternships()') : renderMyApplications());
+        if (tab === 'manage' && (currentUser?.role === 'admin' || currentUser?.role === 'faculty')) body += (manageApps === null ? errorState('Unable to load applications.', 'loadInternships()') : renderManageApplications());
+        if (!body) body = emptyState('briefcase', 'No internships yet', 'Post internships to populate this page.');
+        setHTML(container, body);
+        document.querySelectorAll('[data-internship-tab]').forEach(btn => btn.classList.toggle('active', btn.dataset.internshipTab === tab));
+        bindInternshipEvents();
+        bindManageApplicationEvents();
+    }
+
+    function applyInternshipFilters(items) {
+        const location = document.getElementById('internship-filter-location').value.trim().toLowerCase();
+        const duration = document.getElementById('internship-filter-duration').value.trim();
+        const skills = document.getElementById('internship-filter-skills').value.trim().toLowerCase();
+        return items.filter(item => (!location || String(item.location || '').toLowerCase().includes(location)) && (!duration || String(item.duration_months || '').includes(duration)) && (!skills || String(item.skills_required || '').toLowerCase().includes(skills)));
+    }
+
+    function renderInternshipCard(item) {
+        const score = item.match_score;
+        const scoreClass = score >= 70 ? 'badge-green' : score >= 40 ? 'badge-warning' : 'badge-error';
+        const applied = internshipState.appliedIds.has(item.id);
+        return `<div class="card"><div style="display:flex;justify-content:space-between;gap:0.75rem;"><div><h3>${escapeHTML(item.company)}</h3><p class="muted">${escapeHTML(item.title)}</p></div>${score !== undefined ? `<span class="badge ${scoreClass}">${escapeHTML(score)}%</span>` : ''}</div><div class="chip-list">${String(item.skills_required || '').split(',').map(s => s.trim()).filter(Boolean).map(s => `<span class="chip">${escapeHTML(s)}</span>`).join('')}</div><div class="muted" style="display:grid;gap:0.35rem;margin-top:0.75rem;"><div>Stipend: ₹${escapeHTML(item.stipend)}/month</div><div>Duration: ${escapeHTML(item.duration_months)} months</div><div>Deadline: ${new Date(item.application_deadline).toLocaleDateString()}</div><div>Location: ${escapeHTML(item.location)}</div></div><button class="btn-primary" style="margin-top:0.9rem;" data-apply-internship="${item.id}" ${applied ? 'disabled' : ''}>${applied ? 'Applied ✓' : 'Apply Now'}</button></div>`;
+    }
+
+    function bindInternshipEvents() {
+        document.querySelectorAll('[data-apply-internship]').forEach(btn => btn.onclick = async () => {
+            const res = await apiCall(`/internships/${btn.dataset.applyInternship}/apply`, { method: 'POST' });
+            if (!res) return;
+            btn.disabled = true;
+            btn.textContent = 'Applied ✓';
+            internshipState.appliedIds.add(Number(btn.dataset.applyInternship));
+            showToast('Application submitted', 'success');
+        });
+        document.querySelectorAll('[data-internship-tab]').forEach(btn => btn.onclick = () => { internshipState.activeTab = btn.dataset.internshipTab; loadInternships(); });
+    }
+
+    function renderMyApplications() {
+        if (!internshipState.applications.length) return emptyState('folder-open', 'No applications yet', 'Apply to internships to track your applications here.');
+        return `<div class="card"><h2>My Applications</h2><div class="table-wrap"><table><thead><tr><th>Company</th><th>Role</th><th>Applied On</th><th>Status</th></tr></thead><tbody>${internshipState.applications.map(app => `<tr><td>${escapeHTML(app.company || '')}</td><td>${escapeHTML(app.internship_title || '')}</td><td>${new Date(app.applied_at).toLocaleDateString()}</td><td>${statusBadge(app.status)}</td></tr>`).join('')}</tbody></table></div></div>`;
+    }
+
+    function renderManageApplications() {
+        if (!internshipState.allApplications.length) return emptyState('folder-search', 'No applications yet', 'Applications will appear once students apply.');
+        return `<div class="card"><h2>Manage Applications</h2>${internshipState.allApplications.map(app => `<div class="card"><div style="display:flex;justify-content:space-between;gap:0.75rem;align-items:flex-start;"><div><h3>${escapeHTML(app.company || '')}</h3><p class="muted">${escapeHTML(app.internship_title || '')}</p></div>${statusBadge(app.status)}</div><div class="grid" style="grid-template-columns:1fr 1fr;gap:0.75rem;margin-top:0.75rem;"><div><strong>${escapeHTML(app.student_name || '')}</strong><p class="muted">${new Date(app.applied_at).toLocaleDateString()}</p></div><select data-app-status="${app.id}" data-current-status="${escapeHTML(app.status)}"><option value="applied" ${app.status === 'applied' ? 'selected' : ''}>applied</option><option value="shortlisted" ${app.status === 'shortlisted' ? 'selected' : ''}>shortlisted</option><option value="rejected" ${app.status === 'rejected' ? 'selected' : ''}>rejected</option><option value="selected" ${app.status === 'selected' ? 'selected' : ''}>selected</option></select></div></div>`).join('')}</div>`;
+    }
+
+    function bindManageApplicationEvents() {
+        document.querySelectorAll('[data-app-status]').forEach(sel => sel.onchange = async () => {
+            const res = await apiCall(`/internships/applications/${sel.dataset.appStatus}/status?status=${sel.value}`, { method: 'PUT' });
+            if (res) showToast('Application status updated', 'success');
+        });
+    }
+
+    function openModal(title, body, mount) {
+        document.getElementById('global-modal')?.remove();
+        document.body.insertAdjacentHTML('beforeend', `<div id="global-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem;"><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:1rem;max-width:900px;width:100%;max-height:90vh;overflow:auto;padding:1.25rem;position:relative;"><button id="close-modal" class="btn-primary" style="position:absolute;top:1rem;right:1rem;padding:0.5rem 0.75rem;">Close</button><h2 style="margin-bottom:1rem;">${title}</h2><div id="modal-body">${body}</div></div></div>`);
+        document.getElementById('close-modal').onclick = closeModal;
+        document.getElementById('global-modal').onclick = (e) => { if (e.target.id === 'global-modal') closeModal(); };
+        if (mount) mount();
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function closeModal() { document.getElementById('global-modal')?.remove(); }
+
+    function openLearningModal() {
+        const gradeOptions = Array.from({ length: 12 }).map((_, i) => `<option value="${i + 1}">${i + 1}</option>`).join('');
+        openModal('Add Content', `<form id="learning-form"><div class="grid" style="grid-template-columns:1fr 1fr;gap:0.75rem;"><input id="learning-title" placeholder="Title" required /><input id="learning-subject" placeholder="Subject" required /><select id="learning-grade"><option value="">Grade level</option>${gradeOptions}</select><select id="learning-type"><option value="text">Text</option><option value="video">Video</option><option value="pdf">PDF</option><option value="quiz">Quiz</option></select><input id="learning-url" placeholder="URL (video/pdf)" /><textarea id="learning-body" rows="4" placeholder="Body"></textarea></div><div id="learning-quiz-builder" style="display:none;margin-top:1rem;"><button type="button" class="btn-primary" id="add-question-btn">Add Question</button><div id="question-list" style="margin-top:0.75rem;"></div></div><p id="learning-form-error" class="auth-error" style="display:none;"></p><button class="btn-primary" type="submit" style="margin-top:1rem;">Save Content</button></form>`, () => {
+            const type = document.getElementById('learning-type');
+            const builder = document.getElementById('learning-quiz-builder');
+            const list = document.getElementById('question-list');
+            const addQuestion = () => {
+                if (list.children.length >= 10) return;
+                list.insertAdjacentHTML('beforeend', `<div class="card" style="margin-top:0.75rem;"><input class="q-question" placeholder="Question" style="margin-bottom:0.5rem;" /><div class="grid" style="grid-template-columns:1fr 1fr;gap:0.5rem;"><input class="q-a" placeholder="Option A" /><input class="q-b" placeholder="Option B" /><input class="q-c" placeholder="Option C" /><input class="q-d" placeholder="Option D" /></div><select class="q-correct" style="margin-top:0.5rem;"><option value="a">A</option><option value="b">B</option><option value="c">C</option><option value="d">D</option></select></div>`);
+            };
+            type.onchange = () => builder.style.display = type.value === 'quiz' ? 'block' : 'none';
+            document.getElementById('add-question-btn').onclick = addQuestion;
+            addQuestion();
+            document.getElementById('learning-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const payload = { title: document.getElementById('learning-title').value.trim(), subject: document.getElementById('learning-subject').value.trim(), grade_level: Number(document.getElementById('learning-grade').value), content_type: document.getElementById('learning-type').value, url: document.getElementById('learning-url').value.trim() || null, body: document.getElementById('learning-body').value.trim() || null, dept_id: null };
+                const res = await apiCall('/learning', { method: 'POST', body: JSON.stringify(payload) });
+                if (!res) return document.getElementById('learning-form-error').style.display = 'block';
+                if (payload.content_type === 'quiz') {
+                    const questions = Array.from(list.children).map(card => ({ question: card.querySelector('.q-question').value.trim(), option_a: card.querySelector('.q-a').value.trim(), option_b: card.querySelector('.q-b').value.trim(), option_c: card.querySelector('.q-c').value.trim(), option_d: card.querySelector('.q-d').value.trim(), correct_option: card.querySelector('.q-correct').value }));
+                    await apiCall(`/learning/${res.id}/quiz`, { method: 'POST', body: JSON.stringify({ title: payload.title, questions }) });
+                }
+                closeModal(); loadLearning();
+            };
+        });
+    }
+
+    function openInternshipModal() {
+        openModal('Post Internship', `<form id="internship-form"><div class="grid" style="grid-template-columns:1fr 1fr;gap:0.75rem;"><input id="internship-title" placeholder="Title" required /><input id="internship-company" placeholder="Company" required /><textarea id="internship-description" rows="4" placeholder="Description" required></textarea><input id="internship-skills" placeholder="Skills required, comma-separated" required /><input id="internship-stipend" type="number" placeholder="Stipend" required /><input id="internship-duration" type="number" placeholder="Duration months" required /><input id="internship-location" placeholder="Location" required /><input id="internship-deadline" type="datetime-local" required /></div><p id="internship-form-error" class="auth-error" style="display:none;"></p><button class="btn-primary" type="submit" style="margin-top:1rem;">Post Internship</button></form>`, () => {
+            document.getElementById('internship-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const res = await apiCall('/internships', { method: 'POST', body: JSON.stringify({ title: document.getElementById('internship-title').value.trim(), company: document.getElementById('internship-company').value.trim(), description: document.getElementById('internship-description').value.trim(), skills_required: document.getElementById('internship-skills').value.trim(), stipend: Number(document.getElementById('internship-stipend').value), duration_months: Number(document.getElementById('internship-duration').value), location: document.getElementById('internship-location').value.trim(), application_deadline: new Date(document.getElementById('internship-deadline').value).toISOString() }) });
+                if (!res) return document.getElementById('internship-form-error').style.display = 'block';
+                closeModal(); loadInternships();
+            };
+        });
+    }
+
+    async function loadDocuments() {
+        const isStudent = currentUser?.role === 'student';
+        const isAdmin = currentUser?.role === 'admin';
+        document.getElementById('my-documents-table').innerHTML = skeletonCards(1);
+        document.getElementById('all-documents-table').innerHTML = skeletonCards(1);
+        document.getElementById('verify-hash-result').innerHTML = skeletonCards(1);
+        document.getElementById('document-upload-card').style.display = isStudent ? 'block' : 'none';
+        document.getElementById('my-documents-card').style.display = isStudent ? 'block' : 'none';
+        document.getElementById('all-documents-card').style.display = isAdmin ? 'block' : 'none';
+        document.getElementById('document-upload-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const file = document.getElementById('document-file').files[0];
+            if (!file) return;
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('document_type', document.getElementById('document-type').value);
+            const res = await apiCall('/documents/upload', { method: 'POST', body: formData });
+            if (!res) return;
+            showToast('Document uploaded', 'success');
+            loadDocuments();
+        };
+        document.getElementById('verify-hash-btn').onclick = async () => {
+            const hash = document.getElementById('verify-hash-input').value.trim();
+            const box = document.getElementById('verify-hash-result');
+            const res = await apiCall(`/documents/verify-hash?hash=${encodeURIComponent(hash)}`, { auth: false });
+            if (!res) return box.innerHTML = errorState('Unable to verify document.', 'loadDocuments()');
+            box.innerHTML = res.valid ? `<div class="pill badge-green">✓ Authentic — Verified ${res.verified_at ? new Date(res.verified_at).toLocaleString() : ''}</div>` : `<div class="pill badge-red">✗ Not found or unverified</div>`;
+        };
+        const myBox = document.getElementById('my-documents-table');
+        const allBox = document.getElementById('all-documents-table');
+        if (isStudent) {
+            const docs = await apiCall('/documents/my');
+            if (!docs) { myBox.innerHTML = errorState('Unable to load documents.', 'loadDocuments()'); }
+            else if (!docs.length) { myBox.innerHTML = emptyState('shield-plus', 'No submissions yet', 'Upload your first document to begin verification.'); }
+            else { myBox.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Type</th><th>Submitted</th><th>Hash</th><th>Status</th></tr></thead><tbody>${docs.map(doc => `<tr><td>${escapeHTML(doc.document_type)}</td><td>${new Date(doc.submitted_at).toLocaleDateString()}</td><td>${escapeHTML(doc.hash.slice(0, 12))}...</td><td>${statusBadge(doc.verified ? 'Verified' : 'Pending')}</td></tr>`).join('')}</tbody></table></div>`; }
+        }
+        if (isAdmin) {
+            const docs = await apiCall('/documents');
+            if (!docs) { allBox.innerHTML = errorState('Unable to load documents.', 'loadDocuments()'); }
+            else if (!docs.length) { allBox.innerHTML = emptyState('shield-check', 'No documents yet', 'Document submissions will appear here.'); }
+            else { allBox.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Student</th><th>Type</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead><tbody>${docs.map(doc => `<tr><td>${escapeHTML(doc.student_name || '')}</td><td>${escapeHTML(doc.document_type)}</td><td>${new Date(doc.submitted_at).toLocaleDateString()}</td><td>${statusBadge(doc.verified ? 'Verified' : 'Pending')}</td><td><button class="btn-primary" data-verify-doc="${doc.id}" ${doc.verified ? 'disabled' : ''}>Verify</button></td></tr>`).join('')}</tbody></table></div>`; document.querySelectorAll('[data-verify-doc]').forEach(btn => btn.onclick = async () => { const res = await apiCall(`/documents/${btn.dataset.verifyDoc}/verify`, { method: 'PUT' }); if (res) loadDocuments(); }); }
+        }
+    }
+
+    async function loadCareer() {
+        switchCareerTab('profile');
+        document.getElementById('career-tab-profile').innerHTML = skeletonCards(1);
+        document.getElementById('career-tab-advice').innerHTML = skeletonCards(1);
+        document.getElementById('career-tab-resources').innerHTML = skeletonCards(1);
+        const profileRes = await apiCall('/career/profile');
+        const adviceBtn = document.getElementById('career-tab-advice');
+        const resourcesBtn = document.getElementById('career-tab-resources');
+        document.getElementById('career-tab-profile').innerHTML = profileRes ? `<div class="card"><div class="grid" style="grid-template-columns:1fr 1fr;gap:0.75rem;"><div><label>Interests</label><input id="career-interests" value="${escapeHTML(profileRes.interests || '')}" /><div id="career-interests-tags" class="chip-list"></div></div><div><label>Skills</label><input id="career-skills" value="${escapeHTML(profileRes.skills || '')}" /><div id="career-skills-tags" class="chip-list"></div></div><div><label>Target Role</label><input id="career-role" value="${escapeHTML(profileRes.target_role || '')}" /></div><div><label>Target Companies</label><input id="career-companies" value="${escapeHTML(profileRes.target_companies || '')}" /><div id="career-companies-tags" class="chip-list"></div></div></div><button class="btn-primary" id="career-save">Save Profile</button></div>` : errorState('Unable to load career profile.', 'loadCareer()');
+        document.getElementById('career-save')?.addEventListener('click', async () => {
+            const res = await apiCall('/career/profile', { method: 'PUT', body: JSON.stringify({ interests: document.getElementById('career-interests').value, skills: document.getElementById('career-skills').value, target_role: document.getElementById('career-role').value, target_companies: document.getElementById('career-companies').value }) });
+            if (res) showToast('Profile saved', 'success');
+        });
+        const updateTags = () => { ['career-interests', 'career-skills', 'career-companies'].forEach(id => { const input = document.getElementById(id); const out = document.getElementById(id + '-tags'); if (input && out) { const tags = input.value.split(',').map(t => t.trim()).filter(Boolean); out.innerHTML = tags.map(t => `<span class="chip">${escapeHTML(t)}</span>`).join(''); } }); };
+        ['career-interests','career-skills','career-companies'].forEach(id => document.getElementById(id)?.addEventListener('input', updateTags));
+        updateTags();
+        document.getElementById('career-tab-advice').innerHTML = `<div class="card"><button class="btn-primary" id="career-advice-btn">Get My Career Advice</button><div id="career-advice-result" style="margin-top:1rem;"></div></div>`;
+        document.getElementById('career-advice-btn').onclick = async () => { const res = await apiCall('/career/advice'); const box = document.getElementById('career-advice-result'); if (!res) return box.innerHTML = errorState('Unable to load career advice.', 'loadCareer()'); if (res.error === 'complete_profile') return box.innerHTML = emptyState('compass', 'Complete your profile', res.message); box.innerHTML = `<div class="grid">${['Role Match','Required Skills','Recommended Certifications','Job Boards'].map((title, idx) => { if (idx===0) return `<div class="card"><h3>${title}</h3><p class="muted">${escapeHTML(res.matched_role)}</p><p>Profile completion: ${escapeHTML(res.profile_completion)}%</p></div>`; if (idx===1) return `<div class="card"><h3>${title}</h3>${(res.skills_analysis||[]).map(item => `<div style="display:flex;justify-content:space-between;border-bottom:1px solid var(--color-border);padding:0.45rem 0;"><span>${escapeHTML(item.skill)}</span><span class="badge ${item.has ? 'badge-green' : 'badge-error'}">${item.has ? '✓ Have' : '✗ Missing'}</span></div>`).join('')}</div>`; if (idx===2) return `<div class="card"><h3>${title}</h3>${(res.recommended_certifications||[]).map(item => `<p><a href="${escapeHTML(item.url)}" target="_blank" rel="noreferrer">${escapeHTML(item.title)}</a></p>`).join('')}</div>`; return `<div class="card"><h3>${title}</h3>${(res.job_boards||[]).map(item => `<p><a href="${escapeHTML(item.url)}" target="_blank" rel="noreferrer">${escapeHTML(item.title)}</a></p>`).join('')}</div>`; }).join('')}</div>`; };
+        document.getElementById('career-tab-resources').innerHTML = `<div class="card"><div class="grid" style="grid-template-columns:1fr 1fr;gap:0.75rem;"><select id="resource-type-filter"><option value="">All types</option><option value="course">course</option><option value="book">book</option><option value="video">video</option><option value="tool">tool</option></select><input id="resource-tag-filter" placeholder="Filter by tag" /></div><div id="resources-grid" style="margin-top:1rem;"></div></div>`;
+        const resources = await apiCall('/career/resources', { auth: false });
+        if (!resources) { document.getElementById('resources-grid').innerHTML = errorState('Unable to load resources.', 'loadCareer()'); return; }
+        const renderResources = () => {
+            const type = document.getElementById('resource-type-filter').value;
+            const tag = document.getElementById('resource-tag-filter').value.trim().toLowerCase();
+            const filtered = resources.filter(item => (!type || item.type === type) && (!tag || (item.tags || []).some(t => t.toLowerCase().includes(tag))));
+            document.getElementById('resources-grid').innerHTML = filtered.length ? `<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">${filtered.map(item => `<div class="card"><div style="display:flex;justify-content:space-between;gap:0.75rem;align-items:flex-start;"><h3>${escapeHTML(item.title)}</h3><span class="badge badge-blue">${escapeHTML(item.type)}</span></div><div class="chip-list">${(item.tags || []).map(tag => `<span class="chip">${escapeHTML(tag)}</span>`).join('')}</div><a href="${escapeHTML(item.url)}" target="_blank" rel="noreferrer" style="display:inline-flex;margin-top:0.75rem;">Open →</a></div>`).join('')}</div>` : emptyState('search-x', 'No resources match', 'Try another filter.');
+        };
+        document.getElementById('resource-type-filter').onchange = renderResources;
+        document.getElementById('resource-tag-filter').oninput = renderResources;
+        renderResources();
+    }
+
+    function switchCareerTab(tab) {
+        document.getElementById('career-tab-profile').style.display = tab === 'profile' ? 'block' : 'none';
+        document.getElementById('career-tab-advice').style.display = tab === 'advice' ? 'block' : 'none';
+        document.getElementById('career-tab-resources').style.display = tab === 'resources' ? 'block' : 'none';
+        document.querySelectorAll('[data-career-tab]').forEach(btn => btn.classList.toggle('active', btn.dataset.careerTab === tab));
+    }
+
+    async function loadClassroom() {
+        if (!departments.length) departments = (await apiCall('/departments', { auth: false })) || [];
+        const actions = document.getElementById('classroom-actions');
+        if (currentUser?.role === 'admin' || currentUser?.role === 'faculty') actions.innerHTML = `<button class="btn-primary" id="schedule-class-btn">Schedule Class</button>`; else actions.innerHTML = '';
+        document.getElementById('schedule-class-btn')?.addEventListener('click', openClassroomModal);
+        document.getElementById('classroom-list').innerHTML = skeletonCards(2);
+        const sessions = await apiCall('/classroom/sessions');
+        const box = document.getElementById('classroom-list');
+        if (!sessions) { box.innerHTML = errorState('Unable to load sessions.', 'loadClassroom()'); return; }
+        const live = sessions.filter(s => String(s.status).toLowerCase() === 'live');
+        const scheduled = sessions.filter(s => String(s.status).toLowerCase() === 'scheduled');
+        const ended = sessions.filter(s => String(s.status).toLowerCase() === 'ended');
+        box.innerHTML = `${live.length ? `<div class="card"><h2>Live Sessions</h2><div class="grid">${live.map(renderSessionCard).join('')}</div></div>` : ''}${scheduled.length ? `<div class="card"><h2>Upcoming Sessions</h2><div class="grid">${scheduled.map(renderSessionCard).join('')}</div></div>` : ''}${ended.length ? `<div class="card"><details><summary>Ended Sessions (${ended.length})</summary><div class="grid" style="margin-top:1rem;">${ended.map(renderSessionCard).join('')}</div></details></div>` : ''}` || emptyState('video-off', 'No sessions yet', 'Schedule classes to populate this page.');
+        bindClassroomEvents();
+        refreshCountdowns();
+        clearInterval(window.__classroomTimer);
+        window.__classroomTimer = setInterval(refreshCountdowns, 1000);
+    }
+
+    function renderSessionCard(session) {
+        const ownFaculty = currentUser?.role === 'faculty' && Number(session.faculty_id) === Number(currentUser.id);
+        const isLive = String(session.status).toLowerCase() === 'live';
+        return `<div class="card"><div style="display:flex;justify-content:space-between;gap:0.75rem;"><div><h3>${escapeHTML(session.title)}</h3><p class="muted">${escapeHTML(session.subject)} · ${escapeHTML(session.department_name || '')}</p></div>${isLive ? `<span class="badge badge-red">LIVE</span>` : statusBadge(session.status)}</div><div class="muted" style="display:grid;gap:0.35rem;margin-top:0.75rem;"><div>Faculty: ${escapeHTML(session.faculty_name || '')}</div><div>Semester: ${escapeHTML(session.semester)}</div><div>Time: ${new Date(session.scheduled_at).toLocaleString()}</div><div>Duration: ${escapeHTML(session.duration_minutes)} mins</div><div class="countdown" data-session-time="${escapeHTML(session.scheduled_at)}"></div></div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.9rem;"><a class="btn-primary" href="${escapeHTML(session.meet_link)}" target="_blank" rel="noreferrer">Join Class</a>${ownFaculty && !isLive ? `<button class="btn-primary" data-session-status="${session.id}" data-next-status="live">Go Live</button>` : ''}${ownFaculty && isLive ? `<button class="btn-primary" data-session-status="${session.id}" data-next-status="ended">End Class</button>` : ''}</div></div>`;
+    }
+
+    function bindClassroomEvents() {
+        document.querySelectorAll('[data-session-status]').forEach(btn => btn.onclick = async () => { const res = await apiCall(`/classroom/sessions/${btn.dataset.sessionStatus}/status?status=${btn.dataset.nextStatus}`, { method: 'PUT' }); if (res) loadClassroom(); });
+    }
+
+    function refreshCountdowns() {
+        document.querySelectorAll('.countdown').forEach(node => {
+            const diff = new Date(node.dataset.sessionTime).getTime() - Date.now();
+            node.textContent = diff <= 0 ? 'Starting now' : `${Math.floor(diff / 3600000)}h ${Math.floor((diff % 3600000) / 60000)}m until session`;
+        });
+    }
+
+    function bindCommonExtras() {
+        document.querySelectorAll('[data-career-tab]').forEach(btn => btn.addEventListener('click', () => switchCareerTab(btn.dataset.careerTab)));
+        document.getElementById('learning-filter-subject').addEventListener('input', loadLearning);
+        document.getElementById('learning-filter-grade').addEventListener('change', loadLearning);
+        document.getElementById('learning-filter-type').addEventListener('change', loadLearning);
+        document.getElementById('learning-refresh').addEventListener('click', loadLearning);
+    }
+
+    function openClassroomModal() {
+        openModal('Schedule Class', `<form id="classroom-form"><div class="grid" style="grid-template-columns:1fr 1fr;gap:0.75rem;"><input id="class-title" placeholder="Title" required /><input id="class-subject" placeholder="Subject" required /><select id="class-dept" required><option value="">Department</option>${departments.map(dep => `<option value="${dep.id}">${escapeHTML(dep.name)} (${escapeHTML(dep.code)})</option>`).join('')}</select><input id="class-semester" type="number" min="1" max="12" placeholder="Semester" required /><input id="class-meet" placeholder="Meet link" required /><input id="class-datetime" type="datetime-local" required /><input id="class-duration" type="number" placeholder="Duration minutes" required /></div><p id="classroom-form-error" class="auth-error" style="display:none;"></p><button class="btn-primary" type="submit" style="margin-top:1rem;">Schedule Class</button></form>`, () => {
+            document.getElementById('classroom-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const res = await apiCall('/classroom/sessions', { method: 'POST', body: JSON.stringify({ title: document.getElementById('class-title').value.trim(), subject: document.getElementById('class-subject').value.trim(), dept_id: Number(document.getElementById('class-dept').value), semester: Number(document.getElementById('class-semester').value), meet_link: document.getElementById('class-meet').value.trim(), scheduled_at: new Date(document.getElementById('class-datetime').value).toISOString(), duration_minutes: Number(document.getElementById('class-duration').value), status: 'scheduled' }) });
+                if (!res) return document.getElementById('classroom-form-error').style.display = 'block';
+                closeModal(); loadClassroom();
+            };
         });
     }
 
@@ -714,6 +1322,7 @@
         currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.dataset.theme = currentTheme;
         document.getElementById('theme-btn').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
+        bindCommonExtras();
         loadColleges();
         restoreSession();
     });

@@ -33,6 +33,35 @@ class StudentStatus(str, enum.Enum):
     inactive = "inactive"
     graduated = "graduated"
 
+class LearningContentType(str, enum.Enum):
+    video = "video"
+    pdf = "pdf"
+    quiz = "quiz"
+    text = "text"
+
+class QuizCorrectOption(str, enum.Enum):
+    a = "a"
+    b = "b"
+    c = "c"
+    d = "d"
+
+class InternshipApplicationStatus(str, enum.Enum):
+    applied = "applied"
+    shortlisted = "shortlisted"
+    rejected = "rejected"
+    selected = "selected"
+
+class DocumentType(str, enum.Enum):
+    marksheet = "marksheet"
+    certificate = "certificate"
+    id_card = "id_card"
+    other = "other"
+
+class SessionStatus(str, enum.Enum):
+    scheduled = "scheduled"
+    live = "live"
+    ended = "ended"
+
 class College(Base):
       __tablename__ = "colleges"
       id = Column(Integer, primary_key=True, index=True)
@@ -58,6 +87,7 @@ class Department(Base):
     timetable_slots = relationship("TimetableSlot", back_populates="department", cascade="all, delete-orphan")
     activities = relationship("Activity", back_populates="department", cascade="all, delete-orphan")
     alumni = relationship("Alumni", back_populates="department", cascade="all, delete-orphan")
+    class_sessions = relationship("ClassSession", back_populates="department", cascade="all, delete-orphan")
 
 class User(Base):
     __tablename__ = "users"
@@ -73,6 +103,10 @@ class User(Base):
     subjects_as_faculty = relationship("Subject", back_populates="faculty", foreign_keys="Subject.faculty_id")
     attendance_sessions = relationship("AttendanceSession", back_populates="faculty", cascade="all, delete-orphan")
     activities_coordinated = relationship("Activity", back_populates="coordinator", cascade="all, delete-orphan")
+    learning_contents = relationship("LearningContent", back_populates="creator", cascade="all, delete-orphan")
+    internships_posted = relationship("Internship", back_populates="poster", cascade="all, delete-orphan")
+    documents_verified = relationship("DocumentVerification", back_populates="verifier", foreign_keys="DocumentVerification.verified_by")
+    class_sessions = relationship("ClassSession", back_populates="faculty", cascade="all, delete-orphan")
 
 class Student(Base):
     __tablename__ = "students"
@@ -90,6 +124,10 @@ class Student(Base):
     user = relationship("User", back_populates="student")
     attendance_records = relationship("AttendanceRecord", back_populates="student", cascade="all, delete-orphan")
     activity_enrollments = relationship("ActivityEnrollment", back_populates="student", cascade="all, delete-orphan")
+    quiz_attempts = relationship("QuizAttempt", back_populates="student", cascade="all, delete-orphan")
+    internship_applications = relationship("InternshipApplication", back_populates="student", cascade="all, delete-orphan")
+    document_verifications = relationship("DocumentVerification", back_populates="student", cascade="all, delete-orphan")
+    career_profile = relationship("CareerProfile", back_populates="student", uselist=False, cascade="all, delete-orphan")
 
 class Subject(Base):
     __tablename__ = "subjects"
@@ -179,3 +217,118 @@ class Alumni(Base):
     location = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
     department = relationship("Department", back_populates="alumni")
+
+class LearningContent(Base):
+    __tablename__ = "learning_contents"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False, index=True)
+    subject = Column(String, nullable=False, index=True)
+    grade_level = Column(Integer, nullable=False)
+    content_type = Column(Enum(LearningContentType), nullable=False)
+    url = Column(String, nullable=True)
+    body = Column(Text, nullable=True)
+    created_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    dept_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    creator = relationship("User", back_populates="learning_contents")
+    department = relationship("Department")
+    quiz = relationship("Quiz", back_populates="content", uselist=False, cascade="all, delete-orphan")
+
+class Quiz(Base):
+    __tablename__ = "quizzes"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    content_id = Column(Integer, ForeignKey("learning_contents.id"), nullable=False, unique=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    content = relationship("LearningContent", back_populates="quiz")
+    questions = relationship("QuizQuestion", back_populates="quiz", cascade="all, delete-orphan")
+    attempts = relationship("QuizAttempt", back_populates="quiz", cascade="all, delete-orphan")
+
+class QuizQuestion(Base):
+    __tablename__ = "quiz_questions"
+    id = Column(Integer, primary_key=True, index=True)
+    quiz_id = Column(Integer, ForeignKey("quizzes.id"), nullable=False)
+    question = Column(Text, nullable=False)
+    option_a = Column(String, nullable=False)
+    option_b = Column(String, nullable=False)
+    option_c = Column(String, nullable=False)
+    option_d = Column(String, nullable=False)
+    correct_option = Column(Enum(QuizCorrectOption), nullable=False)
+    quiz = relationship("Quiz", back_populates="questions")
+
+class QuizAttempt(Base):
+    __tablename__ = "quiz_attempts"
+    id = Column(Integer, primary_key=True, index=True)
+    quiz_id = Column(Integer, ForeignKey("quizzes.id"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
+    score = Column(Float, nullable=False, default=0)
+    attempted_at = Column(DateTime, default=datetime.utcnow)
+    quiz = relationship("Quiz", back_populates="attempts")
+    student = relationship("Student", back_populates="quiz_attempts")
+
+class Internship(Base):
+    __tablename__ = "internships"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False, index=True)
+    company = Column(String, nullable=False, index=True)
+    description = Column(Text, nullable=False)
+    skills_required = Column(Text, nullable=False)
+    stipend = Column(Integer, nullable=False)
+    duration_months = Column(Integer, nullable=False)
+    location = Column(String, nullable=False, index=True)
+    application_deadline = Column(DateTime, nullable=False)
+    posted_by = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    poster = relationship("User", back_populates="internships_posted")
+    applications = relationship("InternshipApplication", back_populates="internship", cascade="all, delete-orphan")
+
+class InternshipApplication(Base):
+    __tablename__ = "internship_applications"
+    id = Column(Integer, primary_key=True, index=True)
+    internship_id = Column(Integer, ForeignKey("internships.id"), nullable=False)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
+    status = Column(Enum(InternshipApplicationStatus), default=InternshipApplicationStatus.applied, nullable=False)
+    applied_at = Column(DateTime, default=datetime.utcnow)
+    internship = relationship("Internship", back_populates="applications")
+    student = relationship("Student", back_populates="internship_applications")
+
+class DocumentVerification(Base):
+    __tablename__ = "document_verifications"
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False)
+    document_type = Column(Enum(DocumentType), nullable=False)
+    filename = Column(String, nullable=False)
+    hash = Column(String, index=True, nullable=False)
+    verified = Column(Boolean, default=False, nullable=False)
+    verified_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    submitted_at = Column(DateTime, default=datetime.utcnow)
+    verified_at = Column(DateTime, nullable=True)
+    student = relationship("Student", back_populates="document_verifications")
+    verifier = relationship("User", back_populates="documents_verified", foreign_keys=[verified_by])
+
+class CareerProfile(Base):
+    __tablename__ = "career_profiles"
+    id = Column(Integer, primary_key=True, index=True)
+    student_id = Column(Integer, ForeignKey("students.id"), nullable=False, unique=True)
+    interests = Column(Text, default="")
+    skills = Column(Text, default="")
+    target_role = Column(String, default="")
+    target_companies = Column(Text, default="")
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    student = relationship("Student", back_populates="career_profile")
+
+class ClassSession(Base):
+    __tablename__ = "class_sessions"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False, index=True)
+    subject = Column(String, nullable=False, index=True)
+    faculty_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    dept_id = Column(Integer, ForeignKey("departments.id"), nullable=False)
+    semester = Column(Integer, nullable=False)
+    meet_link = Column(String, nullable=False)
+    scheduled_at = Column(DateTime, nullable=False)
+    duration_minutes = Column(Integer, nullable=False)
+    status = Column(Enum(SessionStatus), default=SessionStatus.scheduled, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    faculty = relationship("User", back_populates="class_sessions")
+    department = relationship("Department", back_populates="class_sessions")

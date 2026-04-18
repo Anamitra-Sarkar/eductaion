@@ -1,7 +1,11 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime, time
 from typing import Optional, List
-from models import UserRole, AttendanceStatus, ActivityType, ActivityStatus, StudentStatus
+from models import (
+    UserRole, AttendanceStatus, ActivityType, ActivityStatus, StudentStatus,
+    LearningContentType, QuizCorrectOption, InternshipApplicationStatus,
+    DocumentType, SessionStatus
+)
 
 class CollegeBase(BaseModel):
       name: str
@@ -223,6 +227,152 @@ class AlumniUpdate(BaseModel):
 class Alumni(AlumniBase):
     id: int
     created_at: datetime
+    class Config:
+        from_attributes = True
+
+class LearningContentBase(BaseModel):
+    title: str
+    subject: str
+    grade_level: int = Field(ge=1, le=12)
+    content_type: LearningContentType
+    url: Optional[str] = None
+    body: Optional[str] = None
+    dept_id: Optional[int] = None
+
+class LearningContentCreate(LearningContentBase):
+    pass
+
+class LearningContentOut(LearningContentBase):
+    id: int
+    created_by: int
+    created_at: datetime
+    created_by_name: Optional[str] = None
+    class Config:
+        from_attributes = True
+
+class QuizQuestionCreate(BaseModel):
+    question: str
+    option_a: str
+    option_b: str
+    option_c: str
+    option_d: str
+    correct_option: QuizCorrectOption
+
+class QuizQuestionOut(QuizQuestionCreate):
+    id: int
+    quiz_id: int
+    class Config:
+        from_attributes = True
+
+class QuizCreate(BaseModel):
+    title: str
+    questions: List[QuizQuestionCreate]
+
+class QuizOut(BaseModel):
+    id: int
+    title: str
+    content_id: int
+    created_at: datetime
+    questions: List[QuizQuestionOut] = []
+    class Config:
+        from_attributes = True
+
+class QuizAttemptAnswer(BaseModel):
+    question_id: int
+    answer: str
+
+class QuizAttemptSubmit(BaseModel):
+    answers: List[QuizAttemptAnswer]
+
+class QuizAttemptOut(BaseModel):
+    id: int
+    quiz_id: int
+    student_id: int
+    score: float
+    attempted_at: datetime
+    class Config:
+        from_attributes = True
+
+class InternshipBase(BaseModel):
+    title: str
+    company: str
+    description: str
+    skills_required: str
+    stipend: int
+    duration_months: int
+    location: str
+    application_deadline: datetime
+
+class InternshipCreate(InternshipBase):
+    pass
+
+class InternshipOut(InternshipBase):
+    id: int
+    posted_by: int
+    created_at: datetime
+    posted_by_name: Optional[str] = None
+    class Config:
+        from_attributes = True
+
+class ApplicationOut(BaseModel):
+    id: int
+    internship_id: int
+    student_id: int
+    status: InternshipApplicationStatus
+    applied_at: datetime
+    internship_title: Optional[str] = None
+    company: Optional[str] = None
+    student_name: Optional[str] = None
+    class Config:
+        from_attributes = True
+
+class DocumentOut(BaseModel):
+    id: int
+    student_id: int
+    document_type: DocumentType
+    filename: str
+    hash: str
+    verified: bool
+    verified_by: Optional[int] = None
+    submitted_at: datetime
+    verified_at: Optional[datetime] = None
+    student_name: Optional[str] = None
+    verified_by_name: Optional[str] = None
+    class Config:
+        from_attributes = True
+
+class CareerProfileUpdate(BaseModel):
+    interests: str
+    skills: str
+    target_role: str
+    target_companies: str
+
+class CareerProfileOut(CareerProfileUpdate):
+    id: int
+    student_id: int
+    updated_at: datetime
+    class Config:
+        from_attributes = True
+
+class ClassSessionBase(BaseModel):
+    title: str
+    subject: str
+    faculty_id: Optional[int] = None
+    dept_id: int
+    semester: int
+    meet_link: str
+    scheduled_at: datetime
+    duration_minutes: int
+    status: SessionStatus = SessionStatus.scheduled
+
+class ClassSessionCreate(ClassSessionBase):
+    pass
+
+class ClassSessionOut(ClassSessionBase):
+    id: int
+    created_at: datetime
+    faculty_name: Optional[str] = None
+    department_name: Optional[str] = None
     class Config:
         from_attributes = True
 
