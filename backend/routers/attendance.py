@@ -95,11 +95,9 @@ async def mark_attendance(id: int, records: List[AttendanceRecordCreate], curren
     return {"message": "Attendance marked"}
 
 @router.put("/records/{id}")
-async def update_attendance_record(id: int, record: AttendanceRecordCreate, token: str = Depends(lambda: None), db: AsyncSession = Depends(get_db)):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await verify_faculty_or_admin(token, db)
+async def update_attendance_record(id: int, record: AttendanceRecordCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if current_user.role not in [UserRole.faculty, UserRole.admin]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     
     result = await db.execute(select(AttendanceRecord).where(AttendanceRecord.id == id))
     db_record = result.scalars().first()
@@ -113,17 +111,13 @@ async def update_attendance_record(id: int, record: AttendanceRecordCreate, toke
 
 @router.get("/report")
 async def get_report(
-    token: str = Depends(lambda: None),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     dept_id: Optional[int] = Query(None),
     from_date: Optional[str] = Query(None),
     to_date: Optional[str] = Query(None),
     semester: Optional[int] = Query(None)
 ):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await get_current_user(token, db)
     
     query = select(AttendanceRecord)
     
@@ -155,15 +149,11 @@ async def get_report(
 
 @router.get("/defaulters")
 async def get_defaulters(
-    token: str = Depends(lambda: None),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     threshold: float = Query(75),
     dept_id: Optional[int] = Query(None)
 ):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await get_current_user(token, db)
     
     query = select(Student)
     if dept_id:
@@ -196,15 +186,11 @@ async def get_defaulters(
 
 @router.get("/heatmap")
 async def get_heatmap(
-    token: str = Depends(lambda: None),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     dept_id: Optional[int] = Query(None),
     days: int = Query(7)
 ):
-    if not token:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    
-    await get_current_user(token, db)
     
     from_date = datetime.utcnow() - timedelta(days=days)
     

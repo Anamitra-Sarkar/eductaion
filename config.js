@@ -1,5 +1,7 @@
 const CONFIG = {
-  API_BASE: 'http://localhost:8000',
+  API_BASE: window.location.hostname === 'localhost' 
+    ? 'http://localhost:8000' 
+    : 'https://attendx-api.onrender.com',
   APP_NAME: 'AttendX',
   COLLEGE_NAME: 'Institute of Technology Excellence'
 };
