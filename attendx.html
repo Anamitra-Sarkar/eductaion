@@ -74,15 +74,21 @@
         }
         .login-card {
             background:var(--color-surface); border:1px solid var(--color-border);
-            border-radius:1.25rem; padding:2rem; width:100%; max-width:440px;
+            border-radius:1.25rem; padding:2rem; width:100%; max-width:460px;
             box-shadow:0 20px 60px rgba(0,0,0,0.12);
         }
         .login-logo { display:flex; align-items:center; justify-content:center; margin-bottom:1.25rem; color:var(--color-primary); }
         .login-card h1 { text-align:center; font-size:1.9rem; margin-bottom:0.35rem; }
         .login-card > p { text-align:center; color:var(--color-text-muted); margin-bottom:1.5rem; }
+        .auth-tabs { display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-bottom:1.25rem; background:var(--color-surface-offset); border-radius:1rem; padding:0.3rem; }
+        .auth-tab { background:transparent; color:var(--color-text-muted); }
+        .auth-tab.active { background:var(--color-surface); color:var(--color-primary); box-shadow:0 2px 10px rgba(0,0,0,0.06); }
+        .auth-panel { display:none; }
+        .auth-panel.active { display:block; }
         .form-group { margin-bottom:1rem; }
         .form-group label { display:block; margin-bottom:0.45rem; font-weight:600; }
-        #login-error { color:var(--color-error); font-size:0.9rem; margin-bottom:1rem; }
+        .auth-error { color:var(--color-error); font-size:0.9rem; margin-bottom:1rem; }
+        .auth-success { color:var(--color-success); font-size:0.9rem; margin-bottom:1rem; }
         body.authenticated { display:flex; }
         aside {
             width:250px; background:var(--color-surface); border-right:1px solid var(--color-border);
@@ -138,18 +144,58 @@
         </div>
         <h1>AttendX</h1>
         <p>Smart Attendance &amp; Activity Intelligence</p>
-        <form id="login-form">
-            <div class="form-group">
-                <label for="login-email">Email</label>
-                <input type="email" id="login-email" required />
-            </div>
-            <div class="form-group">
-                <label for="login-password">Password</label>
-                <input type="password" id="login-password" required />
-            </div>
-            <p id="login-error" style="display:none;"></p>
-            <button type="submit" id="login-btn" class="btn-primary" style="width:100%;">Sign In</button>
-        </form>
+
+        <div class="auth-tabs">
+            <button type="button" class="auth-tab active" data-auth-tab="signin">Sign In</button>
+            <button type="button" class="auth-tab" data-auth-tab="signup">Sign Up</button>
+        </div>
+
+        <div id="signin-panel" class="auth-panel active">
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" required />
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" required />
+                </div>
+                <p id="login-error" class="auth-error" style="display:none;"></p>
+                <button type="submit" id="login-btn" class="btn-primary" style="width:100%;">Login</button>
+            </form>
+        </div>
+
+        <div id="signup-panel" class="auth-panel">
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" required />
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" required />
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" minlength="6" required />
+                </div>
+                <div class="form-group">
+                    <label for="signup-role">Role</label>
+                    <select id="signup-role" required>
+                        <option value="admin">Admin</option>
+                        <option value="faculty">Faculty</option>
+                        <option value="student">Student</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="signup-college-id">College ID</label>
+                    <input type="number" id="signup-college-id" min="1" value="1" required />
+                </div>
+                <p id="signup-error" class="auth-error" style="display:none;"></p>
+                <p id="signup-success" class="auth-success" style="display:none;"></p>
+                <button type="submit" id="signup-btn" class="btn-primary" style="width:100%;">Sign Up</button>
+            </form>
+        </div>
     </div>
 </div>
 <aside id="sidebar" style="display:none;">
@@ -239,11 +285,38 @@
 <button id="theme-btn" class="theme-toggle" onclick="toggleTheme()" style="display:none;">🌙</button>
 <script>
     const API_BASE = 'https://eductaion.onrender.com';
+    const STORAGE_KEY = 'attendx_auth';
 
     let authToken = null;
     let currentUser = null;
     let charts = {};
     let currentTheme = 'light';
+
+    function saveAuth() {
+        if (authToken && currentUser) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ authToken, currentUser }));
+        }
+    }
+
+    function loadSavedAuth() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return false;
+            const parsed = JSON.parse(raw);
+            if (parsed?.authToken && parsed?.currentUser) {
+                authToken = parsed.authToken;
+                currentUser = parsed.currentUser;
+                return true;
+            }
+        } catch (e) {}
+        return false;
+    }
+
+    function clearAuth() {
+        localStorage.removeItem(STORAGE_KEY);
+        authToken = null;
+        currentUser = null;
+    }
 
     async function apiCall(path, options = {}) {
         try {
@@ -297,12 +370,25 @@
         document.getElementById('theme-btn').style.display = 'none';
     }
 
+    function switchAuthTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.authTab === tab));
+        document.getElementById('signin-panel').classList.toggle('active', tab === 'signin');
+        document.getElementById('signup-panel').classList.toggle('active', tab === 'signup');
+        document.getElementById('login-error').style.display = 'none';
+        document.getElementById('signup-error').style.display = 'none';
+        document.getElementById('signup-success').style.display = 'none';
+    }
+
+    document.querySelectorAll('.auth-tab').forEach(btn => {
+        btn.addEventListener('click', () => switchAuthTab(btn.dataset.authTab));
+    });
+
     document.getElementById('login-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const btn = document.getElementById('login-btn');
         const errEl = document.getElementById('login-error');
         btn.disabled = true;
-        btn.textContent = 'Signing In...';
+        btn.textContent = 'Logging in...';
         errEl.style.display = 'none';
         const data = await apiCall('/auth/login', {
             method: 'POST',
@@ -314,6 +400,7 @@
         if (data?.access_token) {
             authToken = data.access_token;
             currentUser = data.user;
+            saveAuth();
             showApp();
             showPage('dashboard');
             showToast(`Welcome ${currentUser.name}`, 'success');
@@ -322,13 +409,53 @@
             errEl.style.display = 'block';
         }
         btn.disabled = false;
-        btn.textContent = 'Sign In';
+        btn.textContent = 'Login';
+    });
+
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('signup-btn');
+        const errEl = document.getElementById('signup-error');
+        const successEl = document.getElementById('signup-success');
+        btn.disabled = true;
+        btn.textContent = 'Creating account...';
+        errEl.style.display = 'none';
+        successEl.style.display = 'none';
+
+        const payload = {
+            name: document.getElementById('signup-name').value.trim(),
+            email: document.getElementById('signup-email').value.trim(),
+            password: document.getElementById('signup-password').value,
+            role: document.getElementById('signup-role').value,
+            college_id: Number(document.getElementById('signup-college-id').value)
+        };
+
+        const data = await apiCall('/auth/register', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
+        if (data?.id) {
+            successEl.textContent = 'Account created successfully. Please login now.';
+            successEl.style.display = 'block';
+            document.getElementById('signup-form').reset();
+            document.getElementById('login-email').value = payload.email;
+            switchAuthTab('signin');
+            showToast('Account created successfully', 'success');
+        } else {
+            errEl.textContent = 'Signup failed. Please check your details.';
+            errEl.style.display = 'block';
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'Sign Up';
     });
 
     function logout(msg = true) {
-        authToken = null; currentUser = null;
+        clearAuth();
         showLogin();
         document.getElementById('login-form').reset();
+        document.getElementById('signup-form').reset();
         if (msg) showToast('Logged out', 'info');
     }
 
@@ -442,11 +569,28 @@
         document.getElementById('theme-btn').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
     }
 
+    async function restoreSession() {
+        if (!loadSavedAuth()) {
+            showLogin();
+            return;
+        }
+        const user = await apiCall('/auth/me');
+        if (user) {
+            currentUser = user;
+            saveAuth();
+            showApp();
+            showPage('dashboard');
+        } else {
+            clearAuth();
+            showLogin();
+        }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
         currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.dataset.theme = currentTheme;
         document.getElementById('theme-btn').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
-        showLogin();
+        restoreSession();
     });
 </script>
 </body>
