@@ -4,6 +4,7 @@
     { "src": "attendx.html", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "/attendx.html" }
+    { "src": "/attendx.html", "dest": "/attendx.html" },
+    { "src": "/", "dest": "/attendx.html" }
   ]
 }

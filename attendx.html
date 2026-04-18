@@ -6,8 +6,6 @@
     <title>AttendX - Smart Attendance & Activity Monitoring</title>
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="./config.js"></script>
     <style>
         :root {
             --color-bg: #f7f6f2;
@@ -53,134 +51,75 @@
         h1, h2, h3, h4, h5, h6 { font-family: 'General Sans', sans-serif; font-weight: 700; color: var(--color-text); }
         button, input, select, textarea { font: inherit; }
         button {
-            cursor: pointer;
-            border: none;
-            padding: 0.75rem 1rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            transition: all 0.2s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            min-height: 44px;
+            cursor: pointer; border: none; padding: 0.75rem 1rem; border-radius: 0.75rem;
+            font-weight: 600; transition: all 0.2s ease; display: inline-flex;
+            align-items: center; justify-content: center; gap: 0.5rem; min-height: 44px;
         }
         input, select, textarea {
-            width: 100%;
-            padding: 0.875rem 1rem;
-            border: 1px solid var(--color-border);
-            border-radius: 0.75rem;
-            background: var(--color-surface);
-            color: var(--color-text);
-            outline: none;
+            width: 100%; padding: 0.875rem 1rem; border: 1px solid var(--color-border);
+            border-radius: 0.75rem; background: var(--color-surface); color: var(--color-text); outline: none;
         }
         input:focus, select:focus, textarea:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(1,105,111,0.12); }
         .btn-primary { background: var(--color-primary); color: #fff; }
         .btn-primary:hover { background: var(--color-primary-hover); }
-        .btn-secondary { background: var(--color-surface); color: var(--color-text); border: 1px solid var(--color-border); }
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.3rem 0.7rem;
-            border-radius: 999px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        .badge-success { background: rgba(67,122,34,0.12); color: var(--color-success); }
-        .badge-warning { background: rgba(150,66,25,0.12); color: var(--color-warning); }
-        .badge-error { background: rgba(161,44,123,0.12); color: var(--color-error); }
+        .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+        .badge { display:inline-flex; align-items:center; padding:0.3rem 0.7rem; border-radius:999px; font-size:0.8rem; font-weight:600; }
+        .badge-success { background:rgba(67,122,34,0.12); color:var(--color-success); }
+        .badge-warning { background:rgba(150,66,25,0.12); color:var(--color-warning); }
+        .badge-error { background:rgba(161,44,123,0.12); color:var(--color-error); }
         .login-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 1.5rem;
+            display:flex; align-items:center; justify-content:center;
+            min-height:100vh; padding:1.5rem;
             background: linear-gradient(135deg, #0d4b4f 0%, #01696f 100%);
         }
         .login-card {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 1.25rem;
-            padding: 2rem;
-            width: 100%;
-            max-width: 440px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+            background:var(--color-surface); border:1px solid var(--color-border);
+            border-radius:1.25rem; padding:2rem; width:100%; max-width:440px;
+            box-shadow:0 20px 60px rgba(0,0,0,0.12);
         }
-        .login-logo { display:flex; align-items:center; justify-content:center; margin-bottom:1.25rem; color: var(--color-primary); }
-        .login-card h1 { text-align: center; font-size: 1.9rem; margin-bottom: 0.35rem; }
-        .login-card > p { text-align: center; color: var(--color-text-muted); margin-bottom: 1.5rem; }
-        .form-group { margin-bottom: 1rem; }
+        .login-logo { display:flex; align-items:center; justify-content:center; margin-bottom:1.25rem; color:var(--color-primary); }
+        .login-card h1 { text-align:center; font-size:1.9rem; margin-bottom:0.35rem; }
+        .login-card > p { text-align:center; color:var(--color-text-muted); margin-bottom:1.5rem; }
+        .form-group { margin-bottom:1rem; }
         .form-group label { display:block; margin-bottom:0.45rem; font-weight:600; }
-        #login-error { color: var(--color-error); font-size: 0.9rem; margin-bottom: 1rem; }
-        body.authenticated { display: flex; }
+        #login-error { color:var(--color-error); font-size:0.9rem; margin-bottom:1rem; }
+        body.authenticated { display:flex; }
         aside {
-            width: 250px;
-            background: var(--color-surface);
-            border-right: 1px solid var(--color-border);
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            overflow-y: auto;
-            padding: 1.5rem 0;
+            width:250px; background:var(--color-surface); border-right:1px solid var(--color-border);
+            position:fixed; top:0; left:0; height:100vh; overflow-y:auto; padding:1.5rem 0;
         }
-        .sidebar-logo {
-            display:flex;
-            align-items:center;
-            gap:0.75rem;
-            padding: 0 1.25rem 1.5rem;
-            font-weight: 700;
-            font-size: 1.2rem;
-            color: var(--color-text);
-        }
+        .sidebar-logo { display:flex; align-items:center; gap:0.75rem; padding:0 1.25rem 1.5rem; font-weight:700; font-size:1.2rem; color:var(--color-text); }
         .nav-item {
-            padding: 0.9rem 1.25rem;
-            color: var(--color-text-muted);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display:flex;
-            align-items:center;
-            gap:0.75rem;
-            border-left: 3px solid transparent;
+            padding:0.9rem 1.25rem; color:var(--color-text-muted); cursor:pointer;
+            transition:all 0.2s ease; display:flex; align-items:center; gap:0.75rem;
+            border-left:3px solid transparent; font-size:0.95rem;
         }
-        .nav-item:hover { background: var(--color-surface-offset); color: var(--color-text); }
-        .nav-item.active { background: var(--color-surface-offset); color: var(--color-primary); border-left-color: var(--color-primary); }
-        main { margin-left: 250px; padding: 2rem; min-height: 100vh; width: calc(100% - 250px); }
+        .nav-item:hover { background:var(--color-surface-offset); color:var(--color-text); }
+        .nav-item.active { background:var(--color-surface-offset); color:var(--color-primary); border-left-color:var(--color-primary); }
+        main { margin-left:250px; padding:2rem; min-height:100vh; width:calc(100% - 250px); }
         .page { display:none; }
-        .page.active { display:block; animation: fadeIn 0.18s ease; }
-        @keyframes fadeIn { from { opacity:0; transform: translateY(8px);} to { opacity:1; transform: translateY(0);} }
+        .page.active { display:block; animation:fadeIn 0.18s ease; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
         .page-header { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.5rem; }
-        .page-header h1 { font-size: 1.9rem; }
-        .page-sub { color: var(--color-text-muted); margin-top: 0.35rem; }
-        .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1.25rem; margin-bottom:1.5rem; }
-        .card {
-            background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: 1rem;
-            padding: 1.25rem;
-            margin-bottom: 1.25rem;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.03);
-        }
-        .kpi { background: var(--color-surface); border:1px solid var(--color-border); border-radius:1rem; padding:1.25rem; }
-        .kpi-label { color: var(--color-text-muted); font-size: 0.9rem; }
-        .kpi-value { color: var(--color-primary); font-size: 2rem; font-weight: 700; margin-top: 0.45rem; }
-        table { width:100%; border-collapse: collapse; }
-        th, td { padding: 0.95rem 0.85rem; text-align:left; border-bottom:1px solid var(--color-border); }
-        th { background: var(--color-surface-offset); font-size: 0.9rem; }
-        tbody tr:hover { background: var(--color-surface-2); }
+        .page-header h1 { font-size:1.9rem; }
+        .page-sub { color:var(--color-text-muted); margin-top:0.35rem; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1.25rem; margin-bottom:1.5rem; }
+        .card { background:var(--color-surface); border:1px solid var(--color-border); border-radius:1rem; padding:1.25rem; margin-bottom:1.25rem; box-shadow:0 6px 18px rgba(0,0,0,0.03); }
+        .kpi { background:var(--color-surface); border:1px solid var(--color-border); border-radius:1rem; padding:1.25rem; }
+        .kpi-label { color:var(--color-text-muted); font-size:0.9rem; }
+        .kpi-value { color:var(--color-primary); font-size:2rem; font-weight:700; margin-top:0.45rem; }
+        table { width:100%; border-collapse:collapse; }
+        th, td { padding:0.95rem 0.85rem; text-align:left; border-bottom:1px solid var(--color-border); }
+        th { background:var(--color-surface-offset); font-size:0.9rem; }
+        tbody tr:hover { background:var(--color-surface-2); }
         .table-wrap { overflow-x:auto; }
-        .loading { text-align:center; padding:1.5rem; color: var(--color-text-muted); }
-        .muted { color: var(--color-text-muted); }
-        .activities-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:1.25rem; }
-        .theme-toggle {
-            position: fixed; right: 1.5rem; bottom: 1.5rem; width: 50px; height: 50px; border-radius: 50%;
-            background: var(--color-primary); color:#fff; z-index:1000;
-        }
-        .top-actions { display:flex; gap:0.75rem; align-items:center; }
-        .status-pill { font-size:0.8rem; font-weight:700; }
-        .empty-state { text-align:center; color: var(--color-text-muted); padding: 1.5rem 0; }
-        @media (max-width: 900px) {
-            aside { width: 100%; height:auto; position:static; border-right:none; border-bottom:1px solid var(--color-border); }
+        .loading { text-align:center; padding:1.5rem; color:var(--color-text-muted); }
+        .muted { color:var(--color-text-muted); }
+        .activities-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.25rem; }
+        .empty-state { text-align:center; color:var(--color-text-muted); padding:1.5rem 0; }
+        .theme-toggle { position:fixed; right:1.5rem; bottom:1.5rem; width:50px; height:50px; border-radius:50%; background:var(--color-primary); color:#fff; z-index:1000; }
+        @media (max-width:900px) {
+            aside { width:100%; height:auto; position:static; border-right:none; border-bottom:1px solid var(--color-border); }
             main { margin-left:0; width:100%; padding:1.25rem; }
             body.authenticated { display:block; }
             .page-header { flex-direction:column; align-items:flex-start; }
@@ -191,14 +130,14 @@
 <div id="page-login" class="login-wrapper" style="display:none;">
     <div class="login-card">
         <div class="login-logo">
-            <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="AttendX logo">
+            <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M26 8L10 42H18L21.5 34H30.5L34 42H42L26 8Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
                 <path d="M21.5 34L26 22L30.5 34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
                 <path d="M18 16C20.5 13.5 23 12 26 12C29 12 31.5 13.5 34 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.6"/>
             </svg>
         </div>
         <h1>AttendX</h1>
-        <p>Smart Attendance & Activity Intelligence</p>
+        <p>Smart Attendance &amp; Activity Intelligence</p>
         <form id="login-form">
             <div class="form-group">
                 <label for="login-email">Email</label>
@@ -215,7 +154,7 @@
 </div>
 <aside id="sidebar" style="display:none;">
     <div class="sidebar-logo">
-        <svg width="28" height="28" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M26 8L10 42H18L21.5 34H30.5L34 42H42L26 8Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
             <path d="M21.5 34L26 22L30.5 34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
         </svg>
@@ -234,16 +173,13 @@
 <main id="main" style="display:none;">
     <div id="page-dashboard" class="page active">
         <div class="page-header">
-            <div>
-                <h1>Dashboard</h1>
-                <p class="page-sub">Institution overview and live attendance insights.</p>
-            </div>
+            <div><h1>Dashboard</h1><p class="page-sub">Institution overview and live attendance insights.</p></div>
         </div>
         <div class="grid">
             <div class="kpi"><div class="kpi-label">Active Students</div><div class="kpi-value" id="kpi-students">-</div></div>
             <div class="kpi"><div class="kpi-label">Attendance</div><div class="kpi-value" id="kpi-attendance">-</div></div>
             <div class="kpi"><div class="kpi-label">Pending Activities</div><div class="kpi-value" id="kpi-activities">-</div></div>
-            <div class="kpi"><div class="kpi-label">Conflicts</div><div class="kpi-value" id="kpi-conflicts">-</div></div>
+            <div class="kpi"><div class="kpi-label">Timetable Conflicts</div><div class="kpi-value" id="kpi-conflicts">-</div></div>
         </div>
         <div class="card">
             <h2 style="margin-bottom:1rem;">Attendance Trend</h2>
@@ -254,7 +190,7 @@
         <div class="page-header"><h1>Attendance</h1></div>
         <div class="card table-wrap">
             <table>
-                <thead><tr><th>Student Name</th><th>Roll No</th><th>Department</th><th>Semester</th><th>Email</th><th>Status</th></tr></thead>
+                <thead><tr><th>Name</th><th>Roll No</th><th>Dept ID</th><th>Semester</th><th>Email</th><th>Status</th></tr></thead>
                 <tbody id="attendance-table"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
             </table>
         </div>
@@ -274,20 +210,14 @@
     </div>
     <div id="page-analytics" class="page">
         <div class="page-header"><h1>Analytics</h1></div>
-        <div class="card">
-            <h2 style="margin-bottom:1rem;">Department Attendance</h2>
-            <div style="height:320px;"><canvas id="deptChart"></canvas></div>
-        </div>
-        <div class="card">
-            <h2 style="margin-bottom:1rem;">Activity Participation</h2>
-            <div style="height:320px;"><canvas id="activityChart"></canvas></div>
-        </div>
+        <div class="card"><h2 style="margin-bottom:1rem;">Department Attendance</h2><div style="height:320px;"><canvas id="deptChart"></canvas></div></div>
+        <div class="card"><h2 style="margin-bottom:1rem;">Activity Participation</h2><div style="height:320px;"><canvas id="activityChart"></canvas></div></div>
     </div>
     <div id="page-students" class="page">
         <div class="page-header"><h1>Students</h1></div>
         <div class="card table-wrap">
             <table>
-                <thead><tr><th>Name</th><th>Roll No</th><th>Department ID</th><th>Semester</th><th>Email</th><th>Status</th></tr></thead>
+                <thead><tr><th>Name</th><th>Roll No</th><th>Dept ID</th><th>Semester</th><th>Email</th><th>Status</th></tr></thead>
                 <tbody id="students-table"><tr><td colspan="6" class="loading">Loading...</td></tr></tbody>
             </table>
         </div>
@@ -303,14 +233,13 @@
     </div>
     <div id="page-settings" class="page">
         <div class="page-header"><h1>Settings</h1></div>
-        <div class="card">
-            <h2 style="margin-bottom:0.75rem;">Institution Profile</h2>
-            <p class="muted">Managed from backend configuration and seeded data.</p>
-        </div>
+        <div class="card"><h2 style="margin-bottom:0.75rem;">Institution Profile</h2><p class="muted">Managed from backend configuration.</p></div>
     </div>
 </main>
 <button id="theme-btn" class="theme-toggle" onclick="toggleTheme()" style="display:none;">🌙</button>
 <script>
+    const API_BASE = 'https://eductaion.onrender.com';
+
     let authToken = null;
     let currentUser = null;
     let charts = {};
@@ -318,7 +247,7 @@
 
     async function apiCall(path, options = {}) {
         try {
-            const res = await fetch((window.CONFIG?.API_BASE || CONFIG.API_BASE) + path, {
+            const res = await fetch(API_BASE + path, {
                 ...options,
                 headers: {
                     'Content-Type': 'application/json',
@@ -326,36 +255,30 @@
                     ...(options.headers || {})
                 }
             });
-            if (res.status === 401) {
-                logout(false);
-                return null;
-            }
+            if (res.status === 401) { logout(false); return null; }
             const data = await res.json().catch(() => null);
-            if (!res.ok) {
-                showToast(data?.detail || 'Request failed', 'error');
-                return null;
-            }
+            if (!res.ok) { showToast(data?.detail || 'Request failed', 'error'); return null; }
             return data;
-        } catch (error) {
-            showToast('Unable to reach server. Please check backend deployment.', 'error');
+        } catch (err) {
+            showToast('Cannot reach server: ' + err.message, 'error');
             return null;
         }
     }
 
-    function showToast(message, type = 'info') {
-        const colors = { success: '#437a22', error: '#a12c7b', info: '#01696f' };
-        const toast = document.createElement('div');
-        toast.style.cssText = `position:fixed;top:20px;right:20px;z-index:9999;padding:12px 16px;border-radius:10px;color:#fff;background:${colors[type]};box-shadow:0 8px 24px rgba(0,0,0,0.15);max-width:340px;`;
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3500);
+    function showToast(msg, type = 'info') {
+        const colors = { success:'#437a22', error:'#a12c7b', info:'#01696f' };
+        const t = document.createElement('div');
+        t.style.cssText = `position:fixed;top:20px;right:20px;z-index:9999;padding:12px 16px;border-radius:10px;color:#fff;background:${colors[type]};box-shadow:0 8px 24px rgba(0,0,0,0.15);max-width:340px;`;
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => t.remove(), 3500);
     }
 
-    function statusBadge(status) {
-        const value = String(status || '').toLowerCase();
-        if (value.includes('active') || value.includes('present') || value.includes('completed')) return `<span class="badge badge-success">${status}</span>`;
-        if (value.includes('upcoming') || value.includes('ongoing') || value.includes('late') || value.includes('warning')) return `<span class="badge badge-warning">${status}</span>`;
-        return `<span class="badge badge-error">${status || 'Unknown'}</span>`;
+    function statusBadge(s) {
+        const v = String(s||'').toLowerCase();
+        if (v.includes('active')||v.includes('present')||v.includes('completed')) return `<span class="badge badge-success">${s}</span>`;
+        if (v.includes('upcoming')||v.includes('ongoing')||v.includes('late')) return `<span class="badge badge-warning">${s}</span>`;
+        return `<span class="badge badge-error">${s||'Unknown'}</span>`;
     }
 
     function showApp() {
@@ -381,7 +304,6 @@
         btn.disabled = true;
         btn.textContent = 'Signing In...';
         errEl.style.display = 'none';
-
         const data = await apiCall('/auth/login', {
             method: 'POST',
             body: JSON.stringify({
@@ -389,13 +311,11 @@
                 password: document.getElementById('login-password').value
             })
         });
-
         if (data?.access_token) {
             authToken = data.access_token;
             currentUser = data.user;
             showApp();
             showPage('dashboard');
-            loadDashboard();
             showToast(`Welcome ${currentUser.name}`, 'success');
         } else {
             errEl.textContent = 'Invalid email or password';
@@ -405,40 +325,30 @@
         btn.textContent = 'Sign In';
     });
 
-    function logout(showMessage = true) {
-        authToken = null;
-        currentUser = null;
+    function logout(msg = true) {
+        authToken = null; currentUser = null;
         showLogin();
         document.getElementById('login-form').reset();
-        if (showMessage) showToast('Logged out', 'info');
+        if (msg) showToast('Logged out', 'info');
     }
 
-    function showPage(pageName) {
+    function showPage(name) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById('page-' + pageName).classList.add('active');
-        document.querySelectorAll('.nav-item[data-page]').forEach(item => item.classList.remove('active'));
-        const nav = document.querySelector(`.nav-item[data-page="${pageName}"]`);
+        document.getElementById('page-' + name).classList.add('active');
+        document.querySelectorAll('.nav-item[data-page]').forEach(i => i.classList.remove('active'));
+        const nav = document.querySelector(`.nav-item[data-page="${name}"]`);
         if (nav) nav.classList.add('active');
-        if (pageName === 'dashboard') loadDashboard();
-        if (pageName === 'attendance') loadAttendance();
-        if (pageName === 'timetable') loadTimetable();
-        if (pageName === 'activities') loadActivities();
-        if (pageName === 'analytics') loadAnalytics();
-        if (pageName === 'students') loadStudents();
-        if (pageName === 'alumni') loadAlumni();
+        const loaders = { dashboard: loadDashboard, attendance: loadAttendance, timetable: loadTimetable, activities: loadActivities, analytics: loadAnalytics, students: loadStudents, alumni: loadAlumni };
+        if (loaders[name]) loaders[name]();
     }
 
     document.querySelectorAll('.nav-item[data-page]').forEach(item => {
         item.addEventListener('click', () => showPage(item.dataset.page));
     });
 
-    function chartColors() {
+    function cc() {
         const dark = document.documentElement.dataset.theme === 'dark';
-        return {
-            primary: dark ? '#4f98a3' : '#01696f',
-            grid: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-            text: dark ? '#cdccca' : '#28251d'
-        };
+        return { primary: dark?'#4f98a3':'#01696f', grid: dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.08)', text: dark?'#cdccca':'#28251d' };
     }
 
     async function loadDashboard() {
@@ -448,161 +358,81 @@
         document.getElementById('kpi-attendance').textContent = `${Math.round(data.attendance_percentage ?? 0)}%`;
         document.getElementById('kpi-activities').textContent = data.pending_activities ?? 0;
         document.getElementById('kpi-conflicts').textContent = data.conflicts ?? 0;
-
-        const { primary, grid, text } = chartColors();
+        const { primary, grid, text } = cc();
         const ctx = document.getElementById('attendanceChart').getContext('2d');
         if (charts.attendance) charts.attendance.destroy();
         charts.attendance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Attendance %',
-                    data: [78, 82, 80, 86, 84, 88, Math.round(data.attendance_percentage ?? 0)],
-                    borderColor: primary,
-                    backgroundColor: primary + '22',
-                    fill: true,
-                    tension: 0.35
-                }]
+                labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+                datasets: [{ label:'Attendance %', data:[78,82,80,86,84,88,Math.round(data.attendance_percentage??0)], borderColor:primary, backgroundColor:primary+'22', fill:true, tension:0.35 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: text } } },
-                scales: { x: { ticks: { color: text }, grid: { color: grid } }, y: { ticks: { color: text }, grid: { color: grid } } }
-            }
+            options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:text}}}, scales:{x:{ticks:{color:text},grid:{color:grid}},y:{ticks:{color:text},grid:{color:grid}}} }
         });
     }
 
     async function loadAttendance() {
         const data = await apiCall('/students');
         const tbody = document.getElementById('attendance-table');
-        if (!data || !Array.isArray(data)) {
-            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No records found</td></tr>';
-            return;
-        }
-        tbody.innerHTML = data.map(s => `
-            <tr>
-                <td>${s.name}</td>
-                <td>${s.roll_no}</td>
-                <td>${s.dept_id}</td>
-                <td>${s.semester}</td>
-                <td>${s.email}</td>
-                <td>${statusBadge(s.status)}</td>
-            </tr>
-        `).join('');
+        if (!data||!Array.isArray(data)) { tbody.innerHTML='<tr><td colspan="6" class="empty-state">No records found</td></tr>'; return; }
+        tbody.innerHTML = data.map(s => `<tr><td>${s.name}</td><td>${s.roll_no}</td><td>${s.dept_id}</td><td>${s.semester}</td><td>${s.email}</td><td>${statusBadge(s.status)}</td></tr>`).join('');
     }
 
     async function loadTimetable() {
         const data = await apiCall('/timetable');
         const tbody = document.getElementById('timetable-table');
-        if (!data || !Array.isArray(data)) {
-            tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No timetable records found</td></tr>';
-            return;
-        }
-        tbody.innerHTML = data.map(s => `
-            <tr>
-                <td>${s.day}</td>
-                <td>${s.time_start} - ${s.time_end}</td>
-                <td>${s.subject_id}</td>
-                <td>${s.room}</td>
-                <td>${s.semester}</td>
-            </tr>
-        `).join('');
+        if (!data||!Array.isArray(data)) { tbody.innerHTML='<tr><td colspan="5" class="empty-state">No records found</td></tr>'; return; }
+        tbody.innerHTML = data.map(s => `<tr><td>${s.day}</td><td>${s.time_start} - ${s.time_end}</td><td>${s.subject_id}</td><td>${s.room}</td><td>${s.semester}</td></tr>`).join('');
     }
 
     async function loadActivities() {
         const data = await apiCall('/activities');
         const grid = document.getElementById('activities-grid');
-        if (!data || !Array.isArray(data) || !data.length) {
-            grid.innerHTML = '<div class="card empty-state">No activities available</div>';
-            return;
-        }
+        if (!data||!Array.isArray(data)||!data.length) { grid.innerHTML='<div class="card empty-state">No activities found</div>'; return; }
         grid.innerHTML = data.map(a => `
             <div class="card">
-                <div style="display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;margin-bottom:0.75rem;">
-                    <h3>${a.title}</h3>
-                    ${statusBadge(a.status)}
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;">
+                    <h3>${a.title}</h3>${statusBadge(a.status)}
                 </div>
-                <p class="muted" style="margin-bottom:0.75rem;">${a.description || 'No description available'}</p>
-                <div class="muted" style="font-size:0.9rem; display:grid; gap:0.35rem;">
+                <p class="muted" style="margin-bottom:0.75rem;">${a.description||'No description'}</p>
+                <div class="muted" style="font-size:0.9rem;display:grid;gap:0.35rem;">
                     <div>Type: ${a.activity_type}</div>
                     <div>Date: ${new Date(a.date).toLocaleDateString()}</div>
-                    <div>Department ID: ${a.dept_id}</div>
                     <div>Capacity: ${a.max_capacity}</div>
                 </div>
-            </div>
-        `).join('');
+            </div>`).join('');
     }
 
     async function loadStudents() {
         const data = await apiCall('/students');
         const tbody = document.getElementById('students-table');
-        if (!data || !Array.isArray(data)) {
-            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No student records found</td></tr>';
-            return;
-        }
-        tbody.innerHTML = data.map(s => `
-            <tr>
-                <td>${s.name}</td>
-                <td>${s.roll_no}</td>
-                <td>${s.dept_id}</td>
-                <td>${s.semester}</td>
-                <td>${s.email}</td>
-                <td>${statusBadge(s.status)}</td>
-            </tr>
-        `).join('');
+        if (!data||!Array.isArray(data)) { tbody.innerHTML='<tr><td colspan="6" class="empty-state">No students found</td></tr>'; return; }
+        tbody.innerHTML = data.map(s => `<tr><td>${s.name}</td><td>${s.roll_no}</td><td>${s.dept_id}</td><td>${s.semester}</td><td>${s.email}</td><td>${statusBadge(s.status)}</td></tr>`).join('');
     }
 
     async function loadAlumni() {
         const data = await apiCall('/alumni');
         const tbody = document.getElementById('alumni-table');
-        if (!data || !Array.isArray(data)) {
-            tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No alumni records found</td></tr>';
-            return;
-        }
-        tbody.innerHTML = data.map(a => `
-            <tr>
-                <td>${a.name}</td>
-                <td>${a.batch_year}</td>
-                <td>${a.company}</td>
-                <td>${a.role}</td>
-                <td>${a.email}</td>
-                <td>${a.location}</td>
-            </tr>
-        `).join('');
+        if (!data||!Array.isArray(data)) { tbody.innerHTML='<tr><td colspan="6" class="empty-state">No alumni found</td></tr>'; return; }
+        tbody.innerHTML = data.map(a => `<tr><td>${a.name}</td><td>${a.batch_year}</td><td>${a.company}</td><td>${a.role}</td><td>${a.email}</td><td>${a.location}</td></tr>`).join('');
     }
 
     async function loadAnalytics() {
-        const attendanceData = await apiCall('/analytics/attendance');
-        const activityData = await apiCall('/analytics/activities');
-        const { primary, grid, text } = chartColors();
-
+        const [attendanceData, activityData] = await Promise.all([apiCall('/analytics/attendance'), apiCall('/analytics/activities')]);
+        const { primary, grid, text } = cc();
         const deptCtx = document.getElementById('deptChart').getContext('2d');
         if (charts.dept) charts.dept.destroy();
         charts.dept = new Chart(deptCtx, {
-            type: 'bar',
-            data: {
-                labels: (attendanceData || []).map(d => d.dept_name),
-                datasets: [{ label: 'Attendance %', data: (attendanceData || []).map(d => d.percentage), backgroundColor: primary }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: text } } },
-                scales: { x: { ticks: { color: text }, grid: { color: grid } }, y: { ticks: { color: text }, grid: { color: grid } } }
-            }
+            type:'bar',
+            data:{ labels:(attendanceData||[]).map(d=>d.dept_name), datasets:[{label:'Attendance %',data:(attendanceData||[]).map(d=>d.percentage),backgroundColor:primary}] },
+            options:{ responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:text}}},scales:{x:{ticks:{color:text},grid:{color:grid}},y:{ticks:{color:text},grid:{color:grid}}} }
         });
-
-        const activityCtx = document.getElementById('activityChart').getContext('2d');
+        const actCtx = document.getElementById('activityChart').getContext('2d');
         if (charts.activity) charts.activity.destroy();
-        charts.activity = new Chart(activityCtx, {
-            type: 'doughnut',
-            data: {
-                labels: (activityData || []).map(a => a.name),
-                datasets: [{ data: (activityData || []).map(a => a.percentage), backgroundColor: [primary, '#437a22', '#964219', '#a12c7b', '#6b7280'] }]
-            },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: text } } } }
+        charts.activity = new Chart(actCtx, {
+            type:'doughnut',
+            data:{ labels:(activityData||[]).map(a=>a.name), datasets:[{data:(activityData||[]).map(a=>a.percentage),backgroundColor:[primary,'#437a22','#964219','#a12c7b','#6b7280']}] },
+            options:{ responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:text}}} }
         });
     }
 
@@ -610,19 +440,13 @@
         currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
         document.documentElement.dataset.theme = currentTheme;
         document.getElementById('theme-btn').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
-        if (authToken) {
-            const activePage = document.querySelector('.page.active')?.id?.replace('page-', '') || 'dashboard';
-            showPage(activePage);
-        }
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        currentTheme = prefersDark ? 'dark' : 'light';
+        currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
         document.documentElement.dataset.theme = currentTheme;
         document.getElementById('theme-btn').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
         showLogin();
-        if (window.lucide) lucide.createIcons();
     });
 </script>
 </body>
