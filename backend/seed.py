@@ -398,6 +398,7 @@ async def seed_database():
                 profile.total_xp = 225
                 profile.level = 2
                 profile.streak_days = 7
+                profile.last_activity_date = (datetime.utcnow() - timedelta(days=1)).date()
                 profile.badges = "first_lesson,course_complete,streak_7"
             elif idx == 1:
                 course_progress = StudentCourseProgress(
@@ -420,6 +421,7 @@ async def seed_database():
                 profile.total_xp = 40
                 profile.level = 1
                 profile.streak_days = 2
+                profile.last_activity_date = (datetime.utcnow() - timedelta(days=1)).date()
             elif idx == 2:
                 course_progress = StudentCourseProgress(
                     student_id=student_id,
@@ -441,6 +443,7 @@ async def seed_database():
                 profile.total_xp = 20
                 profile.level = 1
                 profile.streak_days = 1
+                profile.last_activity_date = datetime.utcnow().date()
             else:
                 course_progress = StudentCourseProgress(
                     student_id=student_id,
@@ -458,6 +461,7 @@ async def seed_database():
                 profile.total_xp = 0
                 profile.level = 1
                 profile.streak_days = 1
+                profile.last_activity_date = (datetime.utcnow() - timedelta(days=1)).date()
 
         # 13. Course-based learning hub content
         python_course = Course(
