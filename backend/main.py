@@ -1,8 +1,8 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from contextlib import asynccontextmanager
-from database import init_db, get_db
+from database import init_db
 from routers import auth, students, attendance, timetable, activities, alumni, analytics
 
 @asynccontextmanager
@@ -17,13 +17,16 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-frontend_url = os.getenv("FRONTEND_URL", "https://eductaion-phi.vercel.app")
-origins = [o.strip() for o in frontend_url.split(",")] if frontend_url != "*" else ["*"]
+frontend_url = os.getenv("FRONTEND_URL", "*")
+if frontend_url == "*":
+    origins = ["*"]
+else:
+    origins = [o.strip() for o in frontend_url.split(",")]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=True,
+    allow_credentials=origins != ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
