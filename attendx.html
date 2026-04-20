@@ -449,12 +449,7 @@
         </div>
         <div class="card">
             <h2 style="margin-bottom:1rem;">Quick Links</h2>
-            <div class="nav-row">
-                <a class="pill" href="#learning"><i data-lucide="book-open"></i><span>Learning</span></a>
-                <a class="pill" href="#internships"><i data-lucide="briefcase"></i><span>Internships</span></a>
-                <a class="pill" href="#career"><i data-lucide="compass"></i><span>Career</span></a>
-                <a class="pill" href="#classroom"><i data-lucide="video"></i><span>Classroom</span></a>
-            </div>
+            <div class="nav-row" id="quick-links"></div>
         </div>
         <div class="card">
             <h2 style="margin-bottom:1rem;">Attendance Trend</h2>
@@ -472,15 +467,17 @@
     </div>
     <div id="page-timetable" class="page">
         <div class="page-header"><h1>Timetable</h1></div>
+        <div id="timetable-editor"></div>
         <div class="card table-wrap">
             <table>
-                <thead><tr><th>Day</th><th>Time</th><th>Subject ID</th><th>Room</th><th>Semester</th></tr></thead>
-                <tbody id="timetable-table"><tr><td colspan="5" class="loading">Loading...</td></tr></tbody>
+                <thead><tr><th>Day</th><th>Time</th><th>Subject</th><th>Room</th><th>Dept</th><th>Semester</th><th>Action</th></tr></thead>
+                <tbody id="timetable-table"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
             </table>
         </div>
     </div>
     <div id="page-activities" class="page">
         <div class="page-header"><h1>Activities</h1></div>
+        <div id="activities-editor"></div>
         <div class="activities-grid" id="activities-grid"><div class="loading">Loading...</div></div>
     </div>
     <div id="page-analytics" class="page">
@@ -667,6 +664,8 @@
     let colleges = [];
     let departments = [];
     let headerResizeObserver = null;
+    const timetableState = { editingId: null, records: [], departments: [] };
+    const activityState = { editingId: null, records: [], departments: [] };
 
     function saveAuth() {
         return;
@@ -715,6 +714,226 @@
         if (v.includes('active')||v.includes('present')||v.includes('completed')) return `<span class="badge badge-success">${s}</span>`;
         if (v.includes('upcoming')||v.includes('ongoing')||v.includes('late')) return `<span class="badge badge-warning">${s}</span>`;
         return `<span class="badge badge-error">${s||'Unknown'}</span>`;
+    }
+
+    function isAdmin() {
+        return currentUser?.role === 'admin';
+    }
+
+    function isFaculty() {
+        return currentUser?.role === 'faculty';
+    }
+
+    function canEditTimetable() {
+        return isAdmin() || isFaculty();
+    }
+
+    function canEditActivities() {
+        return isAdmin() || isFaculty();
+    }
+
+    function canEditLearning() {
+        return isAdmin();
+    }
+
+    function getQuickLinks() {
+        const role = currentUser?.role || 'student';
+        if (role === 'admin') {
+            return [
+                ['dashboard', 'Dashboard', 'layout-dashboard'],
+                ['timetable', 'Timetable', 'calendar-days'],
+                ['activities', 'Activities', 'sparkles'],
+                ['learning', 'Learning', 'book-open'],
+                ['classroom', 'Classroom', 'video'],
+            ];
+        }
+        if (role === 'faculty') {
+            return [
+                ['dashboard', 'Dashboard', 'layout-dashboard'],
+                ['timetable', 'Timetable', 'calendar-days'],
+                ['activities', 'Activities', 'sparkles'],
+                ['classroom', 'Classroom', 'video'],
+                ['learning', 'Learning', 'book-open'],
+            ];
+        }
+        return [
+            ['dashboard', 'Dashboard', 'layout-dashboard'],
+            ['timetable', 'Timetable', 'calendar-days'],
+            ['activities', 'Activities', 'sparkles'],
+            ['learning', 'Learning', 'book-open'],
+            ['career', 'Career', 'compass'],
+        ];
+    }
+
+    function renderQuickLinks() {
+        const container = document.getElementById('quick-links');
+        if (!container) return;
+        container.innerHTML = getQuickLinks().map(([page, label, icon]) => `<a class="pill" href="#${page}" onclick="showPage('${page}'); return false;"><i data-lucide="${icon}"></i><span>${label}</span></a>`).join('');
+    }
+
+    function buildAttendanceTrend(heatmap) {
+        const labels = [];
+        const values = [];
+        for (let i = 6; i >= 0; i -= 1) {
+            const day = new Date();
+            day.setHours(0, 0, 0, 0);
+            day.setDate(day.getDate() - i);
+            const key = day.toISOString().slice(0, 10);
+            const row = heatmap?.[key] || { present: 0, absent: 0, late: 0 };
+            const total = (row.present || 0) + (row.absent || 0) + (row.late || 0);
+            const pct = total ? Math.round(((row.present || 0) / total) * 100) : 0;
+            labels.push(day.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }));
+            values.push(pct);
+        }
+        return { labels, values };
+    }
+
+    function renderTimetableEditor() {
+        const editor = document.getElementById('timetable-editor');
+        if (!editor) return;
+        if (!canEditTimetable()) {
+            editor.innerHTML = '';
+            return;
+        }
+        const slot = timetableState.records.find(item => item.id === timetableState.editingId) || null;
+        const dayOptions = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+            .map(day => `<option value="${day}" ${slot?.day === day ? 'selected' : ''}>${day}</option>`).join('');
+        const deptField = departments.length
+            ? `<select id="timetable-dept" required><option value="">Department</option>${departments.map(dep => `<option value="${dep.id}" ${Number(slot?.dept_id) === Number(dep.id) ? 'selected' : ''}>${escapeHTML(dep.name)} (${escapeHTML(dep.code)})</option>`).join('')}</select>`
+            : `<input type="number" id="timetable-dept" placeholder="Department ID" value="${slot?.dept_id ?? ''}" required />`;
+        editor.innerHTML = `
+            <div class="card">
+                <h2 style="margin-bottom:1rem;">${slot ? 'Edit Timetable Slot' : 'Add Timetable Slot'}</h2>
+                <form id="timetable-form" class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:0.75rem;">
+                    <select id="timetable-day" required>
+                        <option value="">Day</option>
+                        ${dayOptions}
+                    </select>
+                    <input type="number" id="timetable-subject" placeholder="Subject ID" value="${slot?.subject_id ?? ''}" required />
+                    <input type="time" id="timetable-start" value="${slot?.time_start ? String(slot.time_start).slice(0,5) : ''}" required />
+                    <input type="time" id="timetable-end" value="${slot?.time_end ? String(slot.time_end).slice(0,5) : ''}" required />
+                    <input type="text" id="timetable-room" placeholder="Room" value="${slot?.room ? escapeHTML(slot.room) : ''}" required />
+                    <input type="number" id="timetable-semester" min="1" max="12" placeholder="Semester" value="${slot?.semester ?? ''}" required />
+                    ${deptField}
+                    <div style="display:flex;gap:0.5rem;grid-column:1/-1;flex-wrap:wrap;">
+                        <button class="btn-primary" type="submit">${slot ? 'Update Slot' : 'Create Slot'}</button>
+                        ${slot ? `<button type="button" class="pill" onclick="clearTimetableEditor()">Cancel</button>` : ''}
+                    </div>
+                </form>
+            </div>
+        `;
+        document.getElementById('timetable-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                day: document.getElementById('timetable-day').value,
+                time_start: document.getElementById('timetable-start').value,
+                time_end: document.getElementById('timetable-end').value,
+                subject_id: Number(document.getElementById('timetable-subject').value),
+                room: document.getElementById('timetable-room').value.trim(),
+                semester: Number(document.getElementById('timetable-semester').value),
+                dept_id: Number(document.getElementById('timetable-dept').value),
+            };
+            const res = await apiCall(slot ? `/timetable/${slot.id}` : '/timetable', {
+                method: slot ? 'PUT' : 'POST',
+                body: JSON.stringify(payload),
+            });
+            if (!res) return;
+            showToast(slot ? 'Timetable slot updated' : 'Timetable slot created', 'success');
+            clearTimetableEditor();
+            loadTimetable();
+        };
+    }
+
+    function clearTimetableEditor() {
+        timetableState.editingId = null;
+        renderTimetableEditor();
+    }
+
+    function editTimetableSlot(id) {
+        timetableState.editingId = id;
+        renderTimetableEditor();
+        document.getElementById('timetable-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function deleteTimetableSlot(id) {
+        if (!confirm('Delete this timetable slot?')) return;
+        const res = await apiCall(`/timetable/${id}`, { method: 'DELETE' });
+        if (!res) return;
+        showToast('Timetable slot deleted', 'success');
+        if (timetableState.editingId === id) timetableState.editingId = null;
+        loadTimetable();
+    }
+
+    function renderActivityEditor() {
+        const editor = document.getElementById('activities-editor');
+        if (!editor) return;
+        if (!canEditActivities()) {
+            editor.innerHTML = '';
+            return;
+        }
+        const activity = activityState.records.find(item => item.id === activityState.editingId) || null;
+        editor.innerHTML = `
+            <div class="card">
+                <h2 style="margin-bottom:1rem;">${activity ? 'Edit Activity' : 'Add Activity'}</h2>
+                <form id="activity-form" class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:0.75rem;">
+                    <input type="text" id="activity-title" placeholder="Title" value="${activity ? escapeHTML(activity.title) : ''}" required />
+                    <select id="activity-type" required>
+                        ${['workshop', 'seminar', 'hackathon', 'competition', 'industrial_visit', 'other'].map(type => `<option value="${type}" ${activity?.activity_type === type ? 'selected' : ''}>${type.replace(/_/g, ' ')}</option>`).join('')}
+                    </select>
+                    <input type="datetime-local" id="activity-date" value="${activity?.date ? String(activity.date).slice(0,16) : ''}" required />
+                    <input type="number" id="activity-capacity" min="1" placeholder="Capacity" value="${activity?.max_capacity ?? ''}" required />
+                    <input type="number" id="activity-dept" placeholder="Department ID" value="${activity?.dept_id ?? ''}" required />
+                    <select id="activity-status" required>
+                        ${['upcoming', 'ongoing', 'completed', 'cancelled'].map(status => `<option value="${status}" ${activity?.status === status ? 'selected' : ''}>${status}</option>`).join('')}
+                    </select>
+                    <textarea id="activity-description" rows="4" placeholder="Description" style="grid-column:1/-1;" required>${activity ? escapeHTML(activity.description || '') : ''}</textarea>
+                    <div style="display:flex;gap:0.5rem;grid-column:1/-1;flex-wrap:wrap;">
+                        <button class="btn-primary" type="submit">${activity ? 'Update Activity' : 'Create Activity'}</button>
+                        ${activity ? `<button type="button" class="pill" onclick="clearActivityEditor()">Cancel</button>` : ''}
+                    </div>
+                </form>
+            </div>
+        `;
+        document.getElementById('activity-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const payload = {
+                title: document.getElementById('activity-title').value.trim(),
+                activity_type: document.getElementById('activity-type').value,
+                date: document.getElementById('activity-date').value,
+                description: document.getElementById('activity-description').value.trim(),
+                dept_id: Number(document.getElementById('activity-dept').value),
+                max_capacity: Number(document.getElementById('activity-capacity').value),
+                status: document.getElementById('activity-status').value,
+            };
+            const res = await apiCall(activity ? `/activities/${activity.id}` : '/activities', {
+                method: activity ? 'PUT' : 'POST',
+                body: JSON.stringify(payload),
+            });
+            if (!res) return;
+            showToast(activity ? 'Activity updated' : 'Activity created', 'success');
+            clearActivityEditor();
+            loadActivities();
+        };
+    }
+
+    function clearActivityEditor() {
+        activityState.editingId = null;
+        renderActivityEditor();
+    }
+
+    function editActivity(id) {
+        activityState.editingId = id;
+        renderActivityEditor();
+        document.getElementById('activities-editor')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function deleteActivity(id) {
+        if (!confirm('Delete this activity?')) return;
+        const res = await apiCall(`/activities/${id}`, { method: 'DELETE' });
+        if (!res) return;
+        showToast('Activity deleted', 'success');
+        if (activityState.editingId === id) activityState.editingId = null;
+        loadActivities();
     }
 
     function updateHeaderHeight() {
@@ -921,20 +1140,36 @@
     }
 
     async function loadDashboard() {
-        const data = await apiCall('/analytics/dashboard');
+        renderQuickLinks();
+        if (window.lucide) lucide.createIcons();
+        const [data, liveRes, docsRes, heatmapRes] = await Promise.all([
+            apiCall('/analytics/dashboard'),
+            apiCall('/classroom/sessions?status=live'),
+            isAdmin() ? apiCall('/documents') : Promise.resolve(null),
+            apiCall('/attendance/heatmap?days=7'),
+        ]);
         if (!data) return;
         document.getElementById('kpi-students').textContent = data.active_students ?? 0;
         document.getElementById('kpi-attendance').textContent = `${Math.round(data.attendance_percentage ?? 0)}%`;
         document.getElementById('kpi-activities').textContent = data.pending_activities ?? 0;
         document.getElementById('kpi-conflicts').textContent = data.conflicts ?? 0;
+        document.getElementById('kpi-sessions').textContent = Array.isArray(liveRes) ? liveRes.length : 0;
+        const verCard = document.getElementById('kpi-verifications-card');
+        if (isAdmin()) {
+            verCard.style.display = 'block';
+            document.getElementById('kpi-verifications').textContent = Array.isArray(docsRes) ? docsRes.filter(d => !d.verified).length : 0;
+        } else {
+            verCard.style.display = 'none';
+        }
         const { primary, grid, text } = cc();
         const ctx = document.getElementById('attendanceChart').getContext('2d');
         if (charts.attendance) charts.attendance.destroy();
+        const trend = buildAttendanceTrend(heatmapRes);
         charts.attendance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
-                datasets: [{ label:'Attendance %', data:[78,82,80,86,84,88,Math.round(data.attendance_percentage??0)], borderColor:primary, backgroundColor:primary+'22', fill:true, tension:0.35 }]
+                labels: trend.labels,
+                datasets: [{ label:'Attendance %', data:trend.values, borderColor:primary, backgroundColor:primary+'22', fill:true, tension:0.35 }]
             },
             options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{labels:{color:text}}}, scales:{x:{ticks:{color:text},grid:{color:grid}},y:{ticks:{color:text},grid:{color:grid}}} }
         });
@@ -950,26 +1185,41 @@
     async function loadTimetable() {
         const data = await apiCall('/timetable');
         const tbody = document.getElementById('timetable-table');
-        if (!data||!Array.isArray(data)) { tbody.innerHTML='<tr><td colspan="5" class="empty-state">No records found</td></tr>'; return; }
-        tbody.innerHTML = data.map(s => `<tr><td>${s.day}</td><td>${s.time_start} - ${s.time_end}</td><td>${s.subject_id}</td><td>${s.room}</td><td>${s.semester}</td></tr>`).join('');
+        timetableState.records = Array.isArray(data) ? data : [];
+        if (canEditTimetable() && !departments.length) departments = (await apiCall('/departments', { auth: false })) || [];
+        renderTimetableEditor();
+        if (!data||!Array.isArray(data)||!data.length) { tbody.innerHTML='<tr><td colspan="7" class="empty-state">No records found</td></tr>'; return; }
+        tbody.innerHTML = data.map(s => `<tr><td>${escapeHTML(s.day)}</td><td>${escapeHTML(String(s.time_start || '').slice(0,5))} - ${escapeHTML(String(s.time_end || '').slice(0,5))}</td><td>${escapeHTML(s.subject?.name || s.subject_id)}</td><td>${escapeHTML(s.room)}</td><td>${escapeHTML(s.dept_id)}</td><td>${escapeHTML(s.semester)}</td><td>${canEditTimetable() ? `<button class="btn-primary" data-edit-timetable="${s.id}">Edit</button> <button class="btn-primary" data-delete-timetable="${s.id}">Delete</button>` : '-'}</td></tr>`).join('');
+        if (canEditTimetable()) {
+            document.querySelectorAll('[data-edit-timetable]').forEach(btn => btn.onclick = () => editTimetableSlot(Number(btn.dataset.editTimetable)));
+            document.querySelectorAll('[data-delete-timetable]').forEach(btn => btn.onclick = () => deleteTimetableSlot(Number(btn.dataset.deleteTimetable)));
+        }
     }
 
     async function loadActivities() {
         const data = await apiCall('/activities');
         const grid = document.getElementById('activities-grid');
+        activityState.records = Array.isArray(data) ? data : [];
+        renderActivityEditor();
         if (!data||!Array.isArray(data)||!data.length) { grid.innerHTML='<div class="card empty-state">No activities found</div>'; return; }
         grid.innerHTML = data.map(a => `
             <div class="card">
                 <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem;">
-                    <h3>${a.title}</h3>${statusBadge(a.status)}
+                    <h3>${escapeHTML(a.title)}</h3>${statusBadge(a.status)}
                 </div>
-                <p class="muted" style="margin-bottom:0.75rem;">${a.description||'No description'}</p>
+                <p class="muted" style="margin-bottom:0.75rem;">${escapeHTML(a.description||'No description')}</p>
                 <div class="muted" style="font-size:0.9rem;display:grid;gap:0.35rem;">
-                    <div>Type: ${a.activity_type}</div>
-                    <div>Date: ${new Date(a.date).toLocaleDateString()}</div>
-                    <div>Capacity: ${a.max_capacity}</div>
+                    <div>Type: ${escapeHTML(a.activity_type)}</div>
+                    <div>Date: ${new Date(a.date).toLocaleString()}</div>
+                    <div>Capacity: ${escapeHTML(a.max_capacity)}</div>
+                    <div>Department: ${escapeHTML(a.dept_id)}</div>
                 </div>
+                ${canEditActivities() ? `<div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.9rem;"><button class="btn-primary" data-edit-activity="${a.id}">Edit</button><button class="btn-primary" data-delete-activity="${a.id}">Delete</button></div>` : ''}
             </div>`).join('');
+        if (canEditActivities()) {
+            document.querySelectorAll('[data-edit-activity]').forEach(btn => btn.onclick = () => editActivity(Number(btn.dataset.editActivity)));
+            document.querySelectorAll('[data-delete-activity]').forEach(btn => btn.onclick = () => deleteActivity(Number(btn.dataset.deleteActivity)));
+        }
     }
 
     async function loadStudents() {
@@ -1745,7 +1995,7 @@
                     </div>
                     <div class="learning-actions">
                         <button class="btn-primary" onclick="learningShowProgress()">My Progress</button>
-                        ${(role === 'admin' || role === 'faculty') ? `<button class="btn-primary" onclick="openCreateCourseModal()">Create Course</button>` : ''}
+                        ${role === 'admin' ? `<button class="btn-primary" onclick="openCourseModal()">Create Course</button>` : ''}
                     </div>
                 </div>
                 <div class="card">
@@ -1780,7 +2030,10 @@
                         <h3>${escapeHTML(module.title)}</h3>
                         <div class="muted">${escapeHTML(module.estimated_minutes)} min · ${escapeHTML(module.xp_reward)} XP</div>
                     </div>
-                    ${getCourseProgress(course.id)?.completed ? '<span class="pill badge-green">Completed</span>' : ''}
+                    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
+                        ${getCourseProgress(course.id)?.completed ? '<span class="pill badge-green">Completed</span>' : ''}
+                        ${isAdmin() ? `<button class="pill" type="button" onclick="openModuleModal(${course.id}, ${module.id})">Edit Module</button><button class="pill" type="button" onclick="deleteModule(${module.id})">Delete Module</button>` : ''}
+                    </div>
                 </div>
                 <div style="margin-top:1rem;">${video}${pdf ? `<div style="margin-bottom:1rem;">${pdf}</div>` : ''}${module.body ? `<div class="module-body">${formatLearningText(module.body)}</div>` : ''}</div>
                 <div class="course-detail-actions">
@@ -1792,7 +2045,7 @@
 
     function renderAddModuleForm(course) {
         const role = currentUser?.role || '';
-        if (!(role === 'admin' || role === 'faculty')) return '';
+        if (role !== 'admin') return '';
         return `
             <div class="card">
                 <h3 style="margin-bottom:0.75rem;">Add Module</h3>
@@ -1848,6 +2101,7 @@
                     <div class="learning-actions">
                         ${!progress && currentUser?.role === 'student' ? `<button class="btn-primary" onclick="learningEnrollAndOpen(${course.id})">Start Learning</button>` : ''}
                         ${progress?.completed ? '<span class="pill badge-green">✓ Completed</span>' : ''}
+                        ${isAdmin() ? `<button class="btn-primary" onclick="openCourseModal(learningState.course)">Edit Course</button><button class="btn-primary" onclick="deleteCourse(${course.id})">Delete Course</button>` : ''}
                     </div>
                 </div>
                 <div class="course-detail-layout">
@@ -1956,7 +2210,7 @@
 
     function bindLearningDom() {
         const form = document.getElementById('add-module-form');
-        if (form) {
+        if (form && isAdmin()) {
             form.onsubmit = async (e) => {
                 e.preventDefault();
                 const courseId = learningState.course?.id;
@@ -2157,46 +2411,116 @@
         if (learningState.selectedCourseId) await learningOpenCourse(learningState.selectedCourseId);
     }
 
-    async function openCreateCourseModal() {
+    async function openCourseModal(course = null) {
+        if (!isAdmin()) return;
         if (!learningState.departments.length) learningState.departments = (await apiCall('/departments', { auth: false })) || [];
-        const semesterOptions = ['<option value="">All Semesters</option>', ...Array.from({ length: 8 }).map((_, i) => `<option value="${i + 1}">Semester ${i + 1}</option>`)].join('');
-        const deptOptions = ['<option value="">All Departments</option>', ...learningState.departments.map(dep => `<option value="${dep.id}">${escapeHTML(dep.name)}</option>`)].join('');
-        openModal('Create Course', `
-            <form id="create-course-form">
+        const semesterOptions = ['<option value="">All Semesters</option>', ...Array.from({ length: 8 }).map((_, i) => `<option value="${i + 1}" ${Number(course?.semester) === i + 1 ? 'selected' : ''}>Semester ${i + 1}</option>`)].join('');
+        const deptOptions = ['<option value="">All Departments</option>', ...learningState.departments.map(dep => `<option value="${dep.id}" ${Number(course?.dept_id) === Number(dep.id) ? 'selected' : ''}>${escapeHTML(dep.name)}</option>`)].join('');
+        const title = course ? 'Edit Course' : 'Create Course';
+        openModal(title, `
+            <form id="course-form">
                 <div class="grid" style="grid-template-columns:1fr 1fr;gap:0.75rem;">
-                    <input id="course-title" placeholder="Title" required />
-                    <input id="course-subject" placeholder="Subject" required />
-                    <textarea id="course-description" rows="4" placeholder="Description" style="grid-column:1/-1;" required></textarea>
+                    <input id="course-title" placeholder="Title" value="${course ? escapeHTML(course.title) : ''}" required />
+                    <input id="course-subject" placeholder="Subject" value="${course ? escapeHTML(course.subject) : ''}" required />
+                    <textarea id="course-description" rows="4" placeholder="Description" style="grid-column:1/-1;" required>${course ? escapeHTML(course.description || '') : ''}</textarea>
                     <select id="course-dept">${deptOptions}</select>
                     <select id="course-semester">${semesterOptions}</select>
-                    <input id="course-thumbnail" placeholder="Thumbnail URL" />
-                    <input id="course-xp" type="number" min="1" value="100" placeholder="XP Reward" />
+                    <input id="course-thumbnail" placeholder="Thumbnail URL" value="${course ? escapeHTML(course.thumbnail_url || '') : ''}" />
+                    <input id="course-xp" type="number" min="1" value="${course?.xp_reward ?? 100}" placeholder="XP Reward" />
+                    <label class="pill" style="grid-column:1/-1;justify-content:flex-start;gap:0.5rem;">
+                        <input type="checkbox" id="course-published" ${course?.is_published ? 'checked' : ''} style="width:auto;" />
+                        Published
+                    </label>
                 </div>
-                <p id="create-course-error" class="auth-error" style="display:none;"></p>
-                <button class="btn-primary" type="submit" style="margin-top:1rem;">Create Course</button>
+                <p id="course-form-error" class="auth-error" style="display:none;"></p>
+                <button class="btn-primary" type="submit" style="margin-top:1rem;">${course ? 'Save Course' : 'Create Course'}</button>
             </form>
         `, () => {
-            document.getElementById('create-course-form').onsubmit = async (e) => {
+            document.getElementById('course-form').onsubmit = async (e) => {
                 e.preventDefault();
-                const res = await apiCall('/learning/courses', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        title: document.getElementById('course-title').value.trim(),
-                        description: document.getElementById('course-description').value.trim(),
-                        subject: document.getElementById('course-subject').value.trim(),
-                        dept_id: document.getElementById('course-dept').value ? Number(document.getElementById('course-dept').value) : null,
-                        semester: document.getElementById('course-semester').value ? Number(document.getElementById('course-semester').value) : null,
-                        thumbnail_url: document.getElementById('course-thumbnail').value.trim() || null,
-                        xp_reward: Number(document.getElementById('course-xp').value || 100),
-                        is_published: false,
-                    }),
+                const payload = {
+                    title: document.getElementById('course-title').value.trim(),
+                    description: document.getElementById('course-description').value.trim(),
+                    subject: document.getElementById('course-subject').value.trim(),
+                    dept_id: document.getElementById('course-dept').value ? Number(document.getElementById('course-dept').value) : null,
+                    semester: document.getElementById('course-semester').value ? Number(document.getElementById('course-semester').value) : null,
+                    thumbnail_url: document.getElementById('course-thumbnail').value.trim() || null,
+                    xp_reward: Number(document.getElementById('course-xp').value || 100),
+                    is_published: document.getElementById('course-published').checked,
+                };
+                const res = await apiCall(course ? `/learning/courses/${course.id}` : '/learning/courses', {
+                    method: course ? 'PUT' : 'POST',
+                    body: JSON.stringify(payload),
                 });
                 if (!res) return;
                 closeModal();
-                showToast('Course created! Now add modules →', 'success');
-                await learningOpenCourse(res.id);
+                showToast(course ? 'Course updated' : 'Course created', 'success');
+                if (course) {
+                    await learningOpenCourse(course.id);
+                    await loadLearning();
+                } else {
+                    await learningOpenCourse(res.id);
+                }
             };
         });
+    }
+
+    async function openModuleModal(courseId, module = null) {
+        if (!isAdmin()) return;
+        const title = module ? 'Edit Module' : 'Add Module';
+        openModal(title, `
+            <form id="module-form" class="grid" style="grid-template-columns:1fr 1fr;gap:0.75rem;">
+                <input id="module-title" placeholder="Title" value="${module ? escapeHTML(module.title) : ''}" required />
+                <input id="module-video" placeholder="Video URL (YouTube)" value="${module ? escapeHTML(module.video_url || '') : ''}" />
+                <input id="module-pdf" placeholder="PDF / Notes URL" value="${module ? escapeHTML(module.pdf_url || '') : ''}" />
+                <input id="module-minutes" type="number" min="1" value="${module?.estimated_minutes ?? 10}" placeholder="Estimated Minutes" />
+                <input id="module-xp" type="number" min="1" value="${module?.xp_reward ?? 20}" placeholder="XP Reward" />
+                <input id="module-order" type="number" min="1" value="${module?.order_index ?? ''}" placeholder="Order" />
+                <textarea id="module-body" rows="4" placeholder="Body" style="grid-column:1/-1;">${module ? escapeHTML(module.body || '') : ''}</textarea>
+                <p id="module-form-error" class="auth-error" style="display:none;grid-column:1/-1;"></p>
+                <button class="btn-primary" type="submit" style="grid-column:1/-1;">${module ? 'Save Module' : 'Add Module'}</button>
+            </form>
+        `, () => {
+            document.getElementById('module-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const payload = {
+                    title: document.getElementById('module-title').value.trim(),
+                    video_url: document.getElementById('module-video').value.trim() || null,
+                    pdf_url: document.getElementById('module-pdf').value.trim() || null,
+                    body: document.getElementById('module-body').value.trim() || null,
+                    estimated_minutes: Number(document.getElementById('module-minutes').value || 10),
+                    xp_reward: Number(document.getElementById('module-xp').value || 20),
+                    order_index: document.getElementById('module-order').value ? Number(document.getElementById('module-order').value) : null,
+                };
+                const res = await apiCall(module ? `/learning/modules/${module.id}` : `/learning/courses/${courseId}/modules`, {
+                    method: module ? 'PUT' : 'POST',
+                    body: JSON.stringify(payload),
+                });
+                if (!res) return;
+                closeModal();
+                showToast(module ? 'Module updated' : 'Module added', 'success');
+                await learningOpenCourse(courseId);
+                await loadLearning();
+            };
+        });
+    }
+
+    async function deleteCourse(courseId) {
+        if (!isAdmin() || !confirm('Delete this course?')) return;
+        const res = await apiCall(`/learning/courses/${courseId}`, { method: 'DELETE' });
+        if (!res) return;
+        showToast('Course deleted', 'success');
+        learningShowBrowser();
+        await loadLearning();
+    }
+
+    async function deleteModule(moduleId) {
+        if (!isAdmin() || !confirm('Delete this module?')) return;
+        const res = await apiCall(`/learning/modules/${moduleId}`, { method: 'DELETE' });
+        if (!res) return;
+        showToast('Module deleted', 'success');
+        await loadLearning();
+        if (learningState.selectedCourseId) await learningOpenCourse(learningState.selectedCourseId);
     }
 
     async function loadLearning() {
