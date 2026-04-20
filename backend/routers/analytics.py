@@ -6,11 +6,17 @@ from typing import List
 from database import get_db
 from models import (
     AttendanceRecord, AttendanceStatus, Student, User, UserRole,
-    Department, Activity, ActivityEnrollment, ActivityStatus
+    Department, Activity, ActivityEnrollment, ActivityStatus, TimetableSlot
 )
 from routers.auth import get_current_user
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
+
+
+def _slots_overlap(left: TimetableSlot, right: TimetableSlot) -> bool:
+    if not left.time_start or not left.time_end or not right.time_start or not right.time_end:
+        return False
+    return left.time_start < right.time_end and right.time_start < left.time_end
 
 @router.get("/dashboard")
 async def get_dashboard(
@@ -37,11 +43,25 @@ async def get_dashboard(
 
     attendance_percentage = (present_count / total_records * 100) if total_records > 0 else 0
 
+    slot_result = await db.execute(select(TimetableSlot))
+    slots = slot_result.scalars().all()
+    conflicts = 0
+    for index, left in enumerate(slots):
+        for right in slots[index + 1:]:
+            if left.day != right.day:
+                continue
+            if not _slots_overlap(left, right):
+                continue
+            same_room = bool(left.room and right.room and left.room.strip().lower() == right.room.strip().lower())
+            same_group = left.dept_id == right.dept_id and left.semester == right.semester
+            if same_room or same_group:
+                conflicts += 1
+
     return {
         "attendance_percentage": round(attendance_percentage, 2),
         "active_students": active_students,
         "pending_activities": pending_activities,
-        "conflicts": 0
+        "conflicts": conflicts
     }
 
 @router.get("/attendance")

@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Menu } from "lucide-react";
 
 /**
- * Header Section component based on the PrepMaster light theme.
+ * Header Section component for AttendX.
  * Features: Sticky navigation, glassmorphism effect, logo, menu links, and CTA buttons.
  */
 export default function Header() {
@@ -27,13 +27,13 @@ export default function Header() {
           <div className="md:flex md:items-center md:gap-12">
             <a className="flex items-center justify-center gap-2 font-semibold text-primary" href="/">
               <Image
-                alt="PrepMaster Logo"
+                alt="AttendX Logo"
                 width={40}
                 height={50}
                 src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/6cbd6322-6dcc-49f2-a60d-432431f809da-prep-master-v2-vercel-app/assets/icons/favicon-2.ico"
                 className="h-auto w-10 object-contain"
               />
-              <span className="text-xl tracking-tight text-brand-navy">PrepMaster</span>
+              <span className="text-xl tracking-tight text-brand-navy">AttendX</span>
             </a>
           </div>
 

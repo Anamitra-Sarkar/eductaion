@@ -3,28 +3,28 @@ import Image from 'next/image';
 
 const features = [
   {
-    title: 'AI-Driven Efficiency',
-    description: 'Simplifies and enhances every interview step.',
+    title: 'Live Attendance Tracking',
+    description: 'Monitor presence, late entries, and daily trends from real records.',
     icon: 'https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/6cbd6322-6dcc-49f2-a60d-432431f809da-prep-master-v2-vercel-app/assets/svgs/check-11.svg',
   },
   {
-    title: 'Customizable and Shareable',
-    description: 'Access tips, mock interviews, and expert insights.',
+    title: 'Timetable & Activities',
+    description: 'Keep schedules, events, and enrollments connected to the database.',
     icon: 'https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/6cbd6322-6dcc-49f2-a60d-432431f809da-prep-master-v2-vercel-app/assets/svgs/check-11.svg',
   },
   {
-    title: 'Professional Resumes',
-    description: 'Create standout resumes that impress and pass ATS.',
+    title: 'Learning Hub',
+    description: 'Publish lessons, quizzes, and progress updates for students and faculty.',
     icon: 'https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/6cbd6322-6dcc-49f2-a60d-432431f809da-prep-master-v2-vercel-app/assets/svgs/check-11.svg',
   },
   {
-    title: 'Collaborative Community',
-    description: 'Share resources and feedback with fellow interviewers.',
+    title: 'Internships & Careers',
+    description: 'Show live openings, applications, and recommendations in one place.',
     icon: 'https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/6cbd6322-6dcc-49f2-a60d-432431f809da-prep-master-v2-vercel-app/assets/svgs/check-11.svg',
   },
   {
-    title: 'Top LinkedIn Jobs',
-    description: 'Interviewers can check the top LinkedIn interviews as well in our platform',
+    title: 'Secure Document Verification',
+    description: 'Verify submissions without leaving the portal.',
     icon: 'https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/6cbd6322-6dcc-49f2-a60d-432431f809da-prep-master-v2-vercel-app/assets/svgs/check-11.svg',
   },
 ];
@@ -50,10 +50,10 @@ const Features = () => {
           <div className="mt-12 lg:mt-0">
             <div className="max-w-xl mx-auto lg:mx-0">
               <h3 className="text-4xl font-semibold tracking-tight text-[#001529] sm:text-5xl lg:text-5xl text-center lg:text-start">
-                Why we best?
+                Why AttendX?
               </h3>
               <p className="mt-6 text-lg leading-relaxed text-[#4b5563] text-center lg:text-start">
-                Dont waste time on search manual tasks. Let Automation do it for you. Simplify workflows, reduce errors, and save time.
+                Manage attendance, schedules, learning, and internships from one secure campus portal.
               </p>
 
               <div className="mt-12 space-y-8">

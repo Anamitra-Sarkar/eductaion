@@ -9,12 +9,12 @@ export default function HowItWorks() {
         <div className="flex flex-col items-center mb-12 text-center">
           <div className="relative inline-block mb-3">
             <h2 className="text-3xl md:text-[32px] font-bold text-[#111827] tracking-tight">
-              An Ov
+              Overview
             </h2>
             <div className="absolute -bottom-1 left-0 w-full h-[3px] bg-gradient-to-r from-[#6366F1] to-[#A855F7]"></div>
           </div>
           <p className="text-[#6B7280] text-xs font-medium uppercase tracking-[0.1em]">
-            See how Career Path Navigator works
+            See how AttendX works
           </p>
         </div>
 
@@ -24,14 +24,13 @@ export default function HowItWorks() {
           <div className="pt-16 pb-12 px-8 text-center border-b border-[#E5E7EB]/30">
             <div className="flex items-center justify-center gap-2 mb-6">
               <div className="w-4 h-4 rounded-full bg-gradient-to-br from-[#6366F1] to-[#A855F7]"></div>
-              <span className="font-bold text-lg text-[#111827]">Career Compass</span>
+              <span className="font-bold text-lg text-[#111827]">AttendX</span>
             </div>
             <h3 className="text-[56px] font-bold text-[#334155] leading-none mb-6 tracking-tight">
-              How it all Works
+              How it all works
             </h3>
             <p className="text-[#6B7280] text-lg max-w-2xl mx-auto leading-relaxed">
-              From AI-driven analysis to personalized roadmaps, explore how our
-              platform empowers your career growth.
+              From attendance tracking to learning content and internships, explore how the portal keeps campus workflows connected.
             </p>
           </div>
 
@@ -42,7 +41,7 @@ export default function HowItWorks() {
               <div className="relative aspect-[16/11] w-full overflow-hidden">
                 <Image
                   src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/6cbd6322-6dcc-49f2-a60d-432431f809da-careercompass-v2-vercel-app/assets/images/resume-2.jpg"
-                  alt="AI Driven Analysis Dashboard Roadmap"
+                  alt="AttendX workflow overview"
                   fill
                   className="object-contain p-4 md:p-8"
                   priority

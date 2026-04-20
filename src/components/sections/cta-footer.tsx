@@ -1,10 +1,10 @@
 import React from 'react';
 
 /**
- * CTAFooter Section
+ * CTAFooter Section for AttendX
  * Features:
  * - Soft purple-to-white gradient background.
- * - Stylized "level up" headline with color-gradient spans.
+ * - Stylized headline with color-gradient spans.
  * - Centered copyright footer.
  * - Responsive layout matching the design guidelines.
  */
@@ -29,11 +29,11 @@ const CTAFooter: React.FC = () => {
               <span className="text-[#6366F1]">u</span>
               <span className="text-[#A855F7]">p</span>
             </span>{' '}
-            your career?
+            launch AttendX?
           </h2>
           
           <p className="text-lg md:text-xl text-[#6B7280] font-normal leading-relaxed max-w-2xl mx-auto mb-12">
-            Join thousands of professionals who found their dream career path with our AI-powered platform.
+            Keep attendance, timetables, learning, documents, and internships in sync with one secure campus portal.
           </p>
 
           <a 
@@ -50,15 +50,15 @@ const CTAFooter: React.FC = () => {
         <div className="container mx-auto px-4 flex flex-col items-center">
           <div className="flex flex-col items-center gap-2 mb-6 text-center">
             <div className="font-bold text-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-              Career Compass
+              AttendX
             </div>
             <div className="text-xs text-gray-500 font-medium">
-              Navigate Your Future with AI
+              Smart attendance and activity intelligence
             </div>
           </div>
           
           <div className="text-sm text-gray-400 font-medium">
-            © 2025 Career Compass. All rights reserved.
+            © 2025 AttendX. All rights reserved.
           </div>
         </div>
       </div>

@@ -7,13 +7,10 @@ import { usePathname } from "next/navigation";
 import {
   House,
   FileText,
-  Code,
   Lightbulb,
   Compass,
   Map,
   Target,
-  MessageSquare,
-  TriangleAlert,
   Sparkles,
   Settings,
   LogIn,
@@ -22,104 +19,81 @@ import {
 } from "lucide-react";
 
 const menuItems = [
-  {
-    category: "Overview",
-    items: [
-      {
-        icon: House,
-        label: "Home",
-        href: "/",
-        description: "Dashboard overview",
-        active: true,
-      },
-    ],
-  },
-  {
-    category: "Career Development",
-    items: [
-      {
-        icon: FileText,
-        label: "Resume Analyzer",
-        href: "/resume-analyzer",
-        description: "AI-powered analysis",
-      },
-      {
-        icon: Code,
-        label: "GitGaze",
-        href: "/portfolioranker",
-        description: "AI-powered analysis",
-      },
-      {
-        icon: Lightbulb,
-        label: "Career Counselor",
-        href: "/counselor",
-        description: "Expert guidance",
-      },
-      {
-        icon: Compass,
-        label: "Career Path",
-        href: "/path",
-        description: "Plan your journey",
-      },
-      {
-        icon: Map,
-        label: "Roadmap",
-        href: "/roadmap",
-        description: "Visual progress",
-      },
-    ],
-  },
-  {
-    category: "Job Search",
-    items: [
-      {
-        icon: Target,
-        label: "Company Target",
-        href: "/company-target",
-        description: "Find your match",
-      },
-      {
-        icon: MessageSquare,
-        label: "Interview Prep",
-        href: "/interview-questions",
-        description: "Practice questions",
-      },
-      {
-        icon: TriangleAlert,
-        label: "Failure Analysis",
-        href: "/failureAnalyser",
-        description: "Learn & improve",
-      },
-    ],
-  },
-  {
-    category: "AI Tools",
-    items: [
-      {
-        icon: Sparkles,
-        label: "Ask Gen AI",
-        href: "/askGroq",
-        description: "AI assistant",
-      },
-      {
-        icon: Settings,
-        label: "Workflow Manager",
-        href: "/WorkflowManager",
-        description: "Organize tasks",
-      },
-    ],
-  },
-  {
-    category: "Account",
-    items: [
-      {
-        icon: LogIn,
-        label: "Sign In",
-        href: "/auth",
-        description: "Access your account",
-      },
-    ],
-  },
+   {
+     category: "Overview",
+     items: [
+       {
+         icon: House,
+         label: "Home",
+         href: "/",
+         description: "Landing page",
+         active: true,
+       },
+     ],
+   },
+   {
+     category: "Campus",
+     items: [
+       {
+         icon: FileText,
+         label: "Services",
+         href: "#services",
+         description: "Portal highlights",
+       },
+       {
+         icon: Lightbulb,
+         label: "About",
+         href: "#about",
+         description: "What AttendX does",
+       },
+       {
+         icon: Compass,
+         label: "How It Works",
+         href: "#reviews",
+         description: "User feedback",
+       },
+       {
+         icon: Map,
+         label: "Contact",
+         href: "#contact",
+         description: "Stay connected",
+       },
+     ],
+   },
+   {
+     category: "Portal",
+     items: [
+       {
+         icon: Target,
+         label: "Dashboard",
+         href: "/attendx.html",
+         description: "Open the portal",
+       },
+       {
+         icon: Sparkles,
+         label: "Login",
+         href: "/attendx.html#login",
+         description: "Access account",
+       },
+       {
+         icon: Settings,
+         label: "Settings",
+         href: "/attendx.html#settings",
+         description: "Manage account",
+       },
+     ],
+   },
+   {
+     category: "Support",
+     items: [
+       {
+         icon: LogIn,
+         label: "Sign In",
+         href: "/auth",
+         description: "Access your account",
+       },
+     ],
+   },
 ];
 
 const Sidebar = () => {
@@ -132,11 +106,11 @@ const Sidebar = () => {
         <div className="bg-white/90 backdrop-blur-xl border border-gray-200/50 rounded-2xl shadow-xl shadow-black/10 px-2 py-3">
           <div className="flex items-center justify-around">
             {[
-              { icon: House, label: "Home", href: "/" },
-              { icon: FileText, label: "Resume", href: "/resume-analyzer" },
-              { icon: Target, label: "Jobs", href: "/company-target" },
-              { icon: Sparkles, label: "AI Chat", href: "/askGroq" },
-              { icon: User, label: "Profile", href: "/auth" },
+               { icon: House, label: "Home", href: "/" },
+               { icon: FileText, label: "Services", href: "#services" },
+               { icon: Target, label: "Portal", href: "/attendx.html" },
+               { icon: Sparkles, label: "About", href: "#about" },
+               { icon: User, label: "Contact", href: "#contact" },
             ].map((item) => {
               const isActive = pathname === item.href;
               return (
@@ -177,7 +151,7 @@ const Sidebar = () => {
             <Link className="flex items-center gap-3 group" href="/">
               <div className="relative">
                 <Image
-                  alt="Career Path Navigator"
+                   alt="AttendX"
                   width={48}
                   height={48}
                   className="rounded-2xl shadow-lg group-hover:shadow-xl transition-all duration-300"
@@ -187,10 +161,10 @@ const Sidebar = () => {
               </div>
               <div className="flex flex-col">
                 <div className="font-bold text-lg bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                  Career Compass
+                   AttendX
                 </div>
                 <div className="text-[12px] text-gray-500 font-medium">
-                  AI-Powered Career Growth
+                   Smart attendance and activity intelligence
                 </div>
               </div>
             </Link>
@@ -249,9 +223,9 @@ const Sidebar = () => {
           <div className="flex flex-col gap-2 p-6 border-t border-gray-100/50">
             <div className="text-center space-y-2">
               <div className="bg-gradient-to-r from-indigo-600/80 to-purple-600/80 bg-clip-text text-[12px] font-semibold text-transparent">
-                © 2025 Career Compass
+                 © 2025 AttendX
               </div>
-              <div className="text-[12px] text-gray-500">Navigate Your Future with AI</div>
+               <div className="text-[12px] text-gray-500">Manage campus operations with confidence</div>
             </div>
           </div>
         </div>

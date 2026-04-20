@@ -1,11 +1,10 @@
 import React from 'react';
 import Image from 'next/image';
 
-/**
- * NewsletterSection Component
- * Pixel-perfect implementation of the newsletter subscription section.
- * Features a bright blue card with custom illustrations and a sign-up form.
- */
+  /**
+   * NewsletterSection Component
+   * Campus updates and announcements signup block for AttendX.
+   */
 const NewsletterSection: React.FC = () => {
   // Asset URLs from provided data
   const assets = {
@@ -30,7 +29,7 @@ const NewsletterSection: React.FC = () => {
               <div className="relative w-[588px] h-[334px] translate-y-4">
                 <Image
                   src={assets.mailboxIllustration}
-                  alt="Newsletter Background Illustration"
+                alt="AttendX announcement illustration"
                   width={588}
                   height={334}
                   className="object-contain"
@@ -63,11 +62,11 @@ const NewsletterSection: React.FC = () => {
           {/* Right Side: Form Content */}
           <div className="p-8 md:p-12 lg:p-20 flex flex-col justify-center">
             <h3 className="text-4xl md:text-5xl font-semibold mb-4 text-white tracking-tight">
-              Sign up to our newsletter.
+              Stay updated with campus alerts.
             </h3>
             
             <p className="text-base md:text-lg font-normal mb-8 text-blue-50/90 max-w-md leading-relaxed">
-              Craven omni memoria patriae zombieland clairvius narcisse religionis sunt diri undead historiarum.
+              Get important notices about attendance, events, internships, and learning updates in one place.
             </p>
 
             <form 
@@ -76,7 +75,7 @@ const NewsletterSection: React.FC = () => {
             >
               <input
                 type="email"
-                placeholder="@enter email-address"
+                placeholder="Enter your email address"
                 className="flex-1 py-4 px-6 text-sm text-[#001529] bg-white rounded-l-xl focus:outline-none placeholder:text-gray-400"
                 required
               />

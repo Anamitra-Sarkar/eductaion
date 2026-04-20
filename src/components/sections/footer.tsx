@@ -13,12 +13,12 @@ const Footer = () => {
             <div className="flex items-center gap-2 mb-6">
               <Image 
                 src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/6cbd6322-6dcc-49f2-a60d-432431f809da-prep-master-v2-vercel-app/assets/icons/logo-white-1200x1200-1.png"
-                alt="PrepMaster Logo"
+                alt="AttendX Logo"
                 width={40}
                 height={40}
                 className="object-contain"
               />
-              <span className="text-2xl font-bold tracking-tight">PrepMaster</span>
+               <span className="text-2xl font-bold tracking-tight">AttendX</span>
             </div>
           </div>
 
@@ -75,7 +75,7 @@ const Footer = () => {
         {/* Bottom Legal Row */}
         <div className="border-t border-gray-800 py-10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-gray-400">
-            @2025 PrepMaster. All Rights Reserved
+            © 2025 AttendX. All Rights Reserved
           </p>
           <div className="flex items-center gap-6">
             <a href="/privacy-policy" className="text-sm text-gray-400 hover:text-white transition-colors">

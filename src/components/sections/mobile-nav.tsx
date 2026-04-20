@@ -51,10 +51,10 @@ const MobileNav = () => {
   // Navigation items definition
   const navItems = [
     { href: "/", icon: House, label: "Home", isActive: true },
-    { href: "/resume-analyzer", icon: FileText, label: "Resume" },
-    { href: "/company-target", icon: Target, label: "Jobs" },
-    { href: "/askGroq", icon: Sparkles, label: "AI Chat" },
-    { href: "/auth", icon: User, label: "Profile" },
+    { href: "#services", icon: FileText, label: "Services" },
+    { href: "/attendx.html", icon: Target, label: "Portal" },
+    { href: "#about", icon: Sparkles, label: "About" },
+    { href: "#contact", icon: User, label: "Contact" },
   ];
 
   return (

@@ -98,6 +98,11 @@ async def recommend_internships(
     profile_tokens = _tokenize(profile.skills) | _tokenize(profile.interests)
     internships_result = await db.execute(select(Internship))
     internships = internships_result.scalars().all()
+    poster_ids = {item.posted_by for item in internships}
+    posters = {}
+    if poster_ids:
+        user_result = await db.execute(select(User).where(User.id.in_(poster_ids)))
+        posters = {u.id: u.name for u in user_result.scalars().all()}
     scored = []
     for internship in internships:
         tokens = _tokenize(internship.skills_required) | _tokenize(internship.title) | _tokenize(internship.company)
@@ -106,7 +111,7 @@ async def recommend_internships(
         else:
             overlap = len(profile_tokens & tokens)
             score = (overlap / max(len(tokens), 1)) * 100
-        scored.append((_internship_payload(internship), score))
+        scored.append((_internship_payload(internship, posters.get(internship.posted_by)), score))
     scored.sort(key=lambda item: item[1], reverse=True)
     return [{"match_score": round(score, 2), **item} for item, score in scored[:5]]
 

@@ -2,7 +2,7 @@ import React from 'react';
 import Image from 'next/image';
 
 /**
- * Hero component for PrepMaster.
+ * Hero component for AttendX.
  * Features animated background blurs, gradient typography, and shimmer CTA button.
  */
 const HeroSection = () => {
@@ -41,10 +41,10 @@ const HeroSection = () => {
           {/* Headline Container */}
           <div className="text-center max-w-4xl mx-auto">
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-[#001529] leading-[1.1]">
-              Power your interviews with{' '}
+              Power campus operations with{' '}
               <span className="relative inline-block">
                 <span className="bg-gradient-to-r from-[#13c4f9] to-[#2563eb] bg-clip-text text-transparent">
-                  PrepMaster
+                   AttendX
                 </span>
                 {/* Sparkle replacements (using text-shadow and gradient effect style) */}
                 <span className="absolute -top-2 -right-6 text-xl">✨</span>
@@ -53,8 +53,7 @@ const HeroSection = () => {
             </h1>
             
             <p className="mt-8 text-lg md:text-xl text-[#4B5563] max-w-2xl mx-auto leading-relaxed">
-              Don&apos;t be afraid! You can ace that interview! You can crack the job! we got you covered. Be Smarter! Be Prep Master, Use{' '}
-              <span className="text-[#2563eb] font-bold">Prep Master</span>!
+               Track attendance, manage activities, publish learning content, and keep internships connected in one secure portal.
             </p>
           </div>
 
@@ -79,7 +78,7 @@ const HeroSection = () => {
             <div className="relative rounded-2xl border border-cyan-800/10 shadow-2xl overflow-hidden bg-white">
               <Image 
                 src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/6cbd6322-6dcc-49f2-a60d-432431f809da-prep-master-v2-vercel-app/assets/images/images_9.png"
-                alt="PrepMaster Dashboard"
+                alt="AttendX Dashboard"
                 width={1200}
                 height={675}
                 layout="responsive"

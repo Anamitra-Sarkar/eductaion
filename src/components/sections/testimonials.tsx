@@ -8,10 +8,10 @@ const Testimonials = () => {
         {/* Section Heading */}
         <div className="text-center mb-16">
           <h3 className="text-navyblue text-center text-4xl lg:text-6xl font-semibold leading-tight">
-            What say clients about us.
+            What users say about AttendX.
           </h3>
           <h4 className="text-lg font-normal text-darkgray text-center mt-4 max-w-2xl mx-auto">
-            Prep Master is a platform that helps to connect with interviewor around the world
+            A secure campus portal for attendance, activities, learning, internships, and verification.
           </h4>
         </div>
 
@@ -37,7 +37,7 @@ const Testimonials = () => {
               width={1061}
               height={733}
               className="mx-auto"
-              src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/6cbd6322-6dcc-49f2-a60d-432431f809da-prep-master-v2-vercel-app/assets/images/images_7.png"
+                   src="https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/object/public/test-clones/6cbd6322-6dcc-49f2-a60d-432431f809da-prep-master-v2-vercel-app/assets/images/images_7.png"
             />
           </div>
 
@@ -58,17 +58,17 @@ const Testimonials = () => {
               {/* Review Content Card */}
               <div className="bg-white rounded-2xl p-8 lg:p-10 shadow-soft border border-gray-50 text-center max-w-md mx-auto mt-4">
                 <p className="text-base lg:text-lg font-normal text-darkgray leading-relaxed mb-6">
-                  I am very happy with the service provided by Prep Master.
+                  AttendX gives our campus a single place to manage daily operations.
                   <br className="hidden md:block" />
                   It is very easy to use and the support team
                   <br className="hidden md:block" />
                   is always available to help me with any issues.
                 </p>
                 <h3 className="text-2xl font-semibold text-navyblue py-1">
-                  Jony Scotty
+                  Campus User
                 </h3>
                 <h4 className="text-sm font-medium text-gray-500 uppercase tracking-wider">
-                  UI Designer
+                   Faculty & Student Feedback
                 </h4>
               </div>
             </div>
