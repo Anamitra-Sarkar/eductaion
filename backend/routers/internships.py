@@ -94,7 +94,7 @@ async def recommend_internships(
     profile_result = await db.execute(select(CareerProfile).where(CareerProfile.student_id == student.id))
     profile = profile_result.scalars().first()
     if not profile:
-        raise HTTPException(status_code=404, detail="Career profile not found")
+        return []
     profile_tokens = _tokenize(profile.skills) | _tokenize(profile.interests)
     internships_result = await db.execute(select(Internship))
     internships = internships_result.scalars().all()

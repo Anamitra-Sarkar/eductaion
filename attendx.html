@@ -789,6 +789,15 @@
     let headerResizeObserver = null;
     const timetableState = { editingId: null, records: [], departments: [] };
     const activityState = { editingId: null, records: [], departments: [] };
+    const internshipState = {
+        activeTab: 'recommendations',
+        items: [],
+        recommendations: [],
+        applications: [],
+        allApplications: [],
+        appliedIds: new Set(),
+        applicationMap: new Map(),
+    };
 
     const AUTH_TOKEN_KEY = 'attendx-auth-token';
     const AUTH_USER_KEY = 'attendx-auth-user';
@@ -1761,35 +1770,73 @@
 
     async function loadInternships() {
         const actions = document.getElementById('internship-actions');
-        if (currentUser?.role === 'admin' || currentUser?.role === 'faculty') { actions.innerHTML = `<button class="btn-primary" id="post-internship-btn">Post Internship</button>`; document.getElementById('post-internship-btn').onclick = openInternshipModal; document.getElementById('tab-manage').style.display = 'inline-flex'; } else { actions.innerHTML = ''; document.getElementById('tab-manage').style.display = 'none'; }
+        const isStudent = currentUser?.role === 'student';
+        const isStaff = currentUser?.role === 'admin' || currentUser?.role === 'faculty';
+        if (isStaff) {
+            actions.innerHTML = `<button class="btn-primary" id="post-internship-btn">Post Internship</button>`;
+            document.getElementById('post-internship-btn').onclick = openInternshipModal;
+            document.getElementById('tab-manage').style.display = 'inline-flex';
+        } else {
+            actions.innerHTML = '';
+            document.getElementById('tab-manage').style.display = 'none';
+        }
+        document.getElementById('tab-recommendations').style.display = isStudent ? 'inline-flex' : 'none';
+        document.getElementById('tab-applications').style.display = isStudent ? 'inline-flex' : 'none';
         document.getElementById('internship-filters').style.display = 'block';
         const container = document.getElementById('internship-content');
         setHTML(container, skeletonCards(3));
         const [items, recommendations, applications, manageApps] = await Promise.all([
             apiCall('/internships'),
-            currentUser?.role === 'student' ? apiCall('/internships/recommend') : Promise.resolve([]),
-            currentUser?.role === 'student' ? apiCall('/internships/my-applications') : Promise.resolve([]),
-            (currentUser?.role === 'admin' || currentUser?.role === 'faculty') ? apiCall('/internships/applications') : Promise.resolve([])
+            isStudent ? apiCall('/internships/recommend') : Promise.resolve([]),
+            isStudent ? apiCall('/internships/my-applications') : Promise.resolve([]),
+            isStaff ? apiCall('/internships/applications') : Promise.resolve([])
         ]);
         if (!items) { setHTML(container, errorState('Unable to load internships.', 'loadInternships()')); return; }
         internshipState.items = items || [];
-        internshipState.recommendations = recommendations || [];
-        internshipState.applications = applications || [];
-        internshipState.allApplications = manageApps || [];
+        internshipState.recommendations = Array.isArray(recommendations) ? recommendations : [];
+        internshipState.applications = Array.isArray(applications) ? applications : [];
+        internshipState.allApplications = Array.isArray(manageApps) ? manageApps : [];
         internshipState.appliedIds = new Set((internshipState.applications || []).map(a => a.internship_id));
-        document.getElementById('tab-recommendations').style.display = currentUser?.role === 'student' ? 'inline-flex' : 'none';
-        document.getElementById('tab-applications').style.display = currentUser?.role === 'student' ? 'inline-flex' : 'none';
-        const showRecommend = currentUser?.role === 'student'
-            ? (recommendations === null
+        internshipState.applicationMap = new Map(internshipState.applications.map(app => [app.internship_id, app]));
+        if (isStudent && !['recommendations', 'all', 'applications'].includes(internshipState.activeTab)) internshipState.activeTab = 'recommendations';
+        if (isStaff && !['all', 'manage'].includes(internshipState.activeTab)) internshipState.activeTab = 'all';
+        const appliedCount = internshipState.applications.length;
+        const availableCount = internshipState.items.length;
+        const recommendCount = internshipState.recommendations.length;
+        const summary = `
+            <div class="card">
+                <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:0.75rem;">
+                    <div class="card" style="margin:0;"><h3>${availableCount}</h3><p class="muted">Available internships</p></div>
+                    <div class="card" style="margin:0;"><h3>${appliedCount}</h3><p class="muted">Applications submitted</p></div>
+                    <div class="card" style="margin:0;"><h3>${isStudent ? recommendCount : internshipState.allApplications.length}</h3><p class="muted">${isStudent ? 'Recommended for you' : 'Applications to review'}</p></div>
+                </div>
+                <p class="muted" style="margin-top:0.9rem;">
+                    ${isStudent
+                        ? 'Browse live openings, review what you have already applied to, and keep track of recommendations from your profile.'
+                        : 'Post internships and review student applications directly from this page.'}
+                </p>
+            </div>
+        `;
+        const tab = internshipState.activeTab || (isStudent ? 'recommendations' : 'all');
+        let body = summary;
+        if (tab === 'recommendations' && isStudent) {
+            body += recommendations === null
                 ? errorState('Unable to load recommendations.', 'loadInternships()')
-                : `<div class="card"><h2 style="margin-bottom:1rem;">Recommended for You</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">${(recommendations || []).slice(0,5).map(item => renderInternshipCard(item)).join('')}</div></div>`)
-            : '';
-        const tab = internshipState.activeTab || 'all';
-        let body = showRecommend;
-        if (tab === 'all') body += `<div class="card"><h2>All Internships</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">${applyInternshipFilters(items || []).map(item => renderInternshipCard(item)).join('')}</div></div>`;
-        if (tab === 'applications' && currentUser?.role === 'student') body += (applications === null ? errorState('Unable to load your applications.', 'loadInternships()') : renderMyApplications());
-        if (tab === 'manage' && (currentUser?.role === 'admin' || currentUser?.role === 'faculty')) body += (manageApps === null ? errorState('Unable to load applications.', 'loadInternships()') : renderManageApplications());
-        if (!body) body = emptyState('briefcase', 'No internships yet', 'Post internships to populate this page.');
+                : (recommendations.length
+                    ? `<div class="card"><h2 style="margin-bottom:1rem;">Recommended for You</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">${recommendations.slice(0,5).map(item => renderInternshipCard(item)).join('')}</div></div>`
+                    : emptyState('sparkles', 'No recommendations yet', 'Add skills and interests to your profile to unlock tailored internship suggestions.'));
+        }
+        if (tab === 'all') {
+            const filtered = applyInternshipFilters(items || []);
+            body += filtered.length
+                ? `<div class="card"><h2>All Internships</h2><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">${filtered.map(item => renderInternshipCard(item)).join('')}</div></div>`
+                : emptyState('briefcase', 'No internships match', 'Try another filter or check back later for new postings.');
+        }
+        if (tab === 'applications' && isStudent) body += (applications === null ? errorState('Unable to load your applications.', 'loadInternships()') : renderMyApplications());
+        if (tab === 'manage' && isStaff) body += (manageApps === null ? errorState('Unable to load applications.', 'loadInternships()') : renderManageApplications());
+        if (!body) body = isStudent
+            ? emptyState('briefcase', 'No internships available', 'Check back later for new openings.')
+            : emptyState('briefcase', 'No internships yet', 'Post internships to populate this page.');
         setHTML(container, body);
         document.querySelectorAll('[data-internship-tab]').forEach(btn => btn.classList.toggle('active', btn.dataset.internshipTab === tab));
         bindInternshipEvents();
@@ -1806,8 +1853,28 @@
     function renderInternshipCard(item) {
         const score = item.match_score;
         const scoreClass = score >= 70 ? 'badge-green' : score >= 40 ? 'badge-warning' : 'badge-error';
-        const applied = internshipState.appliedIds.has(item.id);
-        return `<div class="card"><div style="display:flex;justify-content:space-between;gap:0.75rem;"><div><h3>${escapeHTML(item.company)}</h3><p class="muted">${escapeHTML(item.title)}</p></div>${score !== undefined ? `<span class="badge ${scoreClass}">${escapeHTML(score)}%</span>` : ''}</div><div class="chip-list">${String(item.skills_required || '').split(',').map(s => s.trim()).filter(Boolean).map(s => `<span class="chip">${escapeHTML(s)}</span>`).join('')}</div><div class="muted" style="display:grid;gap:0.35rem;margin-top:0.75rem;"><div>Stipend: ₹${escapeHTML(item.stipend)}/month</div><div>Duration: ${escapeHTML(item.duration_months)} months</div><div>Deadline: ${new Date(item.application_deadline).toLocaleDateString()}</div><div>Location: ${escapeHTML(item.location)}</div></div><button class="btn-primary" style="margin-top:0.9rem;" data-apply-internship="${item.id}" ${applied ? 'disabled' : ''}>${applied ? 'Applied ✓' : 'Apply Now'}</button></div>`;
+        const application = internshipState.applicationMap.get(item.id) || null;
+        const applied = Boolean(application);
+        const statusLabel = application?.status || (applied ? 'applied' : '');
+        return `<div class="card">
+            <div style="display:flex;justify-content:space-between;gap:0.75rem;align-items:flex-start;">
+                <div><h3>${escapeHTML(item.company)}</h3><p class="muted">${escapeHTML(item.title)}</p></div>
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;justify-content:flex-end;">
+                    ${score !== undefined ? `<span class="badge ${scoreClass}">${escapeHTML(score)}%</span>` : ''}
+                    ${statusLabel ? statusBadge(statusLabel) : ''}
+                </div>
+            </div>
+            <p class="muted" style="margin-top:0.45rem;">${escapeHTML(item.posted_by_name || 'Posted by college staff')}</p>
+            <div class="chip-list">${String(item.skills_required || '').split(',').map(s => s.trim()).filter(Boolean).map(s => `<span class="chip">${escapeHTML(s)}</span>`).join('')}</div>
+            <div class="muted" style="display:grid;gap:0.35rem;margin-top:0.75rem;">
+                <div>Stipend: ₹${escapeHTML(item.stipend)}/month</div>
+                <div>Duration: ${escapeHTML(item.duration_months)} months</div>
+                <div>Deadline: ${new Date(item.application_deadline).toLocaleDateString()}</div>
+                <div>Location: ${escapeHTML(item.location)}</div>
+                ${application ? `<div>Applied on: ${new Date(application.applied_at).toLocaleDateString()}</div>` : ''}
+            </div>
+            <button class="btn-primary" style="margin-top:0.9rem;" data-apply-internship="${item.id}" ${applied ? 'disabled' : ''}>${applied ? 'Applied ✓' : 'Apply Now'}</button>
+        </div>`;
     }
 
     function bindInternshipEvents() {
@@ -1817,7 +1884,13 @@
             btn.disabled = true;
             btn.textContent = 'Applied ✓';
             internshipState.appliedIds.add(Number(btn.dataset.applyInternship));
+            internshipState.applicationMap.set(Number(btn.dataset.applyInternship), {
+                internship_id: Number(btn.dataset.applyInternship),
+                status: res.status,
+                applied_at: res.applied_at,
+            });
             showToast('Application submitted', 'success');
+            loadInternships();
         });
         document.querySelectorAll('[data-internship-tab]').forEach(btn => btn.onclick = () => { internshipState.activeTab = btn.dataset.internshipTab; loadInternships(); });
     }
