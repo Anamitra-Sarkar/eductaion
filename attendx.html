@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AttendX - Smart Attendance & Activity Monitoring</title>
         <meta name="theme-color" content="#01696f">
-        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-        <link rel="manifest" href="/manifest.webmanifest">
+        <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22AttendX%22%2C%22short_name%22%3A%22AttendX%22%2C%22description%22%3A%22Smart%20attendance%2C%20activities%2C%20timetable%2C%20and%20classroom%20management%22%2C%22start_url%22%3A%22%2F%22%2C%22scope%22%3A%22%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f7f6f2%22%2C%22theme_color%22%3A%22%2301696f%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22%2Ficon-192.svg%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%2C%7B%22src%22%3A%22%2Ficon-512.svg%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
         <link rel="icon" href="/icon-192.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/icon-192.svg">
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
@@ -740,6 +740,15 @@
         if (v.includes('active')||v.includes('present')||v.includes('completed')) return `<span class="badge badge-success">${s}</span>`;
         if (v.includes('upcoming')||v.includes('ongoing')||v.includes('late')) return `<span class="badge badge-warning">${s}</span>`;
         return `<span class="badge badge-error">${s||'Unknown'}</span>`;
+    }
+
+    function escapeHTML(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     function isAdmin() {
