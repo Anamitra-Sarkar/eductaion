@@ -768,7 +768,7 @@
     }
 
     function canEditLearning() {
-        return isAdmin() || isFaculty();
+        return isAdmin();
     }
 
     function getQuickLinks() {
@@ -891,7 +891,7 @@
     }
 
     async function deleteTimetableSlot(id) {
-        if (!confirm('Delete this timetable slot?')) return;
+        if (!(await confirmDialog('Delete timetable slot?', 'This will permanently remove the selected timetable entry.'))) return;
         const res = await apiCall(`/timetable/${id}`, { method: 'DELETE' });
         if (!res) return;
         showToast('Timetable slot deleted', 'success');
@@ -963,7 +963,7 @@
     }
 
     async function deleteActivity(id) {
-        if (!confirm('Delete this activity?')) return;
+        if (!(await confirmDialog('Delete activity?', 'This will permanently remove the selected activity.'))) return;
         const res = await apiCall(`/activities/${id}`, { method: 'DELETE' });
         if (!res) return;
         showToast('Activity deleted', 'success');
@@ -1298,7 +1298,7 @@
 
         facultyBox.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr></thead><tbody>${faculty.map(member => `<tr><td>${escapeHTML(member.name)}</td><td>${escapeHTML(member.email)}</td><td>${escapeHTML(member.role)}</td><td><button class="btn-primary" data-delete-faculty="${member.id}">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
         document.querySelectorAll('[data-delete-faculty]').forEach(btn => btn.onclick = async () => {
-            if (!confirm('Delete this faculty account?')) return;
+            if (!(await confirmDialog('Delete faculty account?', 'This will permanently remove the selected faculty account.'))) return;
             const res = await apiCall(`/auth/faculty/${btn.dataset.deleteFaculty}`, { method: 'DELETE' });
             if (res) { showToast('Faculty deleted', 'success'); loadSettings(); }
         });
@@ -1464,7 +1464,7 @@
         tbody.innerHTML = students.map(s => `<tr><td>${escapeHTML(s.name)}</td><td>${escapeHTML(s.roll_no)}</td><td>${escapeHTML(s.dept_id)}</td><td>${escapeHTML(s.semester)}</td><td>${currentUser?.role === 'admin' ? `<span style="width:10px;height:10px;border-radius:999px;display:inline-block;background:${profileSet.has(s.id) ? 'var(--color-success)' : '#9ca3af'}"></span>` : '-'}</td><td>${escapeHTML(s.email)}</td><td>${statusBadge(s.status)}</td><td>${canManageStudents ? `<button class="btn-primary" data-delete-student="${s.id}">Delete</button>` : '-'}</td></tr>`).join('');
         if (canManageStudents) {
             document.querySelectorAll('[data-delete-student]').forEach(btn => btn.onclick = async () => {
-                if (!confirm('Delete this student account?')) return;
+                if (!(await confirmDialog('Delete student account?', 'This will permanently remove the selected student account.'))) return;
                 const res = await apiCall(`/students/${btn.dataset.deleteStudent}`, { method: 'DELETE' });
                 if (res) { showToast('Student deleted', 'success'); loadStudents(); }
             });
@@ -1526,7 +1526,7 @@
             } else {
                 facultyBox.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr></thead><tbody>${faculty.map(member => `<tr><td>${escapeHTML(member.name)}</td><td>${escapeHTML(member.email)}</td><td>${escapeHTML(member.role)}</td><td><button class="btn-primary" data-delete-faculty="${member.id}">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
                 document.querySelectorAll('[data-delete-faculty]').forEach(btn => btn.onclick = async () => {
-                    if (!confirm('Delete this faculty account?')) return;
+                    if (!(await confirmDialog('Delete faculty account?', 'This will permanently remove the selected faculty account.'))) return;
                     const res = await apiCall(`/auth/faculty/${btn.dataset.deleteFaculty}`, { method: 'DELETE' });
                     if (res) { showToast('Faculty deleted', 'success'); loadSettings(); }
                 });
@@ -1695,6 +1695,53 @@
         if (window.lucide) lucide.createIcons();
     }
 
+    function confirmDialog(title, message, confirmLabel = 'Delete') {
+        return new Promise(resolve => {
+            const onKeyDown = (e) => {
+                if (e.key === 'Escape') {
+                    cleanup();
+                    resolve(false);
+                }
+            };
+            const cleanup = () => {
+                document.removeEventListener('keydown', onKeyDown);
+            };
+            openModal(title, `
+                <div class="card" style="margin:0;">
+                    <p>${escapeHTML(message)}</p>
+                    <div style="display:flex;gap:0.75rem;justify-content:flex-end;margin-top:1rem;flex-wrap:wrap;">
+                        <button type="button" class="pill" id="confirm-cancel">Cancel</button>
+                        <button type="button" class="btn-primary" id="confirm-action" style="background:var(--color-error);color:#fff;">${escapeHTML(confirmLabel)}</button>
+                    </div>
+                </div>
+            `, () => {
+                document.getElementById('confirm-cancel').onclick = () => {
+                    cleanup();
+                    closeModal();
+                    resolve(false);
+                };
+                document.getElementById('confirm-action').onclick = () => {
+                    cleanup();
+                    closeModal();
+                    resolve(true);
+                };
+                document.getElementById('close-modal').onclick = () => {
+                    cleanup();
+                    closeModal();
+                    resolve(false);
+                };
+                document.getElementById('global-modal').onclick = (e) => {
+                    if (e.target.id === 'global-modal') {
+                        cleanup();
+                        closeModal();
+                        resolve(false);
+                    }
+                };
+            });
+            document.addEventListener('keydown', onKeyDown);
+        });
+    }
+
     function closeModal() { document.getElementById('global-modal')?.remove(); }
 
     function openLearningModal() {
@@ -1850,7 +1897,7 @@
 
     function bindClassroomEvents() {
         document.querySelectorAll('[data-session-status]').forEach(btn => btn.onclick = async () => { const res = await apiCall(`/classroom/sessions/${btn.dataset.sessionStatus}/status?status=${btn.dataset.nextStatus}`, { method: 'PUT' }); if (res) loadClassroom(); });
-        document.querySelectorAll('[data-delete-session]').forEach(btn => btn.onclick = async () => { if (!confirm('Delete this classroom session?')) return; const res = await apiCall(`/classroom/sessions/${btn.dataset.deleteSession}`, { method: 'DELETE' }); if (res) { showToast('Session deleted', 'success'); loadClassroom(); } });
+        document.querySelectorAll('[data-delete-session]').forEach(btn => btn.onclick = async () => { if (!(await confirmDialog('Delete classroom session?', 'This will permanently remove the selected classroom session.'))) return; const res = await apiCall(`/classroom/sessions/${btn.dataset.deleteSession}`, { method: 'DELETE' }); if (res) { showToast('Session deleted', 'success'); loadClassroom(); } });
     }
 
     function refreshCountdowns() {
@@ -2567,7 +2614,8 @@
     }
 
     async function deleteCourse(courseId) {
-        if (!isAdmin() || !confirm('Delete this course?')) return;
+        if (!isAdmin()) return;
+        if (!(await confirmDialog('Delete course?', 'This will permanently remove the selected learning course.'))) return;
         const res = await apiCall(`/learning/courses/${courseId}`, { method: 'DELETE' });
         if (!res) return;
         showToast('Course deleted', 'success');
@@ -2576,7 +2624,8 @@
     }
 
     async function deleteModule(moduleId) {
-        if (!isAdmin() || !confirm('Delete this module?')) return;
+        if (!isAdmin()) return;
+        if (!(await confirmDialog('Delete module?', 'This will permanently remove the selected learning module.'))) return;
         const res = await apiCall(`/learning/modules/${moduleId}`, { method: 'DELETE' });
         if (!res) return;
         showToast('Module deleted', 'success');

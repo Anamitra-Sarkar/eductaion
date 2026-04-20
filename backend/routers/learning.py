@@ -38,7 +38,7 @@ router = APIRouter(prefix="/learning", tags=["learning"])
 
 
 def _is_staff(user: User) -> bool:
-    return user.role in {UserRole.admin, UserRole.faculty}
+    return user.role == UserRole.admin
 
 
 def _is_admin(user: User) -> bool:
@@ -336,7 +336,7 @@ async def list_courses(
 @router.post("/courses")
 async def create_course(course: CourseCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     if not _is_staff(current_user):
-        raise HTTPException(status_code=403, detail="Faculty or admin access required")
+        raise HTTPException(status_code=403, detail="Admin access required")
     record = Course(
         title=course.title,
         description=course.description,
@@ -381,9 +381,7 @@ async def update_course(course_id: int, course_update: CourseUpdate, current_use
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     if not _is_staff(current_user):
-        raise HTTPException(status_code=403, detail="Faculty or admin access required")
-    if current_user.role == UserRole.faculty and course.created_by != current_user.id:
-        raise HTTPException(status_code=403, detail="You can only edit your own course")
+        raise HTTPException(status_code=403, detail="Admin access required")
     for field in ["title", "description", "subject", "dept_id", "semester", "thumbnail_url", "xp_reward", "is_published"]:
         value = getattr(course_update, field)
         if value is not None:
@@ -400,9 +398,7 @@ async def delete_course(course_id: int, current_user: User = Depends(get_current
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     if not _is_staff(current_user):
-        raise HTTPException(status_code=403, detail="Faculty or admin access required")
-    if current_user.role == UserRole.faculty and course.created_by != current_user.id:
-        raise HTTPException(status_code=403, detail="You can only delete your own course")
+        raise HTTPException(status_code=403, detail="Admin access required")
     await db.delete(course)
     await db.commit()
     return {"message": "Course deleted"}
@@ -415,9 +411,7 @@ async def publish_course(course_id: int, current_user: User = Depends(get_curren
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     if not _is_staff(current_user):
-        raise HTTPException(status_code=403, detail="Faculty or admin access required")
-    if current_user.role == UserRole.faculty and course.created_by != current_user.id:
-        raise HTTPException(status_code=403, detail="You can only publish your own course")
+        raise HTTPException(status_code=403, detail="Admin access required")
     course.is_published = True
     await db.commit()
     await db.refresh(course)
@@ -481,13 +475,11 @@ async def enroll_course(course_id: int, current_user: User = Depends(get_current
 @router.post("/courses/{course_id}/modules")
 async def add_module(course_id: int, module: CourseModuleCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     if not _is_staff(current_user):
-        raise HTTPException(status_code=403, detail="Faculty or admin access required")
+        raise HTTPException(status_code=403, detail="Admin access required")
     result = await db.execute(select(Course).options(selectinload(Course.modules)).where(Course.id == course_id))
     course = result.scalars().first()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
-    if current_user.role == UserRole.faculty and course.created_by != current_user.id:
-        raise HTTPException(status_code=403, detail="You can only edit your own course")
     order_index = module.order_index or ((course.modules[-1].order_index if course.modules else 0) + 1)
     record = CourseModule(
         course_id=course.id,
@@ -510,16 +502,14 @@ async def add_module(course_id: int, module: CourseModuleCreate, current_user: U
 
 @router.put("/modules/{module_id}")
 async def update_module(module_id: int, module_update: CourseModuleUpdate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    if not _is_staff(current_user):
-        raise HTTPException(status_code=403, detail="Faculty or admin access required")
-    if current_user.role == UserRole.faculty and module.course.created_by != current_user.id:
-        raise HTTPException(status_code=403, detail="You can only edit your own course")
     result = await db.execute(
         select(CourseModule).options(selectinload(CourseModule.course)).where(CourseModule.id == module_id)
     )
     module = result.scalars().first()
     if not module:
         raise HTTPException(status_code=404, detail="Module not found")
+    if not _is_staff(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
     for field in ["title", "order_index", "video_url", "pdf_url", "body", "estimated_minutes", "xp_reward"]:
         value = getattr(module_update, field)
         if value is not None:
@@ -531,16 +521,14 @@ async def update_module(module_id: int, module_update: CourseModuleUpdate, curre
 
 @router.delete("/modules/{module_id}")
 async def delete_module(module_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    if not _is_staff(current_user):
-        raise HTTPException(status_code=403, detail="Faculty or admin access required")
-    if current_user.role == UserRole.faculty and module.course.created_by != current_user.id:
-        raise HTTPException(status_code=403, detail="You can only edit your own course")
     result = await db.execute(
         select(CourseModule).options(selectinload(CourseModule.course)).where(CourseModule.id == module_id)
     )
     module = result.scalars().first()
     if not module:
         raise HTTPException(status_code=404, detail="Module not found")
+    if not _is_staff(current_user):
+        raise HTTPException(status_code=403, detail="Admin access required")
     course_id = module.course_id
     await db.delete(module)
     await db.flush()
@@ -647,9 +635,7 @@ async def create_course_quiz(course_id: int, quiz: QuizCreate, current_user: Use
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     if not _is_staff(current_user):
-        raise HTTPException(status_code=403, detail="Faculty or admin access required")
-    if current_user.role == UserRole.faculty and course.created_by != current_user.id:
-        raise HTTPException(status_code=403, detail="You can only edit your own course")
+        raise HTTPException(status_code=403, detail="Admin access required")
     if course.quiz:
         await db.delete(course.quiz)
         await db.flush()
@@ -690,7 +676,7 @@ async def get_course_quiz(course_id: int, current_user: User = Depends(get_curre
             "option_c": question.option_c,
             "option_d": question.option_d,
         }
-        if current_user.role in {UserRole.admin, UserRole.faculty}:
+        if current_user.role == UserRole.admin:
             payload["correct_option"] = question.correct_option
         questions.append(payload)
     return {"id": quiz.id, "title": quiz.title, "questions": questions}
