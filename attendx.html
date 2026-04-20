@@ -350,7 +350,10 @@
         .quiz-option.correct { border-color: var(--color-success); background: var(--color-success-highlight); }
         .quiz-option.wrong { border-color: var(--color-error); background: var(--color-error-highlight); }
         @media (max-width:900px) {
-            aside { display:none; }
+            aside,
+            body.sidebar-collapsed aside {
+                display:none !important;
+            }
             main {
                 margin-left:0;
                 width:100%;
