@@ -1253,13 +1253,34 @@
           tbody.innerHTML = data.map(a => `<tr><td>${a.name}</td><td>${a.batch_year}</td><td>${a.company}</td><td>${a.role}</td><td>${a.email}</td><td>${a.location}</td></tr>`).join('');
       }
 
-      async function loadSettings() {
-          if (currentUser && currentUser.role === 'admin') {
-              document.getElementById('faculty-form-container').style.display = 'block';
-          } else {
-              document.getElementById('faculty-form-container').style.display = 'none';
-          }
-      }
+    async function loadSettings() {
+        const isAdmin = currentUser && currentUser.role === 'admin';
+        document.getElementById('faculty-form-container').style.display = isAdmin ? 'block' : 'none';
+        document.getElementById('faculty-list-container').style.display = isAdmin ? 'block' : 'none';
+        document.getElementById('settings-admin-shortcuts').style.display = isAdmin ? 'block' : 'none';
+        if (!isAdmin) return;
+
+        const [docs, faculty] = await Promise.all([apiCall('/documents'), apiCall('/auth/faculty')]);
+        document.getElementById('pending-doc-count').textContent = Array.isArray(docs) ? docs.filter(d => !d.verified).length : '-';
+
+        const facultyBox = document.getElementById('faculty-list');
+        if (!faculty) {
+            facultyBox.innerHTML = errorState('Unable to load faculty accounts.', 'loadSettings()');
+            return;
+        }
+        if (!faculty.length) {
+            facultyBox.innerHTML = emptyState('users', 'No faculty accounts', 'Create faculty accounts from the form above.');
+            return;
+        }
+
+        facultyBox.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr></thead><tbody>${faculty.map(member => `<tr><td>${escapeHTML(member.name)}</td><td>${escapeHTML(member.email)}</td><td>${escapeHTML(member.role)}</td><td><button class="btn-primary" data-delete-faculty="${member.id}">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
+        document.querySelectorAll('[data-delete-faculty]').forEach(btn => btn.onclick = async () => {
+            if (!confirm('Delete this faculty account?')) return;
+            const res = await apiCall(`/auth/faculty/${btn.dataset.deleteFaculty}`, { method: 'DELETE' });
+            if (res) { showToast('Faculty deleted', 'success'); loadSettings(); }
+        });
+        if (window.lucide) lucide.createIcons();
+    }
 
       document.getElementById('faculty-form').addEventListener('submit', async (e) => {
           e.preventDefault();
@@ -1288,13 +1309,13 @@
               });
               const data = await res.json().catch(() => null);
 
-              if (res.ok && data?.id) {
-                  successEl.textContent = 'Faculty account created successfully';
-                  successEl.style.display = 'block';
-                  document.getElementById('faculty-form').reset();
-                  showToast('Faculty account created successfully', 'success');
-                  loadSettings();
-              } else {
+                if (res.ok && data?.id) {
+                    successEl.textContent = 'Faculty account created successfully';
+                    successEl.style.display = 'block';
+                    document.getElementById('faculty-form').reset();
+                    showToast('Faculty account created successfully', 'success');
+                    await loadSettings();
+                } else {
                   errEl.textContent = data?.detail || 'Failed to create faculty account.';
                   errEl.style.display = 'block';
               }
