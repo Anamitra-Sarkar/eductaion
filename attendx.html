@@ -151,7 +151,7 @@
             width:250px; background:var(--color-surface); border-right:1px solid var(--color-border);
             position:fixed; top:0; left:0; height:100vh; overflow-y:auto; padding:1.5rem 0; z-index:10;
         }
-        .sidebar-logo { display:flex; align-items:center; gap:0.75rem; padding:0 1.25rem 1.5rem; font-weight:700; font-size:1.2rem; color:var(--color-text); }
+        .sidebar-logo { position:relative; display:flex; align-items:center; gap:0.75rem; min-height:72px; padding:1rem 1.25rem 1.25rem; font-weight:700; font-size:1.2rem; color:var(--color-text); }
         .nav-item {
             padding:0.9rem 1.25rem; color:var(--color-text-muted); cursor:pointer;
             transition:all var(--transition-interactive); display:flex; align-items:center; gap:0.75rem;
@@ -188,10 +188,20 @@
             body.sidebar-collapsed #sidebar-user-footer { display:none; }
             body.sidebar-collapsed .nav-item { justify-content:center; padding-left:0.9rem; padding-right:0.9rem; }
             .sidebar-toggle {
-                margin-left:auto; width:36px; height:36px; padding:0; border-radius:0.75rem;
-                background:var(--color-surface-offset); color:var(--color-text); z-index:20;
+                position:absolute;
+                top:0.9rem;
+                right:-0.75rem;
+                width:38px; height:38px; padding:0; border-radius:999px;
+                background:color-mix(in srgb, var(--color-surface) 88%, transparent);
+                color:var(--color-primary);
+                border:1px solid var(--color-gold);
+                box-shadow:0 10px 24px rgba(0,0,0,0.12);
+                z-index:20;
+                backdrop-filter: blur(14px);
             }
-            .sidebar-toggle:hover { background:var(--color-primary-highlight); color:var(--color-primary); }
+            .sidebar-toggle:hover { background:var(--color-primary-highlight); color:var(--color-primary); transform:translateY(-1px) rotate(0deg); }
+            .mobile-sidebar-toggle { display:none; }
+            #sidebar-backdrop { display:none; }
         .page { display:none; }
         .page.active { display:block; animation:fadeIn 0.28s var(--transition-interactive); }
         @keyframes fadeIn { from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)} }
@@ -350,10 +360,51 @@
         .quiz-option.correct { border-color: var(--color-success); background: var(--color-success-highlight); }
         .quiz-option.wrong { border-color: var(--color-error); background: var(--color-error-highlight); }
         @media (max-width:900px) {
-            aside,
-            body.sidebar-collapsed aside {
-                display:none !important;
+            .sidebar-toggle { display:none; }
+            .mobile-sidebar-toggle {
+                display:inline-flex !important;
+                width:42px;
+                height:42px;
+                padding:0;
+                border-radius:999px;
+                border:1px solid var(--color-gold);
+                background:color-mix(in srgb, var(--color-surface) 88%, transparent);
+                color:var(--color-primary);
+                box-shadow:0 12px 26px rgba(0,0,0,0.16);
+                backdrop-filter: blur(14px);
             }
+            .mobile-sidebar-toggle:hover { background:var(--color-primary-highlight); }
+            #sidebar-backdrop {
+                display:block;
+                position:fixed;
+                left:0;
+                right:0;
+                top:calc(var(--header-height) + 0.75rem);
+                bottom:0;
+                background:rgba(2,6,23,0.38);
+                backdrop-filter:blur(4px);
+                opacity:0;
+                pointer-events:none;
+                transition:opacity 0.28s ease;
+                z-index:40;
+            }
+            body.sidebar-mobile-open #sidebar-backdrop {
+                opacity:1;
+                pointer-events:auto;
+            }
+            aside {
+                display:block;
+                width:min(290px, 82vw);
+                top:calc(var(--header-height) + 0.75rem);
+                height:calc(100dvh - var(--header-height) - 0.75rem);
+                transform:translateX(-105%);
+                transition:transform 0.28s var(--transition-interactive), width 0.28s var(--transition-interactive);
+                border-radius:0 1rem 1rem 0;
+                box-shadow:0 24px 60px rgba(0,0,0,0.22);
+                z-index:45;
+            }
+            body.sidebar-mobile-open aside { transform:translateX(0); }
+            body.sidebar-collapsed aside { width:min(290px, 82vw); }
             main {
                 margin-left:0;
                 width:100%;
@@ -364,14 +415,15 @@
             }
             body.authenticated { display:block; }
             .app-header {
-                position:static;
+                position:sticky;
                 align-items:flex-start;
                 flex-direction:column;
                 gap:0.5rem;
                 padding:0.8rem 0.9rem;
                 margin-bottom:0.75rem;
+                z-index:60;
             }
-            .app-header-actions { width:100%; justify-content:space-between; }
+            .app-header-actions { width:100%; justify-content:space-between; align-items:center; }
             .app-brand { width:100%; }
             .app-brand-text { gap:0; }
             .app-brand-title { white-space:normal; }
@@ -402,6 +454,9 @@
     </div>
     <div class="app-header-actions">
         <div class="app-header-note">Navy and gold campus operations suite</div>
+        <button type="button" id="mobile-sidebar-toggle" class="sidebar-toggle mobile-sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+            <i data-lucide="menu"></i>
+        </button>
         <button id="theme-btn" class="theme-toggle" onclick="toggleTheme()" style="display:none;" aria-label="Toggle theme">🌙</button>
     </div>
 </header>
@@ -500,6 +555,7 @@
     </div>
     <a class="nav-item" onclick="logout()" style="margin-top:auto;border-top:1px solid var(--color-border);position:sticky;bottom:0;background:var(--color-surface);z-index:2;"><i data-lucide="log-out"></i><span>Logout</span></a>
 </aside>
+<div id="sidebar-backdrop" onclick="closeSidebarOnMobile()"></div>
 <main id="main" style="display:none;">
     <div id="page-dashboard" class="page active">
         <div class="page-header">
@@ -1051,6 +1107,7 @@
         document.getElementById('main').style.display = 'block';
         document.getElementById('theme-btn').style.display = 'flex';
         document.getElementById('mobile-nav').style.display = 'block';
+        mobileSidebarOpen = false;
         updateHeaderHeight();
         applySidebarState();
         updateSidebarUser();
@@ -1063,6 +1120,7 @@
         document.getElementById('main').style.display = 'none';
         document.getElementById('theme-btn').style.display = 'none';
         document.getElementById('mobile-nav').style.display = 'none';
+        mobileSidebarOpen = false;
         updateHeaderHeight();
     }
 
@@ -1127,17 +1185,39 @@
 
     const SIDEBAR_COLLAPSE_KEY = 'attendx-sidebar-collapsed';
     let sidebarCollapsed = localStorage.getItem(SIDEBAR_COLLAPSE_KEY) === 'true';
+    let mobileSidebarOpen = false;
+
+    function isMobileViewport() {
+        return window.matchMedia('(max-width:900px)').matches;
+    }
 
     function applySidebarState() {
-        document.body.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+        const mobile = isMobileViewport();
+        if (!mobile) mobileSidebarOpen = false;
+        document.body.classList.toggle('sidebar-collapsed', !mobile && sidebarCollapsed);
+        document.body.classList.toggle('sidebar-mobile-open', mobile && mobileSidebarOpen);
+
         const icon = document.querySelector('#sidebar-toggle i');
+        const mobileIcon = document.querySelector('#mobile-sidebar-toggle i');
         if (icon) icon.setAttribute('data-lucide', sidebarCollapsed ? 'chevrons-right' : 'chevrons-left');
+        if (mobileIcon) mobileIcon.setAttribute('data-lucide', mobileSidebarOpen ? 'x' : 'menu');
+        document.getElementById('sidebar')?.setAttribute('aria-hidden', mobile && !mobileSidebarOpen ? 'true' : 'false');
         if (window.lucide) lucide.createIcons();
     }
 
     function toggleSidebar() {
-        sidebarCollapsed = !sidebarCollapsed;
-        localStorage.setItem(SIDEBAR_COLLAPSE_KEY, String(sidebarCollapsed));
+        if (isMobileViewport()) {
+            mobileSidebarOpen = !mobileSidebarOpen;
+        } else {
+            sidebarCollapsed = !sidebarCollapsed;
+            localStorage.setItem(SIDEBAR_COLLAPSE_KEY, String(sidebarCollapsed));
+        }
+        applySidebarState();
+    }
+
+    function closeSidebarOnMobile() {
+        if (!isMobileViewport()) return;
+        mobileSidebarOpen = false;
         applySidebarState();
     }
 
@@ -1468,6 +1548,7 @@
         const loaders = { dashboard: loadDashboard, attendance: loadAttendance, timetable: loadTimetable, activities: loadActivities, analytics: loadAnalytics, students: loadStudents, alumni: loadAlumni, settings: loadSettings, learning: loadLearning, internships: loadInternships, documents: loadDocuments, career: loadCareer, classroom: loadClassroom };
         if (loaders[name]) loaders[name]();
         window.location.hash = `#${name}`;
+        if (isMobileViewport()) closeSidebarOnMobile();
     }
 
     document.querySelectorAll('.nav-item[data-page], .mobile-nav a[data-page]').forEach(item => {
@@ -2785,6 +2866,10 @@
         document.getElementById('theme-btn').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
         bindCommonExtras();
         updateHeaderHeight();
+        window.addEventListener('resize', () => {
+            updateHeaderHeight();
+            applySidebarState();
+        });
         if ('ResizeObserver' in window) {
             headerResizeObserver = new ResizeObserver(updateHeaderHeight);
             headerResizeObserver.observe(document.getElementById('app-header'));
