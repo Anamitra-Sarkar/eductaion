@@ -9,7 +9,7 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 from database import get_db
 from schemas import UserCreate, UserLogin, Token, User as UserSchema, FacultyCreate
-from models import User, College, UserRole
+from models import User, UserRole
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -62,38 +62,7 @@ async def get_current_user(
 
 @router.post("/register", response_model=UserSchema)
 async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
-    # Hard-reject non-students
-    if user.role != UserRole.student:
-        raise HTTPException(status_code=403, detail="Self-registration is only allowed for students")
-    
-    # Check if email already exists
-    result = await db.execute(select(User).where(User.email == user.email))
-    existing_user = result.scalars().first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    
-    # Fetch college and validate email domain
-    result = await db.execute(select(College).where(College.id == user.college_id))
-    college = result.scalars().first()
-    if not college:
-        raise HTTPException(status_code=404, detail="College not found")
-    
-    # Validate email domain matches college domain
-    if not user.email.endswith(f"@{college.domain}"):
-        raise HTTPException(status_code=400, detail=f"Email must use your institution's official domain")
-    
-    # Force role to student (don't trust client)
-    db_user = User(
-        name=user.name,
-        email=user.email,
-        hashed_password=hash_password(user.password),
-        role=UserRole.student,
-        college_id=user.college_id
-    )
-    db.add(db_user)
-    await db.commit()
-    await db.refresh(db_user)
-    return db_user
+    raise HTTPException(status_code=403, detail="Student self-registration is disabled. Accounts must be provisioned by faculty or administrators.")
 
 @router.post("/login", response_model=Token)
 async def login(form_data: UserLogin, db: AsyncSession = Depends(get_db)):
@@ -142,3 +111,22 @@ async def register_faculty(
     await db.commit()
     await db.refresh(db_user)
     return db_user
+
+@router.get("/faculty", response_model=List[UserSchema])
+async def list_faculty(current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    result = await db.execute(select(User).where(User.role == UserRole.faculty).order_by(User.name))
+    return result.scalars().all()
+
+@router.delete("/faculty/{id}")
+async def delete_faculty(id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if current_user.role != UserRole.admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    result = await db.execute(select(User).where(User.id == id, User.role == UserRole.faculty))
+    faculty = result.scalars().first()
+    if not faculty:
+        raise HTTPException(status_code=404, detail="Faculty not found")
+    await db.delete(faculty)
+    await db.commit()
+    return {"message": "Faculty deleted"}

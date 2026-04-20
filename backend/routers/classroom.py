@@ -98,13 +98,13 @@ async def update_session_status(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    if current_user.role != UserRole.faculty:
-        raise HTTPException(status_code=403, detail="Faculty access required")
+    if current_user.role not in [UserRole.admin, UserRole.faculty]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     result = await db.execute(select(ClassSession).where(ClassSession.id == id))
     session = result.scalars().first()
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
-    if session.faculty_id != current_user.id:
+    if current_user.role == UserRole.faculty and session.faculty_id != current_user.id:
         raise HTTPException(status_code=403, detail="You can only update your own sessions")
     session.status = status
     await db.commit()

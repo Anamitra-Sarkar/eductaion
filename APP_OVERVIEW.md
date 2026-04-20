@@ -111,13 +111,15 @@ Student Account:
 - **analytics_cache** - Pre-computed KPIs for performance
 - Plus supporting models for relationships
 
-### Seed Data
+### Demo Seed Data (Local Only)
 - 1 College + 4 Departments
 - 1 Admin + 2 Faculty + 30 Students
 - 10 Subjects with faculty assignments
 - 20 Attendance sessions (300+ attendance records)
 - 5 Activities (workshops, seminars, etc.)
 - 10 Alumni records
+
+These records are generated only for local/demo runs and should not be relied on in production.
 
 ---
 

@@ -175,13 +175,15 @@ QUICK START
    Email: admin@college.edu
    Password: Admin@123
 
-4. SEED DATA
+4. SEED DATA (DEMO ONLY)
    ✓ 30 students (4 departments, 4 semesters)
    ✓ 10 subjects with faculty assignments
    ✓ 20 attendance sessions
    ✓ 5 activities (workshops, hackathons, etc.)
    ✓ 10 alumni records
    ✓ Complete timetable for all departments
+
+  This data is created only when RUN_SEED=true in local/demo environments.
 
 ================================================================================
 DEPLOYMENT (10 minutes)

@@ -66,7 +66,7 @@ Password: Student@123
 
 ## 📊 What Data Is Already In The System?
 
-### Pre-Seeded Data
+### Demo Seed Data (Local Only)
 - **1 College** - XYZ Institute of Technology
 - **4 Departments** - Computer Science, ECE, Mechanical, Civil
 - **1 Admin + 2 Faculty + 30 Students** - Ready to use
@@ -74,6 +74,8 @@ Password: Student@123
 - **20 Attendance Sessions** - 300+ attendance records
 - **5 Activities** - Workshops, seminars, hackathons
 - **10 Alumni** - Graduate records with companies
+
+These records are created only when `RUN_SEED=true` in a local or demo environment.
 
 ### Explore This Data
 1. Go to **Students** page to see all 30 students

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from typing import List, Optional
 from database import get_db
-from models import Alumni, User, Department
+from models import Alumni, User, Department, UserRole
 from schemas import Alumni as AlumniSchema, AlumniCreate, AlumniUpdate
 from routers.auth import get_current_user
 
@@ -42,6 +42,8 @@ async def get_alumni_by_id(id: int, current_user: User = Depends(get_current_use
 
 @router.post("", response_model=AlumniSchema)
 async def create_alumni(alumni: AlumniCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if current_user.role not in [UserRole.admin, UserRole.faculty]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     result = await db.execute(select(Department).where(Department.id == alumni.dept_id))
     if not result.scalars().first():
         raise HTTPException(status_code=404, detail="Department not found")
@@ -62,6 +64,8 @@ async def create_alumni(alumni: AlumniCreate, current_user: User = Depends(get_c
 
 @router.put("/{id}", response_model=AlumniSchema)
 async def update_alumni(id: int, alumni_update: AlumniUpdate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if current_user.role not in [UserRole.admin, UserRole.faculty]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     result = await db.execute(select(Alumni).where(Alumni.id == id))
     db_alumni = result.scalars().first()
     if not db_alumni:
@@ -74,6 +78,8 @@ async def update_alumni(id: int, alumni_update: AlumniUpdate, current_user: User
 
 @router.delete("/{id}")
 async def delete_alumni(id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if current_user.role not in [UserRole.admin, UserRole.faculty]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     result = await db.execute(select(Alumni).where(Alumni.id == id))
     db_alumni = result.scalars().first()
     if not db_alumni:

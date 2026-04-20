@@ -128,6 +128,8 @@ cp .env.example .env
 python seed.py
 ```
 
+Only run this in local or demo environments. Keep `RUN_SEED=false` in production.
+
 This creates:
 - 1 admin user: `admin@college.edu` / `Admin@123`
 - 2 faculty users

@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AttendX - Smart Attendance & Activity Monitoring</title>
+        <meta name="theme-color" content="#01696f">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <link rel="manifest" href="/manifest.webmanifest">
+        <link rel="icon" href="/icon-192.svg" type="image/svg+xml">
+        <link rel="apple-touch-icon" href="/icon-192.svg">
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -123,6 +129,18 @@
         .nav-item:hover { background:var(--color-surface-offset); color:var(--color-text); }
         .nav-item.active { background:var(--color-surface-offset); color:var(--color-primary); border-left-color:var(--color-primary); }
         main { margin-left:250px; padding:2rem; min-height:100vh; width:calc(100% - 250px); }
+            body.sidebar-collapsed aside { width:88px; }
+            body.sidebar-collapsed main { margin-left:88px; width:calc(100% - 88px); }
+            body.sidebar-collapsed .sidebar-logo { justify-content:center; padding:0 0.75rem 1.5rem; }
+            body.sidebar-collapsed .sidebar-logo span,
+            body.sidebar-collapsed .nav-item span,
+            body.sidebar-collapsed #sidebar-user-footer { display:none; }
+            body.sidebar-collapsed .nav-item { justify-content:center; padding-left:0.9rem; padding-right:0.9rem; }
+            .sidebar-toggle {
+                margin-left:auto; width:36px; height:36px; padding:0; border-radius:0.75rem;
+                background:var(--color-surface-offset); color:var(--color-text);
+            }
+            .sidebar-toggle:hover { background:var(--color-primary-highlight); color:var(--color-primary); }
         .page { display:none; }
         .page.active { display:block; animation:fadeIn 0.18s ease; }
         @keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
@@ -255,7 +273,7 @@
         .quiz-option.correct { border-color: var(--color-success); background: var(--color-success-highlight); }
         .quiz-option.wrong { border-color: var(--color-error); background: var(--color-error-highlight); }
         @media (max-width:900px) {
-            aside { width:100%; height:auto; position:static; border-right:none; border-bottom:1px solid var(--color-border); }
+              aside { display:none; }
             main { margin-left:0; width:100%; padding:1.25rem; }
             body.authenticated { display:block; }
             .page-header { flex-direction:column; align-items:flex-start; }
@@ -264,6 +282,7 @@
             .learning-layout, .course-detail-layout, .learning-grid { grid-template-columns:1fr; }
             .mobile-nav { display:block; }
             main { padding-bottom:6rem; }
+              .theme-toggle { right:1rem; bottom:5.5rem; }
         }
     </style>
 </head>
@@ -282,7 +301,6 @@
 
         <div class="auth-tabs">
             <button type="button" class="auth-tab active" data-auth-tab="signin">Sign In</button>
-            <button type="button" class="auth-tab" data-auth-tab="signup">Sign Up</button>
         </div>
 
         <div id="signin-panel" class="auth-panel active">
@@ -299,9 +317,10 @@
                 <p id="login-success" class="auth-success" style="display:none;"></p>
                 <button type="submit" id="login-btn" class="btn-primary" style="width:100%;">Login</button>
             </form>
+                        <p class="muted" style="margin-top:1rem;text-align:center;">Student accounts are provisioned by faculty or administrators.</p>
         </div>
 
-          <div id="signup-panel" class="auth-panel">
+                    <div id="signup-panel" class="auth-panel" style="display:none;">
               <form id="signup-form">
                   <div class="form-group">
                       <label for="signup-name">Full Name</label>
@@ -339,6 +358,9 @@
             <path d="M21.5 34L26 22L30.5 34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
         </svg>
         <span>AttendX</span>
+        <button type="button" id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+            <i data-lucide="chevrons-left"></i>
+        </button>
     </div>
     <a href="#dashboard" class="nav-item active" data-page="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
     <a href="#attendance" class="nav-item" data-page="attendance"><i data-lucide="circle-check-big"></i><span>Attendance</span></a>
@@ -416,11 +438,30 @@
         <div class="card"><h2 style="margin-bottom:1rem;">Activity Participation</h2><div style="height:320px;"><canvas id="activityChart"></canvas></div></div>
     </div>
     <div id="page-students" class="page">
-        <div class="page-header"><h1>Students</h1></div>
+        <div class="page-header"><div><h1>Students</h1><p class="page-sub">Provision and manage student records.</p></div></div>
+        <div id="student-form-container" class="card" style="display:none;">
+            <h2 style="margin-bottom:1rem;">Create Student Account</h2>
+            <form id="student-form">
+                <div class="grid" style="grid-template-columns:1fr 1fr;gap:0.75rem;">
+                    <input type="text" id="student-name" placeholder="Full name" required />
+                    <input type="text" id="student-roll-no" placeholder="Roll number" required />
+                    <select id="student-dept" required>
+                        <option value="">Department</option>
+                    </select>
+                    <input type="number" id="student-semester" min="1" max="12" placeholder="Semester" required />
+                    <input type="tel" id="student-phone" placeholder="Phone" required />
+                    <input type="email" id="student-email" placeholder="Email" required />
+                    <input type="password" id="student-password" minlength="6" placeholder="Password" required />
+                </div>
+                <p id="student-error" class="auth-error" style="display:none;"></p>
+                <p id="student-success" class="auth-success" style="display:none;"></p>
+                <button type="submit" id="student-btn" class="btn-primary" style="width:100%;margin-top:1rem;">Create Student Account</button>
+            </form>
+        </div>
         <div class="card table-wrap">
             <table>
-                <thead><tr><th>Name</th><th>Roll No</th><th>Dept ID</th><th>Semester</th><th>Career Profile</th><th>Email</th><th>Status</th></tr></thead>
-                <tbody id="students-table"><tr><td colspan="7" class="loading">Loading...</td></tr></tbody>
+                <thead><tr><th>Name</th><th>Roll No</th><th>Dept ID</th><th>Semester</th><th>Career Profile</th><th>Email</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="students-table"><tr><td colspan="8" class="loading">Loading...</td></tr></tbody>
             </table>
         </div>
     </div>
@@ -550,6 +591,10 @@
                 <button type="submit" id="faculty-btn" class="btn-primary" style="width:100%;">Create Faculty Account</button>
             </form>
         </div>
+        <div id="faculty-list-container" class="card" style="display:none;">
+            <h2 style="margin-bottom:1rem;">Faculty Members</h2>
+            <div id="faculty-list"><div class="loading">Loading...</div></div>
+        </div>
     </div>
 </main>
 <button id="theme-btn" class="theme-toggle" onclick="toggleTheme()" style="display:none;">🌙</button>
@@ -628,6 +673,7 @@
         document.getElementById('main').style.display = 'block';
         document.getElementById('theme-btn').style.display = 'flex';
         document.getElementById('mobile-nav').style.display = 'block';
+        applySidebarState();
         updateSidebarUser();
     }
 
@@ -697,8 +743,23 @@
       document.getElementById('signup-college').addEventListener('change', updateEmailHelper);
       document.getElementById('retry-colleges-link').addEventListener('click', (e) => {
           e.preventDefault();
-          loadColleges();
       });
+
+    const SIDEBAR_COLLAPSE_KEY = 'attendx-sidebar-collapsed';
+    let sidebarCollapsed = localStorage.getItem(SIDEBAR_COLLAPSE_KEY) === 'true';
+
+    function applySidebarState() {
+        document.body.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+        const icon = document.querySelector('#sidebar-toggle i');
+        if (icon) icon.setAttribute('data-lucide', sidebarCollapsed ? 'chevrons-right' : 'chevrons-left');
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function toggleSidebar() {
+        sidebarCollapsed = !sidebarCollapsed;
+        localStorage.setItem(SIDEBAR_COLLAPSE_KEY, String(sidebarCollapsed));
+        applySidebarState();
+    }
 
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -906,6 +967,7 @@
                   successEl.style.display = 'block';
                   document.getElementById('faculty-form').reset();
                   showToast('Faculty account created successfully', 'success');
+                  loadSettings();
               } else {
                   errEl.textContent = data?.detail || 'Failed to create faculty account.';
                   errEl.style.display = 'block';
@@ -1014,22 +1076,92 @@
     }
 
     async function loadStudents() {
+        const canManageStudents = currentUser?.role === 'admin' || currentUser?.role === 'faculty';
+        document.getElementById('student-form-container').style.display = canManageStudents ? 'block' : 'none';
+        if (canManageStudents && !departments.length) {
+            departments = (await apiCall('/departments', { auth: false })) || [];
+        }
+        if (canManageStudents) {
+            document.getElementById('student-dept').innerHTML = `<option value="">Department</option>${departments.map(dep => `<option value="${dep.id}">${escapeHTML(dep.name)} (${escapeHTML(dep.code)})</option>`).join('')}`;
+        }
+
         const tbody = document.getElementById('students-table');
-        tbody.innerHTML = `<tr><td colspan="7">${skeletonCards(1)}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8">${skeletonCards(1)}</td></tr>`;
         const [students, profiles] = await Promise.all([apiCall('/students'), currentUser?.role === 'admin' ? apiCall('/career/profiles') : Promise.resolve([])]);
-        if (!students) { tbody.innerHTML = `<tr><td colspan="7">${errorState('Unable to load students.', 'loadStudents()')}</td></tr>`; return; }
-        if (!students.length) { tbody.innerHTML = `<tr><td colspan="7">${emptyState('users', 'No students yet', 'Student records will appear once students register.')}</td></tr>`; return; }
+        if (!students) { tbody.innerHTML = `<tr><td colspan="8">${errorState('Unable to load students.', 'loadStudents()')}</td></tr>`; return; }
+        if (!students.length) { tbody.innerHTML = `<tr><td colspan="8">${emptyState('users', 'No students yet', 'Student records will appear once students register.')}</td></tr>`; return; }
         const profileSet = new Set((profiles || []).map(p => p.student_id));
-        tbody.innerHTML = students.map(s => `<tr><td>${escapeHTML(s.name)}</td><td>${escapeHTML(s.roll_no)}</td><td>${escapeHTML(s.dept_id)}</td><td>${escapeHTML(s.semester)}</td><td>${currentUser?.role === 'admin' ? `<span style="width:10px;height:10px;border-radius:999px;display:inline-block;background:${profileSet.has(s.id) ? 'var(--color-success)' : '#9ca3af'}"></span>` : '-'}</td><td>${escapeHTML(s.email)}</td><td>${statusBadge(s.status)}</td></tr>`).join('');
+        tbody.innerHTML = students.map(s => `<tr><td>${escapeHTML(s.name)}</td><td>${escapeHTML(s.roll_no)}</td><td>${escapeHTML(s.dept_id)}</td><td>${escapeHTML(s.semester)}</td><td>${currentUser?.role === 'admin' ? `<span style="width:10px;height:10px;border-radius:999px;display:inline-block;background:${profileSet.has(s.id) ? 'var(--color-success)' : '#9ca3af'}"></span>` : '-'}</td><td>${escapeHTML(s.email)}</td><td>${statusBadge(s.status)}</td><td>${canManageStudents ? `<button class="btn-primary" data-delete-student="${s.id}">Delete</button>` : '-'}</td></tr>`).join('');
+        if (canManageStudents) {
+            document.querySelectorAll('[data-delete-student]').forEach(btn => btn.onclick = async () => {
+                if (!confirm('Delete this student account?')) return;
+                const res = await apiCall(`/students/${btn.dataset.deleteStudent}`, { method: 'DELETE' });
+                if (res) { showToast('Student deleted', 'success'); loadStudents(); }
+            });
+
+            document.getElementById('student-form').onsubmit = async (e) => {
+                e.preventDefault();
+                const errEl = document.getElementById('student-error');
+                const successEl = document.getElementById('student-success');
+                const btn = document.getElementById('student-btn');
+                errEl.style.display = 'none';
+                successEl.style.display = 'none';
+                btn.disabled = true;
+                btn.textContent = 'Creating...';
+
+                const payload = {
+                    roll_no: document.getElementById('student-roll-no').value.trim(),
+                    name: document.getElementById('student-name').value.trim(),
+                    dept_id: Number(document.getElementById('student-dept').value),
+                    semester: Number(document.getElementById('student-semester').value),
+                    phone: document.getElementById('student-phone').value.trim(),
+                    email: document.getElementById('student-email').value.trim(),
+                    password: document.getElementById('student-password').value,
+                    status: 'active'
+                };
+
+                const res = await apiCall('/students', { method: 'POST', body: JSON.stringify(payload) });
+                if (res?.id) {
+                    successEl.textContent = 'Student account created successfully.';
+                    successEl.style.display = 'block';
+                    document.getElementById('student-form').reset();
+                    loadStudents();
+                    showToast('Student account created', 'success');
+                } else {
+                    errEl.textContent = 'Failed to create student account.';
+                    errEl.style.display = 'block';
+                }
+
+                btn.disabled = false;
+                btn.textContent = 'Create Student Account';
+            };
+        }
+
+        if (window.lucide) lucide.createIcons();
     }
 
     async function loadSettings() {
         const isAdmin = currentUser?.role === 'admin';
         document.getElementById('faculty-form-container').style.display = isAdmin ? 'block' : 'none';
+        document.getElementById('faculty-list-container').style.display = isAdmin ? 'block' : 'none';
         document.getElementById('settings-admin-shortcuts').style.display = isAdmin ? 'block' : 'none';
         if (isAdmin) {
-            const docs = await apiCall('/documents');
+            const [docs, faculty] = await Promise.all([apiCall('/documents'), apiCall('/auth/faculty')]);
             document.getElementById('pending-doc-count').textContent = Array.isArray(docs) ? docs.filter(d => !d.verified).length : '-';
+            const facultyBox = document.getElementById('faculty-list');
+            if (!faculty) {
+                facultyBox.innerHTML = errorState('Unable to load faculty accounts.', 'loadSettings()');
+            } else if (!faculty.length) {
+                facultyBox.innerHTML = emptyState('users', 'No faculty accounts', 'Create faculty accounts from the form above.');
+            } else {
+                facultyBox.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Action</th></tr></thead><tbody>${faculty.map(member => `<tr><td>${escapeHTML(member.name)}</td><td>${escapeHTML(member.email)}</td><td>${escapeHTML(member.role)}</td><td><button class="btn-primary" data-delete-faculty="${member.id}">Delete</button></td></tr>`).join('')}</tbody></table></div>`;
+                document.querySelectorAll('[data-delete-faculty]').forEach(btn => btn.onclick = async () => {
+                    if (!confirm('Delete this faculty account?')) return;
+                    const res = await apiCall(`/auth/faculty/${btn.dataset.deleteFaculty}`, { method: 'DELETE' });
+                    if (res) { showToast('Faculty deleted', 'success'); loadSettings(); }
+                });
+            }
+            if (window.lucide) lucide.createIcons();
         }
         const btn = document.getElementById('settings-post-internship');
         if (btn) btn.onclick = openInternshipModal;
@@ -1341,13 +1473,14 @@
     }
 
     function renderSessionCard(session) {
-        const ownFaculty = currentUser?.role === 'faculty' && Number(session.faculty_id) === Number(currentUser.id);
+        const canManageSession = currentUser?.role === 'admin' || (currentUser?.role === 'faculty' && Number(session.faculty_id) === Number(currentUser.id));
         const isLive = String(session.status).toLowerCase() === 'live';
-        return `<div class="card"><div style="display:flex;justify-content:space-between;gap:0.75rem;"><div><h3>${escapeHTML(session.title)}</h3><p class="muted">${escapeHTML(session.subject)} · ${escapeHTML(session.department_name || '')}</p></div>${isLive ? `<span class="badge badge-red">LIVE</span>` : statusBadge(session.status)}</div><div class="muted" style="display:grid;gap:0.35rem;margin-top:0.75rem;"><div>Faculty: ${escapeHTML(session.faculty_name || '')}</div><div>Semester: ${escapeHTML(session.semester)}</div><div>Time: ${new Date(session.scheduled_at).toLocaleString()}</div><div>Duration: ${escapeHTML(session.duration_minutes)} mins</div><div class="countdown" data-session-time="${escapeHTML(session.scheduled_at)}"></div></div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.9rem;"><a class="btn-primary" href="${escapeHTML(session.meet_link)}" target="_blank" rel="noreferrer">Join Class</a>${ownFaculty && !isLive ? `<button class="btn-primary" data-session-status="${session.id}" data-next-status="live">Go Live</button>` : ''}${ownFaculty && isLive ? `<button class="btn-primary" data-session-status="${session.id}" data-next-status="ended">End Class</button>` : ''}</div></div>`;
+        return `<div class="card"><div style="display:flex;justify-content:space-between;gap:0.75rem;"><div><h3>${escapeHTML(session.title)}</h3><p class="muted">${escapeHTML(session.subject)} · ${escapeHTML(session.department_name || '')}</p></div>${isLive ? `<span class="badge badge-red">LIVE</span>` : statusBadge(session.status)}</div><div class="muted" style="display:grid;gap:0.35rem;margin-top:0.75rem;"><div>Faculty: ${escapeHTML(session.faculty_name || '')}</div><div>Semester: ${escapeHTML(session.semester)}</div><div>Time: ${new Date(session.scheduled_at).toLocaleString()}</div><div>Duration: ${escapeHTML(session.duration_minutes)} mins</div><div class="countdown" data-session-time="${escapeHTML(session.scheduled_at)}"></div></div><div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.9rem;"><a class="btn-primary" href="${escapeHTML(session.meet_link)}" target="_blank" rel="noreferrer">Join Class</a>${canManageSession && !isLive ? `<button class="btn-primary" data-session-status="${session.id}" data-next-status="live">Go Live</button>` : ''}${canManageSession && isLive ? `<button class="btn-primary" data-session-status="${session.id}" data-next-status="ended">End Class</button>` : ''}${canManageSession ? `<button class="btn-primary" data-delete-session="${session.id}">Delete</button>` : ''}</div></div>`;
     }
 
     function bindClassroomEvents() {
         document.querySelectorAll('[data-session-status]').forEach(btn => btn.onclick = async () => { const res = await apiCall(`/classroom/sessions/${btn.dataset.sessionStatus}/status?status=${btn.dataset.nextStatus}`, { method: 'PUT' }); if (res) loadClassroom(); });
+        document.querySelectorAll('[data-delete-session]').forEach(btn => btn.onclick = async () => { if (!confirm('Delete this classroom session?')) return; const res = await apiCall(`/classroom/sessions/${btn.dataset.deleteSession}`, { method: 'DELETE' }); if (res) { showToast('Session deleted', 'success'); loadClassroom(); } });
     }
 
     function refreshCountdowns() {
@@ -2086,8 +2219,12 @@
         document.documentElement.dataset.theme = currentTheme;
         document.getElementById('theme-btn').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
         bindCommonExtras();
-        loadColleges();
         restoreSession();
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').catch(() => {});
+            });
+        }
     });
 </script>
 </body>

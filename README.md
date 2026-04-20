@@ -72,7 +72,10 @@ SECRET_KEY=your-secret-key-here
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
 FRONTEND_URL=http://localhost:3000
+RUN_SEED=false
 ```
+
+Set `RUN_SEED=true` only for local development or demo environments. Keep it `false` in production.
 
 ### Frontend (config.js)
 ```javascript

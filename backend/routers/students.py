@@ -57,8 +57,8 @@ async def get_student(id: int, current_user: User = Depends(get_current_user), d
 
 @router.post("", response_model=StudentSchema)
 async def create_student(student: StudentCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    if current_user.role != UserRole.admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+    if current_user.role not in [UserRole.admin, UserRole.faculty]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     
     result = await db.execute(select(Student).where(Student.roll_no == student.roll_no))
     if result.scalars().first():
@@ -69,8 +69,11 @@ async def create_student(student: StudentCreate, current_user: User = Depends(ge
         raise HTTPException(status_code=400, detail="Email already registered")
     
     result = await db.execute(select(Department).where(Department.id == student.dept_id))
-    if not result.scalars().first():
+    department = result.scalars().first()
+    if not department:
         raise HTTPException(status_code=404, detail="Department not found")
+    if department.college_id != current_user.college_id:
+        raise HTTPException(status_code=403, detail="Department does not belong to your college")
     
     from routers.auth import hash_password
     
@@ -79,7 +82,7 @@ async def create_student(student: StudentCreate, current_user: User = Depends(ge
         email=student.email,
         hashed_password=hash_password(student.password),
         role=UserRole.student,
-        college_id=1  # Assuming college_id=1 for now
+        college_id=current_user.college_id
     )
     db.add(db_user)
     await db.flush()
@@ -101,8 +104,8 @@ async def create_student(student: StudentCreate, current_user: User = Depends(ge
 
 @router.put("/{id}", response_model=StudentSchema)
 async def update_student(id: int, student_update: StudentUpdate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    if current_user.role != UserRole.admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+    if current_user.role not in [UserRole.admin, UserRole.faculty]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     
     result = await db.execute(select(Student).where(Student.id == id))
     db_student = result.scalars().first()
@@ -118,15 +121,22 @@ async def update_student(id: int, student_update: StudentUpdate, current_user: U
 
 @router.delete("/{id}")
 async def delete_student(id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    if current_user.role != UserRole.admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+    if current_user.role not in [UserRole.admin, UserRole.faculty]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     
     result = await db.execute(select(Student).where(Student.id == id))
     db_student = result.scalars().first()
     if not db_student:
         raise HTTPException(status_code=404, detail="Student not found")
-    
-    await db.delete(db_student)
+
+    user_result = await db.execute(select(User).where(User.id == db_student.user_id))
+    db_user = user_result.scalars().first()
+
+    if db_user:
+        await db.delete(db_user)
+    else:
+        await db.delete(db_student)
+
     await db.commit()
     return {"message": "Student deleted"}
 

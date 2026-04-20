@@ -80,6 +80,8 @@ async def delete_activity(id: int, current_user: User = Depends(get_current_user
 
 @router.post("/{id}/enroll")
 async def enroll_activity(id: int, student_id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    if current_user.role not in [UserRole.admin, UserRole.faculty]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     result = await db.execute(select(Activity).where(Activity.id == id))
     activity = result.scalars().first()
     if not activity:

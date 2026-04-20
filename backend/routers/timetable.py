@@ -34,8 +34,8 @@ async def get_timetable(
 
 @router.post("", response_model=TimetableSlotSchema)
 async def create_timetable(slot: TimetableSlotCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    if current_user.role != UserRole.admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+    if current_user.role not in [UserRole.admin, UserRole.faculty]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     
     result = await db.execute(select(Subject).where(Subject.id == slot.subject_id))
     if not result.scalars().first():
@@ -57,8 +57,8 @@ async def create_timetable(slot: TimetableSlotCreate, current_user: User = Depen
 
 @router.put("/{id}", response_model=TimetableSlotSchema)
 async def update_timetable(id: int, slot: TimetableSlotCreate, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    if current_user.role != UserRole.admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+    if current_user.role not in [UserRole.admin, UserRole.faculty]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     
     result = await db.execute(select(TimetableSlot).where(TimetableSlot.id == id))
     db_slot = result.scalars().first()
@@ -74,8 +74,8 @@ async def update_timetable(id: int, slot: TimetableSlotCreate, current_user: Use
 
 @router.delete("/{id}")
 async def delete_timetable(id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    if current_user.role != UserRole.admin:
-        raise HTTPException(status_code=403, detail="Admin access required")
+    if current_user.role not in [UserRole.admin, UserRole.faculty]:
+        raise HTTPException(status_code=403, detail="Faculty or admin access required")
     
     result = await db.execute(select(TimetableSlot).where(TimetableSlot.id == id))
     db_slot = result.scalars().first()
