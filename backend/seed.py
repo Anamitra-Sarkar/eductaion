@@ -65,6 +65,110 @@ ACTIVITY_TYPES = [
 COMPANIES = ["TCS", "Infosys", "Google", "Microsoft", "Amazon", "Adobe", "Flipkart", "Jio", "DRDO", "ISRO"]
 SEED_USER_PASSWORD = os.getenv("SEED_USER_PASSWORD", "change-me")
 
+LEARNING_COURSES = [
+    {
+        "title": "GitHub Copilot CLI Essentials",
+        "description": "Learn how an AI coding assistant can help you inspect code, search faster, and ship changes with confidence.",
+        "subject": "AI Productivity",
+        "dept_code": "CSE",
+        "semester": 3,
+        "thumbnail_url": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80",
+        "xp_reward": 180,
+        "modules": [
+            ("What Copilot CLI Does", None, "Use an AI assistant to explore a codebase, summarize files, and accelerate routine engineering tasks.", 10, 25),
+            ("Find the Right Files Fast", None, "Start by searching for the relevant symbols, routes, and components before editing anything.", 12, 25),
+            ("Use Tools, Skills, and Subagents", None, "Break complex work into smaller actions and delegate when a specialized workflow is more efficient.", 15, 30),
+            ("Verify Changes Before Shipping", None, "Run tests, inspect diffs, and confirm behavior on desktop and mobile before you commit.", 15, 30),
+        ],
+        "quiz": [
+            ("What is the best first step before editing a large codebase?", "Search for relevant files", "Write code immediately", "Delete unused modules", "Skip context", QuizCorrectOption.a),
+            ("What should you do after making an AI-assisted code change?", "Trust it blindly", "Run tests and review the diff", "Push immediately", "Ignore warnings", QuizCorrectOption.b),
+            ("Why use a specialized workflow or subagent?", "To make tasks slower", "To avoid any context", "To handle focused work more efficiently", "To hide code", QuizCorrectOption.c),
+            ("What is a good use of an AI coding assistant?", "Only generate code with no review", "Search, explain, and refine changes", "Replace all engineering judgment", "Skip validation", QuizCorrectOption.b),
+        ],
+    },
+    {
+        "title": "Prompting Better with AI Assistants",
+        "description": "Build better prompts for coding and learning by adding context, constraints, and clear success criteria.",
+        "subject": "Digital Skills",
+        "dept_code": "CSE",
+        "semester": 2,
+        "thumbnail_url": "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=1200&q=80",
+        "xp_reward": 160,
+        "modules": [
+            ("Set the Goal", None, "State exactly what you want to achieve so the assistant can focus on the right outcome.", 10, 20),
+            ("Add Constraints and Examples", None, "Mention formats, edge cases, and examples so the output matches your needs.", 12, 20),
+            ("Ask for Structured Output", None, "Request tables, checklists, or step-by-step plans when clarity matters.", 12, 25),
+            ("Refine, Review, Repeat", None, "Treat the assistant as a collaborator: review the result and iterate until it is useful.", 15, 30),
+        ],
+        "quiz": [
+            ("What improves the quality of an AI response the most?", "Vague requests", "Clear context and constraints", "Longer typos", "No examples", QuizCorrectOption.b),
+            ("Which request is most useful for a summary?", "Do something smart", "Give me a table with 3 columns", "Write anything", "Ignore the question", QuizCorrectOption.b),
+            ("Why should you review AI output?", "Because it is always perfect", "To validate correctness and fit", "To avoid learning", "To make it longer", QuizCorrectOption.b),
+            ("What is a good prompt habit?", "Start with the outcome you want", "Hide important details", "Assume the assistant knows everything", "Mix many unrelated tasks", QuizCorrectOption.a),
+        ],
+    },
+]
+
+
+async def seed_learning_content(db, college_id: int):
+    dept_rows = (await db.execute(select(Department).where(Department.college_id == college_id))).scalars().all()
+    dept_map = {dept.code: dept.id for dept in dept_rows}
+    creator = (
+        await db.execute(
+            select(User)
+            .where(User.college_id == college_id, User.role.in_([UserRole.admin, UserRole.faculty]))
+            .order_by(User.id.asc())
+        )
+    ).scalars().first()
+    if not creator:
+        creator = (await db.execute(select(User).where(User.college_id == college_id).order_by(User.id.asc()))).scalars().first()
+    if not creator:
+        return
+
+    existing_titles = set((await db.execute(select(Course.title))).scalars().all())
+    for course_spec in LEARNING_COURSES:
+        if course_spec["title"] in existing_titles:
+            continue
+        dept_id = dept_map.get(course_spec["dept_code"])
+        course = Course(
+            title=course_spec["title"],
+            description=course_spec["description"],
+            subject=course_spec["subject"],
+            dept_id=dept_id,
+            semester=course_spec["semester"],
+            thumbnail_url=course_spec["thumbnail_url"],
+            created_by=creator.id,
+            is_published=True,
+            xp_reward=course_spec["xp_reward"],
+        )
+        db.add(course)
+        await db.flush()
+        for order_index, (title, video_url, body, estimated_minutes, xp_reward) in enumerate(course_spec["modules"], start=1):
+            db.add(CourseModule(
+                course_id=course.id,
+                title=title,
+                order_index=order_index,
+                video_url=video_url,
+                body=body,
+                estimated_minutes=estimated_minutes,
+                xp_reward=xp_reward,
+            ))
+        await db.flush()
+        quiz = Quiz(title=f"{course_spec['title']} Quiz", course_id=course.id)
+        db.add(quiz)
+        await db.flush()
+        for question, a, b, c, d, correct in course_spec["quiz"]:
+            db.add(QuizQuestion(
+                quiz_id=quiz.id,
+                question=question,
+                option_a=a,
+                option_b=b,
+                option_c=c,
+                option_d=d,
+                correct_option=correct,
+            ))
+
 
 async def seed_all():
     async with AsyncSessionLocal() as db:
@@ -73,7 +177,9 @@ async def seed_all():
             select(College).where(College.name == "Institute of Technology Excellence")
         )).scalars().first()
         if existing_college:
-            print("Seed data already present — skipping.")
+            print("Seed data already present — ensuring learning content exists.")
+            await seed_learning_content(db, existing_college.id)
+            await db.commit()
             return
 
         # 1. College
@@ -472,6 +578,7 @@ async def seed_all():
             duration_minutes=60, status=SessionStatus.ended,
         ))
 
+        await seed_learning_content(db, college_id)
         await db.commit()
         print("Database seeded successfully!")
 

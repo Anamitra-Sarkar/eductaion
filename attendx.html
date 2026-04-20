@@ -431,7 +431,7 @@
         <div class="muted" id="sidebar-user-role" style="font-size:0.9rem;">Role</div>
         <div id="sidebar-user-streak" class="muted" style="margin-top:0.45rem;font-size:0.9rem;"></div>
     </div>
-    <a class="nav-item" onclick="logout()" style="margin-top:1rem;border-top:1px solid var(--color-border);"><i data-lucide="log-out"></i><span>Logout</span></a>
+    <a class="nav-item" onclick="logout()" style="margin-top:auto;border-top:1px solid var(--color-border);position:sticky;bottom:0;background:var(--color-surface);z-index:2;"><i data-lucide="log-out"></i><span>Logout</span></a>
 </aside>
 <main id="main" style="display:none;">
     <div id="page-dashboard" class="page active">
@@ -667,17 +667,34 @@
     const timetableState = { editingId: null, records: [], departments: [] };
     const activityState = { editingId: null, records: [], departments: [] };
 
+    const AUTH_TOKEN_KEY = 'attendx-auth-token';
+    const AUTH_USER_KEY = 'attendx-auth-user';
+
     function saveAuth() {
-        return;
+        if (!authToken || !currentUser) return;
+        localStorage.setItem(AUTH_TOKEN_KEY, authToken);
+        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(currentUser));
     }
 
     function loadSavedAuth() {
-        return false;
+        const token = localStorage.getItem(AUTH_TOKEN_KEY);
+        const user = localStorage.getItem(AUTH_USER_KEY);
+        if (!token || !user) return false;
+        try {
+            authToken = token;
+            currentUser = JSON.parse(user);
+            return true;
+        } catch (err) {
+            clearAuth();
+            return false;
+        }
     }
 
     function clearAuth() {
         authToken = null;
         currentUser = null;
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_USER_KEY);
     }
 
     async function apiCall(path, options = {}) {
