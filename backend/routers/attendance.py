@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import and_, func
+from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from datetime import datetime, timedelta
 from database import get_db
@@ -25,7 +26,7 @@ async def get_sessions(
     subject_id: Optional[int] = Query(None),
     dept_id: Optional[int] = Query(None)
 ):
-    query = select(AttendanceSession)
+    query = select(AttendanceSession).options(selectinload(AttendanceSession.records))
     
     if subject_id:
         query = query.where(AttendanceSession.subject_id == subject_id)
@@ -119,7 +120,10 @@ async def get_report(
     semester: Optional[int] = Query(None)
 ):
     
-    query = select(AttendanceRecord)
+    query = select(AttendanceRecord).options(
+        selectinload(AttendanceRecord.student),
+        selectinload(AttendanceRecord.session).selectinload(AttendanceSession.subject),
+    )
     
     if from_date and to_date:
         start = datetime.fromisoformat(from_date)
@@ -136,7 +140,6 @@ async def get_report(
     
     report = []
     for record in records:
-        await db.refresh(record, ["student", "session"])
         report.append({
             "student_id": record.student_id,
             "student_name": record.student.name,
@@ -194,7 +197,7 @@ async def get_heatmap(
     
     from_date = datetime.utcnow() - timedelta(days=days)
     
-    query = select(AttendanceRecord).join(AttendanceSession).where(
+    query = select(AttendanceRecord).options(selectinload(AttendanceRecord.session)).join(AttendanceSession).where(
         AttendanceSession.date >= from_date
     )
     
@@ -203,7 +206,6 @@ async def get_heatmap(
     
     heatmap = {}
     for record in records:
-        await db.refresh(record, ["student"])
         date_str = record.session.date.strftime("%Y-%m-%d")
         if date_str not in heatmap:
             heatmap[date_str] = {"present": 0, "absent": 0, "late": 0}

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from database import get_db
 from models import TimetableSlot, Subject, User, UserRole
@@ -18,7 +19,7 @@ async def get_timetable(
     semester: Optional[int] = Query(None),
     day: Optional[str] = Query(None)
 ):
-    query = select(TimetableSlot)
+    query = select(TimetableSlot).options(selectinload(TimetableSlot.subject))
     
     if dept_id:
         query = query.where(TimetableSlot.dept_id == dept_id)

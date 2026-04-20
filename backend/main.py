@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from contextlib import asynccontextmanager
@@ -63,6 +64,10 @@ app.include_router(departments.router)
 @app.get("/")
 async def root():
     return {"message": "AttendX API is running"}
+
+@app.head("/")
+async def root_head():
+    return Response(status_code=200)
 
 @app.get("/health")
 async def health():

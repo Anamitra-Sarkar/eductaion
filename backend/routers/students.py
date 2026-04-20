@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import and_
+from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from database import get_db
 from models import Student, User, Department, UserRole, StudentStatus
@@ -23,7 +24,7 @@ async def get_students(
     if not current_user:
         raise HTTPException(status_code=401, detail="Not authenticated")
     
-    query = select(Student)
+    query = select(Student).options(selectinload(Student.department))
     
     if dept_id:
         query = query.where(Student.dept_id == dept_id)
@@ -44,7 +45,11 @@ async def get_students(
 
 @router.get("/{id}", response_model=StudentWithDept)
 async def get_student(id: int, current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Student).where(Student.id == id))
+    result = await db.execute(
+        select(Student)
+        .options(selectinload(Student.department))
+        .where(Student.id == id)
+    )
     student = result.scalars().first()
     if not student:
         raise HTTPException(status_code=404, detail="Student not found")
