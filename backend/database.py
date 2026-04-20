@@ -5,7 +5,6 @@ from sqlalchemy.pool import NullPool
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./attendx.db")
 
-# SQLite doesn't support pool settings, use NullPool
 if "sqlite" in DATABASE_URL:
     engine = create_async_engine(
         DATABASE_URL,
@@ -14,7 +13,6 @@ if "sqlite" in DATABASE_URL:
         poolclass=NullPool,
     )
 else:
-    # For PostgreSQL/MySQL
     engine = create_async_engine(
         DATABASE_URL,
         echo=False,
@@ -30,6 +28,7 @@ AsyncSessionLocal = async_sessionmaker(
 
 Base = declarative_base()
 
+
 async def get_db():
     async with AsyncSessionLocal() as session:
         try:
@@ -37,20 +36,26 @@ async def get_db():
         finally:
             await session.close()
 
+
 async def init_db():
-    from models import (  # ensure all models are registered before create_all
+    from models import (  # noqa: F401 – registers all models with Base.metadata
         College, Department, User, Student, Subject,
         TimetableSlot, AttendanceSession, AttendanceRecord,
         Activity, ActivityEnrollment, Alumni,
-        LearningContent, Course, CourseModule, StudentCourseProgress, StudentModuleProgress, StudentXP,
+        LearningContent, Course, CourseModule,
+        StudentCourseProgress, StudentModuleProgress, StudentXP,
         Quiz, QuizQuestion, QuizAttempt,
         Internship, InternshipApplication,
         DocumentVerification,
         CareerProfile,
-        ClassSession
+        ClassSession,
     )
     async with engine.begin() as conn:
+        # Drop all tables and recreate when RESET_DB=true (use once to fix schema drift)
+        if os.getenv("RESET_DB", "false").lower() == "true":
+            await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
+
 
 async def drop_db():
     async with engine.begin() as conn:
