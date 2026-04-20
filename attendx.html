@@ -750,7 +750,7 @@
     }
 
     function canEditLearning() {
-        return isAdmin();
+        return isAdmin() || isFaculty();
     }
 
     function getQuickLinks() {
@@ -2070,7 +2070,7 @@
                     </div>
                     <div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">
                         ${getCourseProgress(course.id)?.completed ? '<span class="pill badge-green">Completed</span>' : ''}
-                        ${isAdmin() ? `<button class="pill" type="button" onclick="openModuleModal(${course.id}, ${module.id})">Edit Module</button><button class="pill" type="button" onclick="deleteModule(${module.id})">Delete Module</button>` : ''}
+                        ${canEditLearning() ? `<button class="pill" type="button" onclick="openModuleModal(${course.id}, ${module.id})">Edit Module</button><button class="pill" type="button" onclick="deleteModule(${module.id})">Delete Module</button>` : ''}
                     </div>
                 </div>
                 <div style="margin-top:1rem;">${video}${pdf ? `<div style="margin-bottom:1rem;">${pdf}</div>` : ''}${module.body ? `<div class="module-body">${formatLearningText(module.body)}</div>` : ''}</div>
@@ -2083,7 +2083,7 @@
 
     function renderAddModuleForm(course) {
         const role = currentUser?.role || '';
-        if (role !== 'admin') return '';
+        if (!canEditLearning()) return '';
         return `
             <div class="card">
                 <h3 style="margin-bottom:0.75rem;">Add Module</h3>
@@ -2139,7 +2139,7 @@
                     <div class="learning-actions">
                         ${!progress && currentUser?.role === 'student' ? `<button class="btn-primary" onclick="learningEnrollAndOpen(${course.id})">Start Learning</button>` : ''}
                         ${progress?.completed ? '<span class="pill badge-green">✓ Completed</span>' : ''}
-                        ${isAdmin() ? `<button class="btn-primary" onclick="openCourseModal(learningState.course)">Edit Course</button><button class="btn-primary" onclick="deleteCourse(${course.id})">Delete Course</button>` : ''}
+                        ${canEditLearning() ? `<button class="btn-primary" onclick="openCourseModal(learningState.course)">Edit Course</button><button class="btn-primary" onclick="deleteCourse(${course.id})">Delete Course</button>` : ''}
                     </div>
                 </div>
                 <div class="course-detail-layout">
@@ -2248,7 +2248,7 @@
 
     function bindLearningDom() {
         const form = document.getElementById('add-module-form');
-        if (form && isAdmin()) {
+        if (form && canEditLearning()) {
             form.onsubmit = async (e) => {
                 e.preventDefault();
                 const courseId = learningState.course?.id;
@@ -2450,7 +2450,7 @@
     }
 
     async function openCourseModal(course = null) {
-        if (!isAdmin()) return;
+        if (!canEditLearning()) return;
         if (!learningState.departments.length) learningState.departments = (await apiCall('/departments', { auth: false })) || [];
         const semesterOptions = ['<option value="">All Semesters</option>', ...Array.from({ length: 8 }).map((_, i) => `<option value="${i + 1}" ${Number(course?.semester) === i + 1 ? 'selected' : ''}>Semester ${i + 1}</option>`)].join('');
         const deptOptions = ['<option value="">All Departments</option>', ...learningState.departments.map(dep => `<option value="${dep.id}" ${Number(course?.dept_id) === Number(dep.id) ? 'selected' : ''}>${escapeHTML(dep.name)}</option>`)].join('');
@@ -2504,7 +2504,7 @@
     }
 
     async function openModuleModal(courseId, module = null) {
-        if (!isAdmin()) return;
+        if (!canEditLearning()) return;
         const title = module ? 'Edit Module' : 'Add Module';
         openModal(title, `
             <form id="module-form" class="grid" style="grid-template-columns:1fr 1fr;gap:0.75rem;">
