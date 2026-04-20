@@ -20,6 +20,7 @@
             --space-4: 1rem;
             --space-5: 1.25rem;
             --space-6: 1.5rem;
+            --header-height: 0px;
             --radius-md: 0.85rem;
             --radius-full: 999px;
             --shadow-lg: 0 18px 44px rgba(15,23,42,0.14);
@@ -66,7 +67,7 @@
             --color-orange: #f59e0b;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
+        html { scroll-behavior: smooth; scroll-padding-top: var(--header-height); }
         body {
             font-family: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background-color: var(--color-bg);
@@ -131,7 +132,7 @@
         }
         .nav-item:hover { background:var(--color-surface-offset); color:var(--color-text); }
         .nav-item.active { background:var(--color-surface-offset); color:var(--color-primary); border-left-color:var(--color-primary); }
-        main { margin-left:250px; padding:1.5rem 2rem 2rem; min-height:100vh; width:calc(100% - 250px); }
+        main { margin-left:250px; padding:var(--header-height) 2rem 2rem; min-height:100vh; width:calc(100% - 250px); }
         .app-header {
             position:sticky; top:0; z-index:30; display:flex; align-items:center; justify-content:space-between;
             gap:1rem; margin-bottom:1.5rem; padding:1rem 1.25rem; border:1px solid var(--color-border);
@@ -303,7 +304,7 @@
         .quiz-option.wrong { border-color: var(--color-error); background: var(--color-error-highlight); }
         @media (max-width:900px) {
               aside { display:none; }
-                        main { margin-left:0; width:100%; padding:1rem 1rem 1.5rem; }
+                        main { margin-left:0; width:100%; padding:var(--header-height) 1rem 1.5rem; }
             body.authenticated { display:block; }
                         .app-header { position:static; align-items:flex-start; flex-direction:column; padding:1rem; }
                         .app-header-actions { width:100%; justify-content:space-between; }
@@ -665,6 +666,7 @@
     let currentTheme = 'light';
     let colleges = [];
     let departments = [];
+    let headerResizeObserver = null;
 
     function saveAuth() {
         return;
@@ -715,6 +717,12 @@
         return `<span class="badge badge-error">${s||'Unknown'}</span>`;
     }
 
+    function updateHeaderHeight() {
+        const header = document.getElementById('app-header');
+        if (!header) return;
+        document.documentElement.style.setProperty('--header-height', `${header.offsetHeight}px`);
+    }
+
     function showApp() {
         document.body.classList.add('authenticated');
         document.getElementById('page-login').style.display = 'none';
@@ -722,6 +730,7 @@
         document.getElementById('main').style.display = 'block';
         document.getElementById('theme-btn').style.display = 'flex';
         document.getElementById('mobile-nav').style.display = 'block';
+        updateHeaderHeight();
         applySidebarState();
         updateSidebarUser();
     }
@@ -733,6 +742,7 @@
         document.getElementById('main').style.display = 'none';
         document.getElementById('theme-btn').style.display = 'none';
         document.getElementById('mobile-nav').style.display = 'none';
+        updateHeaderHeight();
     }
 
     function switchAuthTab(tab) {
@@ -2268,6 +2278,13 @@
         document.documentElement.dataset.theme = currentTheme;
         document.getElementById('theme-btn').textContent = currentTheme === 'dark' ? '☀️' : '🌙';
         bindCommonExtras();
+        updateHeaderHeight();
+        if ('ResizeObserver' in window) {
+            headerResizeObserver = new ResizeObserver(updateHeaderHeight);
+            headerResizeObserver.observe(document.getElementById('app-header'));
+        } else {
+            window.addEventListener('resize', updateHeaderHeight);
+        }
         restoreSession();
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
