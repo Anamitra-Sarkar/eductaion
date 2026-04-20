@@ -132,7 +132,7 @@
         }
         .nav-item:hover { background:var(--color-surface-offset); color:var(--color-text); }
         .nav-item.active { background:var(--color-surface-offset); color:var(--color-primary); border-left-color:var(--color-primary); }
-        main { margin-left:250px; padding:var(--header-height) 2rem 2rem; min-height:100vh; width:calc(100% - 250px); }
+        main { margin-left:250px; padding:var(--header-height) 2rem 2rem; min-height:100vh; width:calc(100% - 250px); overflow-y:auto; }
         .app-header {
             position:sticky; top:0; z-index:30; display:flex; align-items:center; justify-content:space-between;
             gap:1rem; margin-bottom:1.5rem; padding:1rem 1.25rem; border:1px solid var(--color-border);
@@ -699,19 +699,28 @@
 
     async function apiCall(path, options = {}) {
         try {
+            const { timeoutMs, ...fetchOptions } = options;
             const headers = { ...(options.headers || {}) };
             const shouldAuth = options.auth !== false && authToken;
             if (shouldAuth) headers.Authorization = `Bearer ${authToken}`;
             if (!(options.body instanceof FormData) && options.body && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
+            const controller = timeoutMs ? new AbortController() : null;
+            const timer = timeoutMs ? setTimeout(() => controller.abort(), timeoutMs) : null;
             const res = await fetch(API_BASE + path, {
-                ...options,
+                ...fetchOptions,
+                signal: controller?.signal,
                 headers
             });
+            if (timer) clearTimeout(timer);
             if (res.status === 401) { logout(false); return null; }
             const data = await res.json().catch(() => null);
             if (!res.ok) { showToast(data?.detail || 'Request failed', 'error'); return null; }
             return data;
         } catch (err) {
+            if (err.name === 'AbortError') {
+                showToast('Request timed out', 'error');
+                return null;
+            }
             showToast('Cannot reach server: ' + err.message, 'error');
             return null;
         }
@@ -1260,16 +1269,21 @@
         document.getElementById('settings-admin-shortcuts').style.display = isAdmin ? 'block' : 'none';
         if (!isAdmin) return;
 
-        const [docs, faculty] = await Promise.all([apiCall('/documents'), apiCall('/auth/faculty')]);
+        const facultyBox = document.getElementById('faculty-list');
+        facultyBox.innerHTML = '<div class="loading">Loading...</div>';
+
+        const [docs, faculty] = await Promise.all([
+            apiCall('/documents', { timeoutMs: 10000 }),
+            apiCall('/auth/faculty', { timeoutMs: 10000 })
+        ]);
         document.getElementById('pending-doc-count').textContent = Array.isArray(docs) ? docs.filter(d => !d.verified).length : '-';
 
-        const facultyBox = document.getElementById('faculty-list');
         if (!faculty) {
             facultyBox.innerHTML = errorState('Unable to load faculty accounts.', 'loadSettings()');
             return;
         }
         if (!faculty.length) {
-            facultyBox.innerHTML = emptyState('users', 'No faculty accounts', 'Create faculty accounts from the form above.');
+            facultyBox.innerHTML = '<div class="empty-state">No members to show.</div>';
             return;
         }
 
