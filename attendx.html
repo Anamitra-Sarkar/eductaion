@@ -74,6 +74,30 @@
             color: var(--color-text);
             line-height: 1.5;
             transition: background-color 0.35s ease, color 0.35s ease;
+            position: relative;
+            isolation: isolate;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -2;
+            background:
+                radial-gradient(circle at 12% 18%, rgba(1,105,111,0.12), transparent 30%),
+                radial-gradient(circle at 88% 12%, rgba(201,162,39,0.10), transparent 26%),
+                radial-gradient(circle at 80% 82%, rgba(214,125,181,0.08), transparent 24%);
+            filter: blur(2px);
+            opacity: 0.85;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent 30%, rgba(255,255,255,0.03));
+            opacity: 0.35;
         }
         h1, h2, h3, h4, h5, h6 { font-family: 'General Sans', sans-serif; font-weight: 700; color: var(--color-text); line-height: 1.15; }
         button, input, select, textarea { font: inherit; }
@@ -90,11 +114,14 @@
         input:focus, select:focus, textarea:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-highlight); }
         .btn-primary { background: var(--color-primary); color: #fff; }
         .btn-primary:hover { background: var(--color-primary-hover); }
+        .btn-primary, .pill, .tab-btn, .theme-toggle {
+            box-shadow: 0 8px 22px rgba(15,23,42,0.06);
+        }
         .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
         .badge { display:inline-flex; align-items:center; padding:0.3rem 0.7rem; border-radius:999px; font-size:0.8rem; font-weight:600; }
-        .badge-success { background:rgba(67,122,34,0.12); color:var(--color-success); }
-        .badge-warning { background:rgba(150,66,25,0.12); color:var(--color-warning); }
-        .badge-error { background:rgba(161,44,123,0.12); color:var(--color-error); }
+        .badge-success { background:rgba(67,122,34,0.16); color:var(--color-success); }
+        .badge-warning { background:rgba(150,66,25,0.18); color:var(--color-warning); }
+        .badge-error { background:rgba(161,44,123,0.16); color:var(--color-error); }
         .login-wrapper {
             display:flex; align-items:center; justify-content:center;
             min-height:calc(100vh - 6.75rem); padding:1.5rem;
@@ -172,8 +199,8 @@
         .page-header h1 { font-size:2.05rem; font-weight:800; letter-spacing:-0.03em; }
         .page-sub { color:var(--color-text-muted); margin-top:0.35rem; letter-spacing:0.01em; }
         .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1.25rem; margin-bottom:1.5rem; }
-        .card { background:var(--color-surface); border:1px solid var(--color-border); border-radius:1rem; padding:1.25rem; margin-bottom:1.25rem; box-shadow:0 6px 18px rgba(15,23,42,0.04); transition:transform var(--transition-interactive), box-shadow var(--transition-interactive), border-color var(--transition-interactive), background-color var(--transition-interactive); }
-        .card:hover { transform:translateY(-2px); box-shadow:0 14px 32px rgba(15,23,42,0.08); border-color:var(--color-primary); }
+        .card { background:var(--color-surface); border:1px solid var(--color-border); border-radius:1rem; padding:1.25rem; margin-bottom:1.25rem; box-shadow:0 6px 18px rgba(15,23,42,0.04); transition:transform var(--transition-interactive), box-shadow var(--transition-interactive), border-color var(--transition-interactive), background-color var(--transition-interactive); backdrop-filter:blur(14px); }
+        .card:hover { transform:translateY(-2px); box-shadow:0 18px 36px rgba(15,23,42,0.10); border-color:var(--color-primary); }
         .kpi { background:var(--color-surface); border:1px solid var(--color-border); border-radius:1rem; padding:1.25rem; transition:transform var(--transition-interactive), box-shadow var(--transition-interactive), border-color var(--transition-interactive); }
         .kpi:hover { transform:translateY(-2px); box-shadow:0 14px 28px rgba(15,23,42,0.07); border-color:var(--color-primary); }
         .kpi-link { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
@@ -205,7 +232,8 @@
         .chip.bad { background:rgba(161,44,123,0.12); color:var(--color-error); }
         .nav-row { display:flex; gap:0.75rem; flex-wrap:wrap; }
         .nav-row a { text-decoration:none; }
-        .pill { display:inline-flex; align-items:center; gap:0.35rem; padding:0.35rem 0.7rem; border-radius:999px; background:var(--color-surface-offset); font-size:0.85rem; }
+        .pill { display:inline-flex; align-items:center; gap:0.35rem; padding:0.35rem 0.7rem; border-radius:999px; background:var(--color-surface-offset); font-size:0.85rem; transition:transform var(--transition-interactive), box-shadow var(--transition-interactive), background-color var(--transition-interactive); }
+        .pill:hover { transform:translateY(-1px); box-shadow:0 10px 24px rgba(15,23,42,0.08); }
         .badge-blue { background:rgba(1,105,111,0.12); color:var(--color-primary); }
         .badge-green { background:rgba(67,122,34,0.12); color:var(--color-success); }
         .badge-yellow { background:rgba(150,66,25,0.12); color:var(--color-warning); }
@@ -250,10 +278,16 @@
         .module-body { max-width:65ch; white-space:normal; line-height:1.7; }
         .course-thumb-placeholder { width:100%; aspect-ratio:16/9; display:flex; align-items:center; justify-content:center; font-size:2rem; border-radius:var(--radius-md) var(--radius-md) 0 0; }
         .course-progress-ring { width:120px; height:120px; margin:0 auto; display:block; }
-        .learning-modal-shell { position:fixed; inset:0; z-index:3000; background:rgba(0,0,0,0.72); display:flex; align-items:center; justify-content:center; padding:1rem; }
-        .learning-modal-card { background:var(--color-surface); border:1px solid var(--color-border); border-radius:1rem; width:min(1100px,100%); max-height:92vh; overflow:auto; position:relative; padding:1.25rem; }
-        .badge-overlay { position:fixed; inset:0; z-index:4000; background:rgba(0,0,0,0.75); display:flex; align-items:center; justify-content:center; padding:1rem; }
-        .badge-card { position:relative; background:var(--color-surface); border:1px solid var(--color-border); border-radius:1.25rem; padding:1.5rem; width:min(520px,100%); text-align:center; overflow:hidden; }
+        .app-modal-shell,
+        .learning-modal-shell,
+        .badge-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:1rem; backdrop-filter:blur(20px); }
+        .app-modal-shell { z-index:2500; background:rgba(5,10,20,0.58); animation:fadeBackdrop 0.22s ease; }
+        .learning-modal-shell { z-index:3000; background:rgba(0,0,0,0.68); animation:fadeBackdrop 0.22s ease; }
+        .badge-overlay { z-index:4000; background:rgba(0,0,0,0.72); animation:fadeBackdrop 0.22s ease; }
+        .app-modal-card,
+        .learning-modal-card,
+        .badge-card { position:relative; background:var(--color-surface); border:1px solid var(--color-border); border-radius:1.25rem; padding:1.5rem; width:min(900px,100%); max-height:92vh; overflow:auto; text-align:left; box-shadow:0 30px 90px rgba(0,0,0,0.28); animation:modalPop 0.22s var(--transition-interactive); }
+        .badge-card { width:min(520px,100%); text-align:center; overflow:hidden; }
         .badge-icon { font-size:4rem; line-height:1; }
         .course-detail-actions { display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:1rem; }
         .floating-xp { position:absolute; right:1rem; top:1rem; font-weight:700; color:var(--color-success); animation:floatUp 1.1s ease forwards; pointer-events:none; }
@@ -283,6 +317,17 @@
             stroke: var(--color-primary); stroke-linecap: round;
             fill: none; stroke-width: 6;
         }
+        .app-modal-card::before,
+        .learning-modal-card::before,
+        .badge-card::before {
+            content:'';
+            position:absolute;
+            inset:0;
+            border-radius:inherit;
+            pointer-events:none;
+            background:linear-gradient(135deg, rgba(255,255,255,0.14), transparent 36%, rgba(255,255,255,0.04));
+            opacity:0.72;
+        }
         .level-up-banner {
             position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
             background: linear-gradient(90deg, var(--color-gold), var(--color-orange));
@@ -292,6 +337,8 @@
         }
         @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
         @keyframes slideUp { to { transform: translateY(-100%); } }
+        @keyframes fadeBackdrop { from { opacity:0; } to { opacity:1; } }
+        @keyframes modalPop { from { opacity:0; transform:translateY(14px) scale(0.98); } to { opacity:1; transform:translateY(0) scale(1); } }
         .quiz-option {
             width: 100%; text-align: left; padding: var(--space-4); margin-bottom: var(--space-2);
             border: 2px solid var(--color-border); border-radius: var(--radius-md);
@@ -1439,9 +1486,10 @@
         const { primary, grid, text } = cc();
         const ctx = document.getElementById('attendanceChart').getContext('2d');
         if (charts.attendance) charts.attendance.destroy();
+        const trend = buildAttendanceTrend(heatmapRes);
         charts.attendance = new Chart(ctx, {
             type: 'line',
-            data: { labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], datasets: [{ label: 'Attendance %', data: [78,82,80,86,84,88,Math.round(dashRes.attendance_percentage ?? 0)], borderColor: primary, backgroundColor: primary + '22', fill: true, tension: 0.35 }] },
+            data: { labels: trend.labels, datasets: [{ label: 'Attendance %', data: trend.values, borderColor: primary, backgroundColor: primary + '22', fill: true, tension: 0.35, pointRadius: 3, pointHoverRadius: 5 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: text } } }, scales: { x: { ticks: { color: text }, grid: { color: grid } }, y: { ticks: { color: text }, grid: { color: grid } } } }
         });
     }
@@ -1689,7 +1737,7 @@
 
     function openModal(title, body, mount) {
         document.getElementById('global-modal')?.remove();
-        document.body.insertAdjacentHTML('beforeend', `<div id="global-modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:2000;display:flex;align-items:center;justify-content:center;padding:1rem;"><div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:1rem;max-width:900px;width:100%;max-height:90vh;overflow:auto;padding:1.25rem;position:relative;"><button id="close-modal" class="btn-primary" style="position:absolute;top:1rem;right:1rem;padding:0.5rem 0.75rem;">Close</button><h2 style="margin-bottom:1rem;">${title}</h2><div id="modal-body">${body}</div></div></div>`);
+        document.body.insertAdjacentHTML('beforeend', `<div id="global-modal" class="app-modal-shell"><div class="app-modal-card"><button id="close-modal" class="btn-primary" style="position:absolute;top:1rem;right:1rem;padding:0.5rem 0.75rem;">Close</button><h2 style="margin-bottom:1rem;">${title}</h2><div id="modal-body">${body}</div></div></div>`);
         document.getElementById('close-modal').onclick = closeModal;
         document.getElementById('global-modal').onclick = (e) => { if (e.target.id === 'global-modal') closeModal(); };
         if (mount) mount();
